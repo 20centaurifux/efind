@@ -76,12 +76,12 @@ _read_options(int argc, char *argv[], Options *opts)
 		switch(opt)
 		{
 			case 'e':
-				opts->expr = strdup(strdup(optarg));
+				opts->expr = strdup(optarg);
 				opts->flags &= ~FLAG_STDIN; 
 				break;
 
 			case 'd':
-				opts->dir = strdup(strdup(optarg));
+				opts->dir = strdup(optarg);
 				break;
 
 			case 'q':
@@ -119,7 +119,7 @@ _read_expr_from_stdin(void)
 	if(bytes == -1)
 	{
 		fprintf(stderr, "getline() failed\n");
-		utils_free(expr);
+		free(expr);
 		expr = NULL;
 	}
 	else
