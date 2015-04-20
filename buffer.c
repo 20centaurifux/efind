@@ -52,9 +52,8 @@ buffer_free(Buffer *buf)
 void
 buffer_clear(Buffer *buf)
 {
-	RETURN_IF_INVALID(buf);
-
 	buf->len = 0;
+	buf->valid = true;
 }
 
 size_t
