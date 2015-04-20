@@ -125,7 +125,7 @@ bool buffer_read_line(Buffer *buf, char **dst, size_t *len);
 /**
    @param buf a buffer
    @param dst location to store buffer data
-   @oaram len buffer length
+   @param len buffer length
    @return true on success
 
    Copies data from the buffer to a string.

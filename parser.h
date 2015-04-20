@@ -44,7 +44,7 @@ typedef struct
 
 /**
    @param str string to parse
-   @param TranslationFlags translation flags
+   @param flags translation flags
    @param argc number of translated find arguments
    @param argv translated find arguments
    @param err location to store error message
@@ -56,13 +56,13 @@ bool parse_string(const char *str, TranslationFlags flags, size_t *argc, char **
 
 /**
    @param out stream to write the translated expression to
+   @param str expression to parse
    @param err stream to write failure messages to
-   @flags translation flags
+   @param flags translation flags
    @return true on success
 
    Converts an expression to a valid find string an writes it to the specified stream.
  */
 bool parse_string_and_print(FILE *out, FILE *err, const char *str, TranslationFlags flags);
 #endif
-
 
