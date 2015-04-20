@@ -1,3 +1,25 @@
+/***************************************************************************
+    begin........: April 2015
+    copyright....: Sebastian Fedrau
+    email........: sebastian.fedrau@gmail.com
+ ***************************************************************************/
+
+/***************************************************************************
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License v3 as published by
+    the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License v3 for more details.
+ ***************************************************************************/
+/**
+   @file translate.c
+   @brief Translate abstract syntax tree to find arguments.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @version 0.1.0
+*/
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +35,8 @@
 /*
  *	translation context
  */
+
+/*! @cond INTERNAL */
 typedef struct
 {
 	Node *root;    /* root node of the tree */
@@ -23,6 +47,7 @@ typedef struct
 	size_t msize;  /* size of argv array */
 	int32_t flags; /* translation flags */
 } TranslationCtx;
+/*! @endcond */
 
 /* initialize context */
 static void
