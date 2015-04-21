@@ -2,7 +2,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = "efine"
+PROJECT_NAME           = "efind"
 PROJECT_NUMBER         = "0.1.0"
 PROJECT_BRIEF          = "A find-wrapper providing simpler expressions."
 PROJECT_LOGO           =
