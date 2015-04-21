@@ -1,4 +1,29 @@
+/***************************************************************************
+    begin........: April 2015
+    copyright....: Sebastian Fedrau
+    email........: sebastian.fedrau@gmail.com
+ ***************************************************************************/
+
+/***************************************************************************
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License v3 as published by
+    the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License v3 for more details.
+ ***************************************************************************/
+/**
+   @file main.c
+   @brief efind application code.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @version 0.1.0
+*/
+/*! @cond INTERNAL */
 #define _GNU_SOURCE
+/*! @endcond */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -15,30 +40,56 @@
 #include "parser.h"
 #include "utils.h"
 
+/*! Major version. */
 #define VERSION_MAJOR 0
+/*! Minor version. */
 #define VERSION_MINOR 1
+/*! Patch level. */
 #define VERSION_PATCH 0
 
+/**
+   @enum Action
+   @brief Available applicatio actions.
+ */
 typedef enum
 {
+	/*! Abort program. */
 	ACTION_ABORT,
+	/*! Translate expression & execute find. */
 	ACTION_EXEC,
+	/*! Translate & print expression. */
 	ACTION_PRINT,
+	/*! Show help and quit. */
 	ACTION_PRINT_HELP,
+	/*! Show version and quit. */
 	ACTION_PRINT_VERSION
 } Action;
 
+/**
+   @enum Flags
+   @brief Application flags.
+ */
 typedef enum
 {
+	/*! No flags. */
 	FLAG_NONE   = 0,
+	/*! Read expression from stdin. */
 	FLAG_STDIN  = 1,
+	/*! Quote special terminal characters. */
 	FLAG_QUOTE  = 2
 } Flags;
 
+/**
+   @struct Options
+   @brief Application options.
+ */
 typedef struct
 {
+	/*! Flags. */
 	int32_t flags;
+	/*! Expression to translate. */
 	char *expr;
+	/*! Directory to search. */
 	char *dir;
 } Options;
 
@@ -204,6 +255,13 @@ _print_version(const char *name)
 	printf("%s, version %d.%d.%d\n", name, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 }
 
+/**
+f  @param argc number of arguments
+   @param argv argument vector
+   @return EXIT_SUCCESS on success
+
+   efind's entry point.
+ */
 int
 main(int argc, char *argv[])
 {
