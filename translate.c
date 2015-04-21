@@ -47,6 +47,8 @@ typedef struct
 	size_t msize;  /* size of argv array */
 	int32_t flags; /* translation flags */
 } TranslationCtx;
+
+#define QUOTE_ARGS(ctx) ctx->flags & TRANSLATION_FLAG_QUOTE
 /*! @endcond */
 
 /* initialize context */
@@ -284,8 +286,6 @@ _property_supports_type(PropertyId prop)
 {
 	return prop == PROP_TYPE;
 }
-
-#define QUOTE_ARGS(ctx) ctx->flags & TRANSLATION_FLAG_QUOTE
 
 /* test if a datatype can be assigned to a property by calling the specified validation function and set error message on failure */
 static bool

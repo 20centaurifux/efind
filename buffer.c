@@ -27,9 +27,10 @@
 #include "buffer.h"
 #include "utils.h"
 
+/*! @cond INTERNAL */
 #define RETURN_IF_INVALID(b) if(!buffer_is_valid(b)) return
-
 #define RETURN_VAL_IF_INVALID(b, v) if(!buffer_is_valid(b)) return v
+/*! @endcond */
 
 void
 buffer_init(Buffer *buf)

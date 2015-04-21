@@ -194,7 +194,9 @@ _node_new(size_t size, NodeType type)
 	return ptr;
 }
 
+/*! @cond INTERNAL */
 #define node_new(t, id) (t *)_node_new(sizeof(t), id)
+/*! @endcond */
 
 Node *
 ast_value_node_new_str(const char *value)
