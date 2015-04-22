@@ -45,9 +45,7 @@ buffer_init(Buffer *buf)
 void
 buffer_free(Buffer *buf)
 {
-	RETURN_IF_INVALID(buf);
-
-	utils_free(buf->data);
+	free(buf->data);
 }
 
 void
@@ -92,7 +90,7 @@ buffer_fill(Buffer *buf, const char *data, size_t len)
 
 		if(new_size > MAX_BUFFER_SIZE)
 		{
-			fprintf(stderr, "buffer exceeds maximum size");
+			fprintf(stderr, "buffer exceeds maximum size\n");
 			buf->valid = false;
 
 			return false;
@@ -100,7 +98,7 @@ buffer_fill(Buffer *buf, const char *data, size_t len)
 
 		if(new_size < buf->msize)
 		{
-			fprintf(stderr, "overflow in buf->msize calculation");
+			fprintf(stderr, "overflow in buf->msize calculation\n");
 			buf->valid = false;
 
 			return false;

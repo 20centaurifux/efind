@@ -10,7 +10,23 @@
 #include "parser.h"
 #include "parser.y.h"
 
+void yyerror(void *scanner, void **root, const char *msg);
+
 #define YY_EXTRA_TYPE ParserExtra *
+
+static bool
+_write_to_buffer(void *scanner, Buffer *buf, const char *str)
+{
+	bool success = true;
+
+	if(!buffer_fill(buf, str, strlen(str)))
+	{
+		yyerror(scanner, NULL, "Couldn't read string.");
+		success = false;
+	}
+
+	return success;
+}
 %}
 
 NUMBER			[0-9]+
@@ -44,7 +60,16 @@ TYPE			file|dir|directory|block|character|pipe|link|socket
 \"                      { BEGIN STRING; buffer_clear(&(yyextra->buffer)); }
 .                       { return TOKEN_UNDEFINED; }
 
-<STRING>\"		{ yylval->svalue = buffer_to_string(&(yyextra->buffer)); BEGIN INITIAL; return TOKEN_STRING; }
-<STRING>\\.		{ buffer_fill(&(yyextra->buffer), yytext, strlen(yytext)); }
-<STRING>.		{ buffer_fill(&(yyextra->buffer), yytext, strlen(yytext)); }
+<STRING>\" {
+	if(buffer_is_valid(&(yyextra->buffer)))
+	{
+		yylval->svalue = buffer_to_string(&(yyextra->buffer)); BEGIN INITIAL; return TOKEN_STRING;
+	}
+	else
+	{
+		return TOKEN_UNDEFINED;
+	}
+}
+<STRING>\\.		{ if(!_write_to_buffer(yyscanner, &(yyextra->buffer), yytext)) return TOKEN_UNDEFINED; }
+<STRING>.		{ if(!_write_to_buffer(yyscanner, &(yyextra->buffer), yytext)) return TOKEN_UNDEFINED; }
 %%
