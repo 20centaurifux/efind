@@ -50,15 +50,6 @@ utils_realloc(void *ptr, size_t size)
 	return ptr;
 }
 
-void
-utils_free(void *ptr)
-{
-	if(ptr)
-	{
-		free(ptr);
-	}
-}
-
 size_t
 utils_next_pow2(size_t n)
 {
@@ -75,5 +66,4 @@ utils_next_pow2(size_t n)
 
 	return n + 1;
 }
-
 
