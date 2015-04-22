@@ -169,7 +169,6 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, Ca
 			goto out;
 		}
 
-
 		if(dup2(errfds[1], 2) == -1)
 		{
 			perror("dup2()");
@@ -271,6 +270,7 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, Ca
 			else if(rc == -1)
 			{
 				perror("waitpid()");
+				finished = true;
 			}
 		}
 
