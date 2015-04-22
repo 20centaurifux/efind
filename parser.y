@@ -176,7 +176,7 @@ value:
     number                          { $$ = ast_value_node_new_int($1); }
     | number interval               { $$ = ast_value_node_new_int_pair(VALUE_TIME, $1, $2); }
     | number unit                   { $$ = ast_value_node_new_int_pair(VALUE_SIZE, $1, $2); }
-    | TOKEN_STRING                  { $$ = ast_value_node_new_str(yylval.svalue); }
+    | TOKEN_STRING                  { $$ = ast_value_node_new_str_nodup(yylval.svalue); }
     | TOKEN_TYPE                    { $$ = ast_value_node_new_type(yylval.ivalue); }
 
 number:

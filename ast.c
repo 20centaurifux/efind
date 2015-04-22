@@ -199,12 +199,12 @@ _node_new(size_t size, NodeType type)
 /*! @endcond */
 
 Node *
-ast_value_node_new_str(const char *value)
+ast_value_node_new_str_nodup(char *value)
 {
 	ValueNode *node = node_new(ValueNode, NODE_VALUE);
 
 	node->vtype = VALUE_STRING;
-	node->value.svalue = strdup(value);
+	node->value.svalue = value;
 
 	return (Node *)node;
 }
@@ -302,7 +302,7 @@ ast_free(Node *node)
 			fprintf(stderr, "%s:: invalid node type: %d\n", __func__, node->type);
 		}
 
-		utils_free(node);
+		free(node);
 	}
 }
 

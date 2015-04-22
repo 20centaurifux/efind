@@ -300,7 +300,7 @@ FileType ast_str_to_type(const char *str);
 
    Creates a new ValueNode with an assigned string.
  */
-Node *ast_value_node_new_str(const char *value);
+Node *ast_value_node_new_str_nodup(char *value);
 
 /**
    @param value a number to assign
