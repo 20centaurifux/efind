@@ -34,7 +34,7 @@ LPAREN			"("
 RPAREN			")"
 OPERATOR		or|and
 PROPERTY		name|iname|atime|ctime|mtime|size|group|gid|user|uid|type
-OPTION			follow|readable|writable
+FLAG			readable|writable|executable
 INTERVAL		hours|hour|h|minutes|minute|m|days|day|d
 UNIT			b|byte|bytes|k|kb|kilobyte|M|mb|megabyte|megabytes|G|gb|gigabyte
 TYPE			file|dir|directory|block|character|pipe|link|socket
@@ -53,10 +53,10 @@ TYPE			file|dir|directory|block|character|pipe|link|socket
 \<			{ yylval->ivalue = CMP_LT; return TOKEN_CMP; }
 {OPERATOR}		{ yylval->ivalue = ast_str_to_operator(yytext); return TOKEN_OPERATOR; }
 {PROPERTY}		{ yylval->ivalue = ast_str_to_property_id(yytext); return TOKEN_PROPERTY; }
+{FLAG}			{ yylval->ivalue = ast_str_to_flag(yytext); return TOKEN_FLAG; }
 {INTERVAL}		{ yylval->ivalue = ast_str_to_interval(yytext); return TOKEN_INTERVAL; }
 {UNIT}			{ yylval->ivalue = ast_str_to_unit(yytext); return TOKEN_UNIT; }
 {TYPE}			{ yylval->ivalue = ast_str_to_type(yytext); return TOKEN_TYPE; }
-{OPTION}		{ return TOKEN_OPTION; }
 \"                      { BEGIN STRING; buffer_clear(&(yyextra->buffer)); }
 .                       { return TOKEN_UNDEFINED; }
 

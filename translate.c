@@ -131,7 +131,7 @@ _set_error(TranslationCtx *ctx, const char *fmt, ...)
 }
 
 /*
- *	convert property ids:
+ *	convert property ids & flags:
  */
 
 /* convert property id to human-readable string */
@@ -247,6 +247,33 @@ _property_to_arg(PropertyId id, int arg)
 
 		default:
 			fprintf(stderr, "Invalid property id: %d\n", id);
+	}
+
+	return name;
+}
+
+/* flag to find argument */
+static const char *
+_flag_to_arg(FileFlag id)
+{
+	const char *name = NULL;
+
+	switch(id)
+	{
+		case FILE_FLAG_READABLE:
+			name = "-readable";
+			break;
+
+		case FILE_FLAG_WRITABLE:
+			name = "-writable";
+			break;
+
+		case FILE_FLAG_EXECUTABLE:
+			name = "-executable";
+			break;
+
+		default:
+			fprintf(stderr, "Invalid flag: %d\n", id);
 	}
 
 	return name;
@@ -620,6 +647,15 @@ _process_condition(TranslationCtx *ctx, ConditionNode *node)
 }
 
 static bool
+_process_flag(TranslationCtx *ctx, ValueNode *node)
+{
+	assert(ctx != NULL);
+	assert(node != NULL);
+
+	return _translation_ctx_append_arg(ctx, _flag_to_arg(node->value.ivalue));
+}
+
+static bool
 _process_node(TranslationCtx *ctx, Node *node)
 {
 	assert(ctx != NULL);
@@ -634,6 +670,10 @@ _process_node(TranslationCtx *ctx, Node *node)
 		else if(node->type == NODE_CONDITION)
 		{
 			return _process_condition(ctx, (ConditionNode *)node);
+		}
+		else if(node->type == NODE_VALUE && ((ValueNode *)node)->vtype == VALUE_FLAG)
+		{
+			return _process_flag(ctx, (ValueNode *)node);
 		}
 		else
 		{

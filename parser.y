@@ -140,15 +140,15 @@ parse_string_and_print(FILE *out, FILE *err, const char *str, TranslationFlags f
 %token TOKEN_CMP
 %token TOKEN_OPERATOR
 %token TOKEN_PROPERTY
+%token TOKEN_FLAG
 %token <ivalue>TOKEN_INTERVAL
-%token TOKEN_OPTION
 %token <ivalue> TOKEN_NUMBER
 %token <svalue> TOKEN_STRING
 %token <ivalue> TOKEN_UNIT
 %token <ivalue> TOKEN_TYPE
 %token TOKEN_UNDEFINED
 
-%type <node> value cond term exprs query
+%type <node> value cond term exprs query flag
 %type <ivalue> property number interval unit compare operator
 
 %%
@@ -163,11 +163,15 @@ exprs:
 term:
     TOKEN_LPAREN exprs TOKEN_RPAREN { $$ = ast_expr_node_new($2, OP_UNDEFINED, NULL); }
     | cond                          { $$ = $1; }
+    | flag                          { $$ = ast_expr_node_new($1, OP_UNDEFINED, NULL); }
     ;
 
 cond:
     property compare value          { $$ = ast_cond_node_new($1, $2, $3); }
     ;
+
+flag:
+    TOKEN_FLAG                      { $$ = ast_value_node_new_flag(yylval.ivalue); }
 
 property:
     TOKEN_PROPERTY                  { $$ = yylval.ivalue; }

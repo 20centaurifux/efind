@@ -182,6 +182,35 @@ ast_str_to_type(const char *str)
 	return type;
 }
 
+FileFlag
+ast_str_to_flag(const char *str)
+{
+	FileFlag flag = FILE_FLAG_UNDEFINED;
+
+	if(str)
+	{
+		switch(str[0])
+		{
+			case 'r':
+				flag = FILE_FLAG_READABLE;
+				break;
+
+			case 'w':
+				flag = FILE_FLAG_WRITABLE;
+				break;
+
+			case 'e':
+				flag = FILE_FLAG_EXECUTABLE;
+				break;
+
+			default:
+				fprintf(stderr, "Invalid str name: \"%s\"", str);
+		}
+	}
+
+	return flag;
+}
+
 static void *
 _node_new(size_t size, NodeType type)
 {
@@ -227,6 +256,17 @@ ast_value_node_new_type(FileType type)
 
 	node->vtype = VALUE_TYPE;
 	node->value.ivalue = type;
+
+	return (Node *)node;
+}
+
+Node *
+ast_value_node_new_flag(FileFlag flag)
+{
+	ValueNode *node = node_new(ValueNode, NODE_VALUE);
+
+	node->vtype = VALUE_FLAG;
+	node->value.ivalue = flag;
 
 	return (Node *)node;
 }

@@ -132,6 +132,22 @@ typedef enum
 } FileType;
 
 /**
+   @enum FileFlag
+   @brief File flags.
+  */
+typedef enum
+{
+	/*! Undefined. */
+	FILE_FLAG_UNDEFINED,
+	/*! File is readable. */
+	FILE_FLAG_READABLE,
+	/*! File is writable. */
+	FILE_FLAG_WRITABLE,
+	/*! File is executable. */
+	FILE_FLAG_EXECUTABLE
+} FileFlag;
+
+/**
    @enum NodeType
    @brief Tree node types.
  */
@@ -174,7 +190,9 @@ typedef enum
 	/*! File size unit and value. */
 	VALUE_SIZE,
 	/*! File type. */
-	VALUE_TYPE
+	VALUE_TYPE,
+	/*! File flag. */
+	VALUE_FLAG
 } ValueType;
 
 /**
@@ -295,6 +313,14 @@ UnitType ast_str_to_unit(const char *str);
 FileType ast_str_to_type(const char *str);
 
 /**
+   @param str string to convert
+   @return a FileFlag
+
+   Converts a string to a FileFlag.
+ */
+FileFlag ast_str_to_flag(const char *str);
+
+/**
    @param value string to assign
    @return a new Node
 
@@ -317,6 +343,14 @@ Node *ast_value_node_new_int(int value);
    Creates a new ValueType with an assigned file type.
  */
 Node *ast_value_node_new_type(FileType type);
+
+/**
+   @param flag file flag
+   @return a new Node
+
+   Creates a new ValueType with an assigned file fla.
+ */
+Node *ast_value_node_new_flag(FileFlag flag);
 
 /**
    @param type type of the value to store
