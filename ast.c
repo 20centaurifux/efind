@@ -34,20 +34,25 @@ ast_str_to_interval(const char *str)
 
 	if(str)
 	{
-		if(str[0] == 'm')
+		switch(str[0])
 		{
-			interval = TIME_MINUTES;
-		}
-		else if(str[0] == 'h')
-		{
-			interval = TIME_HOURS;
-		}
-		else if(str[0] == 'd')
-		{
-			interval = TIME_DAYS;
+			case 'm':
+				interval = TIME_MINUTES;
+				break;
+
+			case 'h':
+				interval = TIME_HOURS;
+				break;
+
+			case 'd':
+				interval = TIME_DAYS;
+				break;
+
+			default:
+				fprintf(stderr, "Invalid time interval string: \"%s\"", str);
 		}
 	}
-
+		
 	return interval;
 }
 
@@ -121,21 +126,28 @@ ast_str_to_unit(const char *str)
 
 	if(str)
 	{
-		if(str[0] == 'b')
+		switch(str[0])
 		{
-			unit = UNIT_BYTES;
-		}
-		else if(str[0] == 'k')
-		{
-			unit = UNIT_KB;
-		}
-		else if(str[0] == 'M' || str[0] == 'm')
-		{
-			unit = UNIT_MB;
-		}
-		else if(str[0] == 'g' || str[0] == 'G')
-		{
-			unit = UNIT_G;
+			case 'b':
+				unit = UNIT_BYTES;
+				break;
+
+			case 'k':
+				unit = UNIT_KB;
+				break;
+
+			case 'M':
+			case 'm':
+				unit = UNIT_MB;
+				break;
+
+			case 'g':
+			case 'G':
+				unit = UNIT_G;
+				break;
+
+			default:
+				fprintf(stderr, "Invalid unit string: \"%s\"", str);
 		}
 	}
 
@@ -149,33 +161,38 @@ ast_str_to_type(const char *str)
 
 	if(str)
 	{
-		if(str[0] == 'f')
+		switch(str[0])
 		{
-			type = FILE_REGULAR;
-		}
-		else if(str[0] == 'd')
-		{
-			type = FILE_DIRECTORY;
-		}
-		else if(str[0] == 'b')
-		{
-			type = FILE_BLOCK;
-		}
-		else if(str[0] == 'c')
-		{
-			type = FILE_CHARACTER;
-		}
-		else if(str[0] == 'p')
-		{
-			type = FILE_PIPE;
-		}
-		else if(str[0] == 's')
-		{
-			type = FILE_SOCKET;
-		}
-		else if(str[0] == 'l')
-		{
-			type = FILE_SYMLINK;
+			case 'f':
+				type = FILE_REGULAR;
+				break;
+
+			case 'd':
+				type = FILE_DIRECTORY;
+				break;
+
+			case 'b':
+				type = FILE_BLOCK;
+				break;
+
+			case 'c':
+				type = FILE_CHARACTER;
+				break;
+
+			case 'p':
+				type = FILE_PIPE;
+				break;
+
+			case 's':
+				type = FILE_SOCKET;
+				break;
+
+			case 'l':
+				type = FILE_SYMLINK;
+				break;
+
+			default:
+				fprintf(stderr, "Invalid file string: \"%s\"", str);
 		}
 	}
 
