@@ -291,7 +291,7 @@ _print_version(const char *name)
 }
 
 /**
-f  @param argc number of arguments
+   @param argc number of arguments
    @param argv argument vector
    @return EXIT_SUCCESS on success
 
