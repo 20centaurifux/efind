@@ -23,7 +23,6 @@
 #ifndef PARSER_EXTRA_H
 #define PARSER_EXTRA_H
 
-#include <stdio.h>
 #include <stdint.h>
 
 #include "buffer.h"
@@ -53,16 +52,5 @@ typedef struct
    Converts an expression to a find-compatible argument vector.
  */
 bool parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv, char **err);
-
-/**
-   @param out stream to write the translated expression to
-   @param str expression to parse
-   @param err stream to write failure messages to
-   @param flags translation flags
-   @return true on success
-
-   Converts an expression to a valid find string an writes it to the specified stream.
- */
-bool parse_string_and_print(FILE *out, FILE *err, const char *str, TranslationFlags flags);
 #endif
 

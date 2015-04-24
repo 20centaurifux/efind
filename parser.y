@@ -19,6 +19,7 @@
 #include "translate.h"
 #include "lexer.l.h"
 #include "parser.h"
+#include "search.h"
 
 int
 yyparse(void *scanner, void **root);
@@ -97,37 +98,6 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 	}
 
 	buffer_free(&extra.buffer);
-
-	return success;
-}
-
-bool
-parse_string_and_print(FILE *out, FILE *err, const char *str, TranslationFlags flags)
-{
-	size_t argc;
-	char **argv;
-	char *errmsg = NULL;
-	bool success = false;
-
-	if(parse_string(str, flags, &argc, &argv, &errmsg))
-	{
-		for(size_t i = 0; i < argc; ++i)
-		{
-			fprintf(out, "%s ", argv[i]);
-			free(argv[i]);
-		}
-
-		fprintf(out, "\n");
-		free(argv);
-
-		success = true;
-	}
-
-	if(errmsg)
-	{
-		fprintf(err, "%s\n", errmsg);
-		free(errmsg);
-	}
 
 	return success;
 }

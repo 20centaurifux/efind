@@ -91,6 +91,10 @@ typedef struct
 	char *expr;
 	/*! Directory to search. */
 	char *dir;
+	/*! Directory search level limitation. */
+	int32_t max_depth;
+	/*! Dereference symbolic links. */
+	bool follow;
 } Options;
 
 static Action
@@ -102,6 +106,8 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "quote", no_argument, 0, 'q' },
 		{ "dir", required_argument, 0, 'd' },
 		{ "print", no_argument, 0, 'p' },
+		{ "follow", no_argument, 0, 'L' },
+		{ "maxdepth", required_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
 		{ 0, 0, 0, 0 }
@@ -113,11 +119,11 @@ _read_options(int argc, char *argv[], Options *opts)
 	memset(opts, 0, sizeof(Options));
 
 	opts->flags = FLAG_STDIN;
-	opts->expr = NULL;
+	opts->max_depth = -1;
 
 	while(action != ACTION_ABORT)
 	{
-		int opt = getopt_long(argc, argv, "e:d:qpvh", long_options, &index);
+		int opt = getopt_long(argc, argv, "e:d:qpvhL", long_options, &index);
 
 		if(opt == -1)
 		{
@@ -149,6 +155,18 @@ _read_options(int argc, char *argv[], Options *opts)
 
 			case 'h':
 				action = ACTION_PRINT_HELP;
+				break;
+
+			case 'L':
+				opts->follow = true;
+				break;
+
+			case 0:
+				if(!strcmp(long_options[index].name, "maxdepth"))
+				{
+					opts->max_depth = atoi(optarg);
+				}
+
 				break;
 
 			default:
@@ -214,6 +232,13 @@ _get_translation_flags(const Options *opts)
 }
 
 static void
+_build_search_options(const Options *opts, SearchOptions *sopts)
+{
+	sopts->max_depth = opts->max_depth;
+	sopts->follow = opts->follow;
+}
+
+static void
 _file_cb(const char *path, void *user_data)
 {
 	fprintf(stdout, "%s\n", path);
@@ -228,13 +253,21 @@ _error_cb(const char *msg, void *user_data)
 static bool
 _exec_find(const Options *opts)
 {
-	return search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), _file_cb, _error_cb, NULL);
+	SearchOptions sopts;
+
+	_build_search_options(opts, &sopts);
+
+	return search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, NULL);
 }
 
 static bool
 _print_expr(const Options *opts)
 {
-	return parse_string_and_print(stdout, stderr, opts->expr, _get_translation_flags(opts));
+	SearchOptions sopts;
+
+	_build_search_options(opts, &sopts);
+
+	return search_debug(stdout, stderr, opts->dir, opts->expr, _get_translation_flags(opts), &sopts);
 }
 
 static void

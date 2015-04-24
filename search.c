@@ -90,30 +90,18 @@ _search_close_fd(int *fd)
 }
 
 static bool
-_search_translate_expr(const char *path, const char *expr, TranslationFlags flags, size_t *argc, char ***argv)
+_search_translate_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, size_t *argc, char ***argv)
 {
-	size_t fargc;
-	char **fargv;
 	char *err = NULL;
 	bool success = false;
 
-	if(parse_string(expr, flags, &fargc, &fargv, &err))
+	*argc = 0;
+	*argv = NULL;
+
+	/* translate string to find arguments */
+	if(parse_string(expr, flags, argc, argv, &err))
 	{
-		*argc = fargc + 3;
-		*argv = (char **)utils_malloc(sizeof(char *) * (*argc));
-
-		memset(*argv, 0, sizeof(char *) * (*argc));
-
-		(*argv)[0] = strdup("find");
-		(*argv)[1] = strdup(path);
-
-		for(size_t i = 0; i < fargc; ++i)
-		{
-			(*argv)[i + 2] = fargv[i];
-		}
-
-		free(fargv);
-
+		search_merge_options(argc, argv, path, opts);
 		success = true;
 	}
 
@@ -126,8 +114,55 @@ _search_translate_expr(const char *path, const char *expr, TranslationFlags flag
 	return success;
 }
 
+void
+search_merge_options(size_t *argc, char ***argv, const char *path, const SearchOptions *opts)
+{
+	char **nargv;
+	size_t maxsize;
+	size_t index = 0;
+	char buffer[16];
+
+	/* initialize argument vector */
+	maxsize = (*argc) + 6; /* "find" + path + *argv + options + NULL */
+
+	nargv = (char **)utils_malloc(sizeof(char *) * maxsize);
+	memset(nargv, 0, sizeof(char *) * maxsize);
+
+	/* first argument (executable name) */
+	nargv[index++] = strdup("find");
+
+	/* follow symbolic links? */
+	if(opts && opts->follow)
+	{
+		nargv[index++] = strdup("-L");
+	}
+
+	/* copy search path */
+	nargv[index++] = strdup(path);
+
+	/* copy translated find arguments */
+	for(size_t i = 0; i < *argc; ++i)
+	{
+		nargv[index++] = (*argv)[i];
+	}
+
+	/* maximum search depth */
+	if(opts && opts->max_depth >= 0)
+	{
+		snprintf(buffer, 16, "%d", opts->max_depth);
+
+		nargv[index++] = strdup("-maxdepth");
+		nargv[index++] = strdup(buffer);
+	}
+
+	*argc = index;
+
+	free(*argv);
+	*argv = nargv;
+}
+
 int
-search_files_expr(const char *path, const char *expr, TranslationFlags flags, Callback found_file, Callback err_message, void *user_data)
+search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data)
 {
 	int i;
 	int ret = -1;
@@ -187,7 +222,7 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, Ca
 		char **argv;
 		size_t argc;
 
-		if(_search_translate_expr(path, expr, flags, &argc, &argv))
+		if(_search_translate_expr(path, expr, flags, opts, &argc, &argv))
 		{
 			if(execv("/usr/bin/find", argv) == -1)
 			{
@@ -293,5 +328,36 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, Ca
 		}
 
 		return ret;
+}
+
+bool
+search_debug(FILE *out, FILE *err, const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts)
+{
+	size_t argc;
+	char **argv;
+	char *errmsg = NULL;
+	bool success = false;
+
+	if(_search_translate_expr(path, expr, flags, opts, &argc, &argv))
+	{
+		for(size_t i = 0; i < argc; ++i)
+		{
+			fprintf(out, "%s ", argv[i]);
+			free(argv[i]);
+		}
+
+		fprintf(out, "\n");
+		free(argv);
+
+		success = true;
+	}
+
+	if(errmsg)
+	{
+		fprintf(err, "%s\n", errmsg);
+		free(errmsg);
+	}
+
+	return success;
 }
 

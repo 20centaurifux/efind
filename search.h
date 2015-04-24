@@ -23,10 +23,23 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "translate.h"
+
+/**
+   @struct SearchOptions
+   @brief Search options.
+ */
+typedef struct
+{
+	/*! Directory search level limitation. */
+	int32_t max_depth;
+	/*! Dereference symbolic links. */
+	bool follow;
+} SearchOptions;
 
 /**
    @typedef Callback
@@ -35,9 +48,20 @@
 typedef void (*Callback)(const char *str, void *user_data);
 
 /**
+   @param argc number of arguments
+   @param argv vector containing find arguments
+   @param path search path
+   @param opts search options
+
+   Merges a vector containing find arguments with additional search options.
+  */
+void search_merge_options(size_t *argc, char ***argv, const char *path, const SearchOptions *opts);
+
+/**
    @param path directory to search in
    @param expr find expression
    @param flags translation flags
+   @param opts search options
    @param found_file function called for each found file
    @param err_message function called for each failure
    @param user_data user data
@@ -45,7 +69,19 @@ typedef void (*Callback)(const char *str, void *user_data);
 
    Translates expr and executes find with the translated arguments.
  */
-int search_files_expr(const char *path, const char *expr, TranslationFlags flags, Callback found_file, Callback err_message, void *user_data);
+int search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data);
 
+/**
+   @param out stream to write the translated expression to
+   @param path search directory
+   @param expr expression to parse
+   @param err stream to write failure messages to
+   @param flags translation flags
+   @param opts search options
+   @return true on success
+
+   Converts an expression to a valid find string an writes it to the specified stream.
+ */
+bool search_debug(FILE *out, FILE *err, const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts);
 #endif
 
