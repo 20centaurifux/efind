@@ -274,12 +274,14 @@ static void
 _print_help(const char *name)
 {
 	printf("Usage: %s [OPTIONS]\n\n", name);
-	printf("  -e, --expr       expression to evaluate when finding files\n");
-	printf("  -q, --quote      quote special characters in translated expression\n");
-	printf("  -dir, --dir      root directory\n");
-	printf("  -p, --print      don't search files but print expression to stdout\n");
-	printf("  -v, --version    show version and exit\n");
-	printf("  -h, --help       display this help and exit\n");
+	printf("  -e, --expr          expression to evaluate when finding files\n");
+	printf("  -q, --quote         quote special characters in translated expression\n");
+	printf("  -d, --dir           root directory\n");
+	printf("  -L, --follow        follow symbolic links\n");
+	printf("  --mapdepth levels   maximum search depth\n");
+	printf("  -p, --print         don't search files but print expression to stdout\n");
+	printf("  -v, --version       show version and exit\n");
+	printf("  -h, --help          display this help and exit\n");
 }
 
 static void
