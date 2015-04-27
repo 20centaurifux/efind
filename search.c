@@ -46,6 +46,8 @@ _search_read_lines(Buffer *buf, char **line, size_t *llen, Callback cb, void *us
 		{
 			cb(*line, user_data);
 		}
+
+		++count;
 	}
 
 	return count;
@@ -54,19 +56,20 @@ _search_read_lines(Buffer *buf, char **line, size_t *llen, Callback cb, void *us
 static int
 _search_flush_buffer(Buffer *buf, char **line, size_t *llen, Callback cb, void *user_data)
 {
-	int ret = 0;
+	int count = 0;
 
 	if(cb && !buffer_is_empty(buf))
 	{
-		ret = _search_read_lines(buf, line, llen, cb, user_data);
+		count = _search_read_lines(buf, line, llen, cb, user_data);
 
 		if(buffer_flush(buf, line, llen))
 		{
 			cb(*line, user_data);
+			++count;
 		}
 	}
 
-	return ret;
+	return count;
 }
 
 static int
