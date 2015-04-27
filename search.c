@@ -219,8 +219,8 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		}
 
 		/* run find */
-		char **argv;
-		size_t argc;
+		char **argv = NULL;
+		size_t argc = 0;
 		char *exe;
 
 		if((exe = utils_whereis("find")))
@@ -233,6 +233,15 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 					goto out;
 				}
 			}
+
+			/* cleanup */
+			for(size_t i = 0; i < argc; ++i)
+			{
+				free(argv[i]);
+			}
+
+			free(argv);
+			free(exe);
 		}
 		else
 		{
