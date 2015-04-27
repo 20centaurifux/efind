@@ -38,7 +38,7 @@ buffer_init(Buffer *buf)
 	memset(buf, 0, sizeof(Buffer));
 
 	buf->msize = 64;
-	buf->data = (char *)utils_malloc(64 * sizeof(char *));
+	buf->data = (char *)utils_malloc(buf->msize);
 	buf->valid = true;
 }
 
@@ -105,7 +105,7 @@ buffer_fill(Buffer *buf, const char *data, size_t len)
 		}
 
 		buf->msize = new_size;
-		buf->data = (char *)utils_realloc(buf->data, buf->msize * sizeof(char *));
+		buf->data = (char *)utils_realloc(buf->data, buf->msize);
 	}
 
 	/* copy data to buffer */
