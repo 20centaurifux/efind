@@ -50,5 +50,13 @@ void *utils_realloc(void *ptr, size_t size);
  */
 size_t utils_next_pow2(size_t n);
 
+/**
+   @param name executable to find
+   @return a new allocated string or NULL
+
+   Searches for an executable testing all directories found in PATH
+   environment variable.
+ */
+char * utils_whereis(const char *name);
 #endif
 

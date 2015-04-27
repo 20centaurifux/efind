@@ -21,6 +21,11 @@
    @version 0.1.0
 */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "utils.h"
 
@@ -65,5 +70,62 @@ utils_next_pow2(size_t n)
 	#endif
 
 	return n + 1;
+}
+
+char *
+utils_whereis(const char *name)
+{
+	char *rest;
+	char *token;
+	char path[512];
+	size_t len;
+	int written;
+	struct stat sb;
+
+	rest = getenv("PATH");
+
+	/* test if PATH is empty */
+	if(!rest || !rest[0])
+	{
+		return NULL;
+	}
+
+	while((token = strtok_r(rest, ":", &rest)))
+	{
+		/* build absolute path to executable file */
+		len = strlen(token);
+
+		if(!len)
+		{
+			continue;
+		}
+
+		if(token[len - 1] == '/')
+		{
+			written = snprintf(path, 512, "%sfind", token);
+		}
+		else
+		{
+			written = snprintf(path, 512, "%s/find", token);
+		}
+
+		if(written >= 512)
+		{
+			fprintf(stderr, "%s: string truncation\n", __func__);
+		}
+		else
+		{
+			/* test if file does exist & can be executed by user */
+			if(!stat(path, &sb))
+			{
+				if((sb.st_mode & S_IFMT) == S_IFREG && (sb.st_mode & S_IXUSR || sb.st_mode & S_IXGRP))
+				{
+					return strdup(path);
+				}
+			}
+		}
+	}
+
+	return NULL;
 }
 
