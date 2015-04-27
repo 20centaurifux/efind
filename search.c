@@ -221,14 +221,22 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		/* run find */
 		char **argv;
 		size_t argc;
+		char *exe;
 
-		if(_search_translate_expr(path, expr, flags, opts, &argc, &argv))
+		if((exe = utils_whereis("find")))
 		{
-			if(execv("/usr/bin/find", argv) == -1)
+			if(_search_translate_expr(path, expr, flags, opts, &argc, &argv))
 			{
-				perror("execl()");
-				goto out;
+				if(execv("/usr/bin/find", argv) == -1)
+				{
+					perror("execl()");
+					goto out;
+				}
 			}
+		}
+		else
+		{
+			fprintf(stderr, "Couldn't find 'find' executable.\n");
 		}
 	}
 	else
