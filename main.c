@@ -246,13 +246,19 @@ _build_search_options(const Options *opts, SearchOptions *sopts)
 static void
 _file_cb(const char *path, void *user_data)
 {
-	fprintf(stdout, "%s\n", path);
+	if(path)
+	{
+		printf("%s\n", path);
+	}
 }
 
 static void
 _error_cb(const char *msg, void *user_data)
 {
-	fprintf(stderr, "WARNING: %s\n", msg);
+	if(msg)
+	{
+		fprintf(stderr, "WARNING: %s\n", msg);
+	}
 }
 
 static bool
