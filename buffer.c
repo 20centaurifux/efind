@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "buffer.h"
 #include "utils.h"
@@ -45,12 +46,16 @@ buffer_init(Buffer *buf)
 void
 buffer_free(Buffer *buf)
 {
+	assert(buf != NULL);
+
 	free(buf->data);
 }
 
 void
 buffer_clear(Buffer *buf)
 {
+	assert(buf != NULL);
+
 	buf->len = 0;
 	buf->valid = true;
 }
@@ -66,6 +71,8 @@ buffer_len(const Buffer *buf)
 bool
 buffer_is_valid(const Buffer *buf)
 {
+	assert(buf != NULL);
+
 	return buf && buf->valid;
 }
 
@@ -81,6 +88,8 @@ bool
 buffer_fill(Buffer *buf, const char *data, size_t len)
 {
 	RETURN_VAL_IF_INVALID(buf, false);
+
+	assert(data != NULL);
 
 	/* test if data does fit */
 	if(len > buf->msize - buf->len)
@@ -126,6 +135,8 @@ buffer_fill_from_fd(Buffer *buf, int fd, size_t count)
 
 	RETURN_VAL_IF_INVALID(buf, 0);
 
+	assert(fd >= 0);
+
 	if((bytes = read(fd, data, count)) > 0)
 	{
 		if(!buffer_fill(buf, data, bytes))
@@ -140,6 +151,10 @@ buffer_fill_from_fd(Buffer *buf, int fd, size_t count)
 static void
 _buffer_copy_to(Buffer *buf, size_t count, char **dst, size_t *len)
 {
+	assert(buf != NULL);
+	assert(dst != NULL);
+	assert(len != NULL);
+
 	if(count + 1 > *len)
 	{
 		*len = count;
@@ -156,6 +171,9 @@ buffer_read_line(Buffer *buf, char **dst, size_t *len)
 	char *ptr;
 
 	RETURN_VAL_IF_INVALID(buf, false);
+
+	assert(dst != NULL);
+	assert(len != NULL);
 
 	/* find line-break */
 	if((ptr = memchr(buf->data, '\n', buf->len)))
@@ -179,6 +197,9 @@ bool
 buffer_flush(Buffer *buf, char **dst, size_t *len)
 {
 	RETURN_VAL_IF_INVALID(buf, false);
+
+	assert(dst != NULL);
+	assert(len != NULL);
 
 	if(!buf->len)
 	{
