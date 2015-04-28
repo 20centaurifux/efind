@@ -55,6 +55,9 @@ typedef struct
 static void
 _translation_ctx_init(TranslationCtx *ctx, Node *root, TranslationFlags flags)
 {
+	assert(ctx != NULL);
+	assert(root != NULL);
+
 	memset(ctx, 0, sizeof(TranslationCtx));
 	ctx->root = root;
 	ctx->msize = 8;
@@ -67,6 +70,7 @@ static bool
 _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 {
 	assert(ctx != NULL);
+	assert(arg != NULL);
 
 	if(ctx->argc >= ctx->msize)
 	{
@@ -95,6 +99,8 @@ _translation_ctx_append_args(TranslationCtx *ctx, ...)
 	va_list ap;
 	bool success = true;
 
+	assert(ctx != NULL);
+
 	va_start(ap, ctx);
 
 	arg = va_arg(ap, const char *);
@@ -118,6 +124,7 @@ _set_error(TranslationCtx *ctx, const char *fmt, ...)
 	va_list ap;
 
 	assert(ctx != NULL);
+	assert(fmt != NULL);
 
 	if(ctx->err)
 	{
@@ -320,6 +327,10 @@ _test_property(TranslationCtx *ctx, PropertyId prop, bool (*test_property)(Prope
 {
 	bool success = true;
 
+	assert(ctx != NULL);
+	assert(test_property != NULL);
+	assert(type_desc != NULL);
+
 	if(!test_property(prop))
 	{
 		_set_error(ctx, "Cannot assign %s value to property \"%s\".", type_desc, _property_to_str(prop));
@@ -339,6 +350,9 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 	char value[64];
 	char *lparen, *rparen;
 	bool success = true;
+
+	assert(ctx != NULL);
+	assert(arg != NULL);
 
 	if(suffix == NULL)
 	{
@@ -388,6 +402,8 @@ _append_time_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 {
 	bool success = true;
 
+	assert(ctx != NULL);
+
 	if(unit == TIME_HOURS)
 	{
 		int64_t val64 = val * 60;
@@ -416,6 +432,8 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 {
 	const char *suffix = NULL;
 	bool success = true;
+
+	assert(ctx != NULL);
 
 	switch(unit)
 	{
@@ -453,6 +471,8 @@ _append_type_cond(TranslationCtx *ctx, PropertyId prop, FileType type)
 {
 	const char *t;
 	bool success = true;
+
+	assert(ctx != NULL);
 
 	switch(type)
 	{
@@ -502,6 +522,9 @@ static bool
 _append_string_arg(TranslationCtx *ctx, const char *propname, const char *val)
 {
 	char str[PARSER_MAX_EXPRESSION_LENGTH];
+
+	assert(ctx != NULL);
+	assert(val != NULL);
 
 	if(QUOTE_ARGS(ctx))
 	{
@@ -701,6 +724,11 @@ translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char *
 {
 	TranslationCtx ctx;
 	bool success;
+
+	assert(root != NULL);
+	assert(argc != NULL);
+	assert(argv != NULL);
+	assert(err != NULL);
 
 	_translation_ctx_init(&ctx, root, flags);
 
