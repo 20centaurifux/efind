@@ -185,15 +185,20 @@ _read_expr_from_stdin(void)
 	
 	bytes = getline(&expr, &bytes, stdin);
 
-	if(bytes == -1)
+	if(bytes <= 0)
 	{
-		fprintf(stderr, "getline() failed\n");
+		if(bytes == -1)
+		{
+			perror("getline()");
+		}
+
 		free(expr);
 		expr = NULL;
 	}
 	else
 	{
-		expr[strlen(expr) - 1] = '\0';
+		/* delete newline character */
+		expr[bytes - 1] = '\0';
 	}
 
 	return expr;
