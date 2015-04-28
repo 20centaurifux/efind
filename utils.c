@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "utils.h"
 
@@ -33,6 +34,8 @@ void *
 utils_malloc(size_t size)
 {
 	void *ptr;
+
+	assert(size > 0);
 
 	if(!(ptr = malloc(size)))
 	{
@@ -46,6 +49,8 @@ utils_malloc(size_t size)
 void *
 utils_realloc(void *ptr, size_t size)
 {
+	assert(size > 0);
+
 	if(!(ptr = realloc(ptr, size)))
 	{
 		perror("realloc()");
@@ -58,6 +63,8 @@ utils_realloc(void *ptr, size_t size)
 size_t
 utils_next_pow2(size_t n)
 {
+	assert(n >= 2);
+
 	n -= 1;
 
 	n = (n >> 1) | n;
@@ -81,6 +88,8 @@ utils_whereis(const char *name)
 	size_t len;
 	int written;
 	struct stat sb;
+
+	assert(name != NULL);
 
 	rest = getenv("PATH");
 
