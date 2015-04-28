@@ -20,6 +20,7 @@
 #include "lexer.l.h"
 #include "parser.h"
 #include "search.h"
+#include "utils.h"
 
 int
 yyparse(void *scanner, void **root);
@@ -61,6 +62,12 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 	memset(&extra, 0, sizeof(ParserExtra));
 	buffer_init(&extra.buffer);
 
+	extra.expr_alloc = (Allocator *)chunk_allocator_new(sizeof(ExpressionNode), 16);
+	extra.cond_alloc = (Allocator *)chunk_allocator_new(sizeof(ConditionNode), 16);
+	extra.value_alloc = (Allocator *)chunk_allocator_new(sizeof(ValueNode), 16);
+
+	slist_init(&extra.strings, &direct_equal, &free, NULL);
+
 	/* setup scanner */
 	yylex_init(&scanner);
 	yyset_extra(&extra, scanner);
@@ -92,14 +99,29 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 	yylex_destroy(scanner);
 
 	/* cleanup */
-	if(root)
-	{
-		ast_free(root);
-	}
+	chunk_allocator_destroy((ChunkAllocator *)extra.expr_alloc);
+	chunk_allocator_destroy((ChunkAllocator *)extra.cond_alloc);
+	chunk_allocator_destroy((ChunkAllocator *)extra.value_alloc);
+
+	slist_clear(&extra.strings);
 
 	buffer_free(&extra.buffer);
 
 	return success;
+}
+
+#define EXPR_ALLOC(scanner) ((ParserExtra *)yyget_extra(scanner))->expr_alloc
+#define COND_ALLOC(scanner) ((ParserExtra *)yyget_extra(scanner))->cond_alloc
+#define VALUE_ALLOC(scanner) ((ParserExtra *)yyget_extra(scanner))->value_alloc
+
+static char *
+_parser_memorize_string(void *scanner, char *str)
+{
+	ParserExtra *extra = ((ParserExtra *)yyget_extra(scanner));
+
+	slist_append(&extra->strings, str);
+
+	return str;
 }
 %}
 
@@ -123,35 +145,35 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 
 %%
 query:
-    exprs                           { scanner = NULL; *root = $$; }
+    exprs                           { *root = $$; }
 
 exprs:
-    term operator exprs             { $$ = ast_expr_node_new($1, $2, $3); }
-    | term                          { $$ = ast_expr_node_new($1, OP_UNDEFINED, NULL); }
+    term operator exprs             { $$ = ast_expr_node_new_alloc(EXPR_ALLOC(scanner), $1, $2, $3); }
+    | term                          { $$ = ast_expr_node_new_alloc(EXPR_ALLOC(scanner), $1, OP_UNDEFINED, NULL); }
     ;
 
 term:
-    TOKEN_LPAREN exprs TOKEN_RPAREN { $$ = ast_expr_node_new($2, OP_UNDEFINED, NULL); }
+    TOKEN_LPAREN exprs TOKEN_RPAREN { $$ = ast_expr_node_new_alloc(EXPR_ALLOC(scanner), $2, OP_UNDEFINED, NULL); }
     | cond                          { $$ = $1; }
-    | flag                          { $$ = ast_expr_node_new($1, OP_UNDEFINED, NULL); }
+    | flag                          { $$ = ast_expr_node_new_alloc(EXPR_ALLOC(scanner), $1, OP_UNDEFINED, NULL); }
     ;
 
 cond:
-    property compare value          { $$ = ast_cond_node_new($1, $2, $3); }
+    property compare value          { $$ = ast_cond_node_new_alloc(COND_ALLOC(scanner), $1, $2, $3); }
     ;
 
 flag:
-    TOKEN_FLAG                      { $$ = ast_value_node_new_flag(yylval.ivalue); }
+    TOKEN_FLAG                      { $$ = ast_value_node_new_flag_alloc(VALUE_ALLOC(scanner), yylval.ivalue); }
 
 property:
     TOKEN_PROPERTY                  { $$ = yylval.ivalue; }
 
 value:
-    number                          { $$ = ast_value_node_new_int($1); }
-    | number interval               { $$ = ast_value_node_new_int_pair(VALUE_TIME, $1, $2); }
-    | number unit                   { $$ = ast_value_node_new_int_pair(VALUE_SIZE, $1, $2); }
-    | TOKEN_STRING                  { $$ = ast_value_node_new_str_nodup(yylval.svalue); }
-    | TOKEN_TYPE                    { $$ = ast_value_node_new_type(yylval.ivalue); }
+    number                          { $$ = ast_value_node_new_int_alloc(VALUE_ALLOC(scanner), $1); }
+    | number interval               { $$ = ast_value_node_new_int_pair_alloc(VALUE_ALLOC(scanner), VALUE_TIME, $1, $2); }
+    | number unit                   { $$ = ast_value_node_new_int_pair_alloc(VALUE_ALLOC(scanner), VALUE_SIZE, $1, $2); }
+    | TOKEN_STRING                  { $$ = ast_value_node_new_str_nodup_alloc(VALUE_ALLOC(scanner), _parser_memorize_string(scanner, yylval.svalue)); }
+    | TOKEN_TYPE                    { $$ = ast_value_node_new_type_alloc(VALUE_ALLOC(scanner), yylval.ivalue); }
 
 number:
     TOKEN_NUMBER                    { $$ = yylval.ivalue; }

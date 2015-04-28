@@ -3,12 +3,12 @@ BISON=bison
 DOXYGEN=doxygen
 
 CC=gcc
-CFLAGS=-Wall -std=gnu99
+CFLAGS=-Wall -std=gnu99 -g
 
 all:
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) main.c parser.y.c lexer.l.c buffer.c utils.c ast.c translate.c search.c -o efind $(CFLAGS)
+	$(CC) main.c parser.y.c lexer.l.c buffer.c utils.c ast.c translate.c search.c allocator.c slist.c datatypes.c -o efind $(CFLAGS)
 
 doc:
 	$(DOXYGEN) ./doxygen_config

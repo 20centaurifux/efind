@@ -240,14 +240,38 @@ _node_new(size_t size, NodeType type)
 	return ptr;
 }
 
+static void *
+_node_new_alloc(Allocator *alloc, size_t size, NodeType type)
+{
+	void *ptr = alloc->alloc(alloc);
+
+	memset(ptr, 0, size);
+
+	((Node *)ptr)->type = type;
+
+	 return ptr;
+}
+
 /*! @cond INTERNAL */
 #define node_new(t, id) (t *)_node_new(sizeof(t), id)
+#define node_new_alloc(a, t, id) (t *)_node_new_alloc(a, sizeof(t), id)
 /*! @endcond */
 
 Node *
 ast_value_node_new_str_nodup(char *value)
 {
 	ValueNode *node = node_new(ValueNode, NODE_VALUE);
+
+	node->vtype = VALUE_STRING;
+	node->value.svalue = value;
+
+	return (Node *)node;
+}
+
+Node *
+ast_value_node_new_str_nodup_alloc(Allocator *alloc, char *value)
+{
+	ValueNode *node = node_new_alloc(alloc, ValueNode, NODE_VALUE);
 
 	node->vtype = VALUE_STRING;
 	node->value.svalue = value;
@@ -267,9 +291,31 @@ ast_value_node_new_int(int value)
 }
 
 Node *
+ast_value_node_new_int_alloc(Allocator *alloc, int value)
+{
+	ValueNode *node = node_new_alloc(alloc, ValueNode, NODE_VALUE);
+
+	node->vtype = VALUE_NUMERIC;
+	node->value.ivalue = value;
+
+	return (Node *)node;
+}
+
+Node *
 ast_value_node_new_type(FileType type)
 {
 	ValueNode *node = node_new(ValueNode, NODE_VALUE);
+
+	node->vtype = VALUE_TYPE;
+	node->value.ivalue = type;
+
+	return (Node *)node;
+}
+
+Node *
+ast_value_node_new_type_alloc(Allocator *alloc, FileType type)
+{
+	ValueNode *node = node_new_alloc(alloc, ValueNode, NODE_VALUE);
 
 	node->vtype = VALUE_TYPE;
 	node->value.ivalue = type;
@@ -289,6 +335,17 @@ ast_value_node_new_flag(FileFlag flag)
 }
 
 Node *
+ast_value_node_new_flag_alloc(Allocator *alloc, FileFlag flag)
+{
+	ValueNode *node = node_new_alloc(alloc, ValueNode, NODE_VALUE);
+
+	node->vtype = VALUE_FLAG;
+	node->value.ivalue = flag;
+
+	return (Node *)node;
+}
+
+Node *
 ast_value_node_new_int_pair(ValueType type, int a, int b)
 {
 	ValueNode *node = node_new(ValueNode, NODE_VALUE);
@@ -299,17 +356,53 @@ ast_value_node_new_int_pair(ValueType type, int a, int b)
 
 	return (Node *)node;
 }
+	
+Node *
+ast_value_node_new_int_pair_alloc(Allocator *alloc, ValueType type, int a, int b)
+{
+	ValueNode *node = node_new_alloc(alloc, ValueNode, NODE_VALUE);
+
+	node->vtype = type;
+	node->value.pair.a = a;
+	node->value.pair.b = b;
+
+	return (Node *)node;
+}
+
+static void
+_ast_cond_node_init(ConditionNode *node, PropertyId prop, CompareType cmp, ValueNode *value)
+{
+	node->prop = prop;
+	node->cmp = cmp;
+	node->value = value;
+}
 
 Node *
 ast_cond_node_new(PropertyId prop, CompareType cmp, ValueNode *value)
 {
 	ConditionNode *node = node_new(ConditionNode, NODE_CONDITION);
 
-	node->prop = prop;
-	node->cmp = cmp;
-	node->value = value;
+	_ast_cond_node_init(node, prop, cmp, value);
 
 	return (Node *)node;
+}
+
+Node *
+ast_cond_node_new_alloc(Allocator *alloc, PropertyId prop, CompareType cmp, ValueNode *value)
+{
+	ConditionNode *node = node_new_alloc(alloc, ConditionNode, NODE_CONDITION);
+
+	_ast_cond_node_init(node, prop, cmp, value);
+
+	return (Node *)node;
+}
+
+static void
+_ast_expr_node_init(ExpressionNode *node, Node *first, OperatorType op, Node *second)
+{
+	node->first = first;
+	node->op = op;
+	node->second = second;
 }
 
 Node *
@@ -317,9 +410,17 @@ ast_expr_node_new(Node *first, OperatorType op, Node *second)
 {
 	ExpressionNode *node = node_new(ExpressionNode, NODE_EXPRESSION);
 
-	node->first = first;
-	node->op = op;
-	node->second = second;
+	_ast_expr_node_init(node, first, op, second);
+
+	return (Node *)node;
+}
+
+Node *
+ast_expr_node_new_alloc(Allocator *alloc, Node *first, OperatorType op, Node *second)
+{
+	ExpressionNode *node = node_new_alloc(alloc, ExpressionNode, NODE_EXPRESSION);
+
+	_ast_expr_node_init(node, first, op, second);
 
 	return (Node *)node;
 }

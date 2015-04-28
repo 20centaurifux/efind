@@ -27,9 +27,14 @@
 
 #include "buffer.h"
 #include "translate.h"
+#include "allocator.h"
+#include "slist.h"
 
 /*! Maximum expression length. */
 #define PARSER_MAX_EXPRESSION_LENGTH 512
+
+/*! Allocated string are store in a singly-linked list. */
+typedef SList StringFactory;
 
 /**
    @struct ParserExtra
@@ -39,6 +44,14 @@ typedef struct
 {
 	/*! A buffer used to read string data. */
 	Buffer buffer;
+	/*! Expression node allocator. */
+	Allocator *expr_alloc;
+	/*! Condition node allocator. */
+	Allocator *cond_alloc;
+	/*! Value node allocator. */
+	Allocator *value_alloc;
+	/*! A factory for strings. */
+	SList strings;
 } ParserExtra;
 
 /**
