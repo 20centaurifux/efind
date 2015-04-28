@@ -14,6 +14,7 @@
 }
 
 %{
+#include <assert.h>
 
 #include "ast.h"
 #include "translate.h"
@@ -40,6 +41,10 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 	YY_BUFFER_STATE buf;
 	bool success = false;
 	size_t i;
+
+	assert(argc != NULL);
+	assert(argv != NULL);
+	assert(err != NULL);
 
 	*argc = 0;
 	*argv = NULL;

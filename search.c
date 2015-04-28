@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "buffer.h"
 #include "search.h"
@@ -39,6 +40,11 @@ static int
 _search_read_lines(Buffer *buf, char **line, size_t *llen, Callback cb, void *user_data)
 {
 	int count = 0;
+
+	assert(buf != NULL);
+	assert(line != NULL);
+	assert(llen != NULL);
+	assert(cb != NULL);
 
 	while(buffer_read_line(buf, line, llen))
 	{
@@ -58,6 +64,11 @@ _search_flush_buffer(Buffer *buf, char **line, size_t *llen, Callback cb, void *
 {
 	int count = 0;
 
+	assert(buf != NULL);
+	assert(line != NULL);
+	assert(llen != NULL);
+	assert(cb != NULL);
+
 	if(cb && !buffer_is_empty(buf))
 	{
 		count = _search_read_lines(buf, line, llen, cb, user_data);
@@ -76,6 +87,8 @@ static int
 _search_close_fd(int *fd)
 {
 	int ret = 0;
+
+	assert(fd != NULL);
 
 	if(*fd >= 0)
 	{
@@ -97,6 +110,12 @@ _search_translate_expr(const char *path, const char *expr, TranslationFlags flag
 {
 	char *err = NULL;
 	bool success = false;
+
+	assert(path != NULL);
+	assert(expr != NULL);
+	assert(opts != NULL);
+	assert(argc != NULL);
+	assert(argv != NULL);
 
 	*argc = 0;
 	*argv = NULL;
@@ -124,6 +143,11 @@ search_merge_options(size_t *argc, char ***argv, const char *path, const SearchO
 	size_t maxsize;
 	size_t index = 0;
 	char buffer[16];
+
+	assert(argc != NULL);
+	assert(argv != NULL);
+	assert(path != NULL);
+	assert(opts != NULL);
 
 	/* initialize argument vector */
 	maxsize = (*argc) + 6; /* "find" + path + *argv + options + NULL */
@@ -172,6 +196,12 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 	pid_t pid;
 	int outfds[2]; // redirect stdout
 	int errfds[2]; // redirect stderr
+
+	assert(path != NULL);
+	assert(expr != NULL);
+	assert(opts != NULL);
+	assert(found_file != NULL);
+	assert(err_message != NULL);
 
 	memset(outfds, 0, sizeof(outfds));
 	memset(errfds, 0, sizeof(errfds));
@@ -357,6 +387,12 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 	char **argv;
 	char *errmsg = NULL;
 	bool success = false;
+
+	assert(out != NULL);
+	assert(err != NULL);
+	assert(path != NULL);
+	assert(expr != NULL);
+	assert(opts != NULL);
 
 	if(_search_translate_expr(path, expr, flags, opts, &argc, &argv))
 	{
