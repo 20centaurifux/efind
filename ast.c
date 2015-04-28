@@ -23,9 +23,18 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "ast.h"
 #include "utils.h"
+
+/*! @cond INTERNAL */
+#define NODE_TYPE_IS_VALID(t) (t > NODE_UNDEFINED && t <= NODE_VALUE)
+#define FILE_FLAG_IS_VALID(f) (f > FILE_FLAG_UNDEFINED && f <= FILE_FLAG_EXECUTABLE)
+#define PROPERTY_IS_VALID(p)  (p > PROP_UNDEFINED && p <= PROP_TYPE)
+#define CMP_TYPE_IS_VALID(c)  (c >= CMP_UNDEFINED && c <= CMP_GT)
+#define OPERATOR_IS_VALID(op) (op >= OP_UNDEFINED && op <= OP_OR)
+/*! @endcond */
 
 TimeInterval
 ast_str_to_interval(const char *str)
@@ -231,6 +240,9 @@ ast_str_to_flag(const char *str)
 static void *
 _node_new(size_t size, NodeType type)
 {
+	assert(size > 0);
+	assert(NODE_TYPE_IS_VALID(type));
+
 	void *ptr = utils_malloc(size);
 
 	memset(ptr, 0, size);
@@ -243,6 +255,10 @@ _node_new(size_t size, NodeType type)
 static void *
 _node_new_alloc(Allocator *alloc, size_t size, NodeType type)
 {
+	assert(alloc != NULL);
+	assert(size > 0);
+	assert(NODE_TYPE_IS_VALID(type));
+
 	void *ptr = alloc->alloc(alloc);
 
 	memset(ptr, 0, size);
@@ -328,6 +344,8 @@ ast_value_node_new_flag(FileFlag flag)
 {
 	ValueNode *node = node_new(ValueNode, NODE_VALUE);
 
+	assert(FILE_FLAG_IS_VALID(flag));
+
 	node->vtype = VALUE_FLAG;
 	node->value.ivalue = flag;
 
@@ -348,6 +366,8 @@ ast_value_node_new_flag_alloc(Allocator *alloc, FileFlag flag)
 Node *
 ast_value_node_new_int_pair(ValueType type, int a, int b)
 {
+	assert(type == VALUE_TIME || type == VALUE_SIZE);
+
 	ValueNode *node = node_new(ValueNode, NODE_VALUE);
 
 	node->vtype = type;
@@ -360,6 +380,8 @@ ast_value_node_new_int_pair(ValueType type, int a, int b)
 Node *
 ast_value_node_new_int_pair_alloc(Allocator *alloc, ValueType type, int a, int b)
 {
+	assert(type == VALUE_TIME || type == VALUE_SIZE);
+
 	ValueNode *node = node_new_alloc(alloc, ValueNode, NODE_VALUE);
 
 	node->vtype = type;
@@ -372,6 +394,11 @@ ast_value_node_new_int_pair_alloc(Allocator *alloc, ValueType type, int a, int b
 static void
 _ast_cond_node_init(ConditionNode *node, PropertyId prop, CompareType cmp, ValueNode *value)
 {
+	assert(node != NULL);
+	assert(PROPERTY_IS_VALID(prop));
+	assert(CMP_TYPE_IS_VALID(cmp));
+	assert((cmp == CMP_UNDEFINED && value == NULL) || (cmp != CMP_UNDEFINED && value != NULL));
+
 	node->prop = prop;
 	node->cmp = cmp;
 	node->value = value;
@@ -400,6 +427,11 @@ ast_cond_node_new_alloc(Allocator *alloc, PropertyId prop, CompareType cmp, Valu
 static void
 _ast_expr_node_init(ExpressionNode *node, Node *first, OperatorType op, Node *second)
 {
+	assert(node != NULL);
+	assert(first != NULL);
+	assert(OPERATOR_IS_VALID(op));
+	assert((op == OP_UNDEFINED && second == NULL) || (op != OP_UNDEFINED && second != NULL));
+
 	node->first = first;
 	node->op = op;
 	node->second = second;
