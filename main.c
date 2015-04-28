@@ -257,7 +257,7 @@ _exec_find(const Options *opts)
 
 	_build_search_options(opts, &sopts);
 
-	return search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, NULL);
+	return search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, NULL) >= 0;
 }
 
 static bool
