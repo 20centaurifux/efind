@@ -180,7 +180,7 @@ _read_options(int argc, char *argv[], Options *opts)
 static char *
 _read_expr_from_stdin(void)
 {
-	char *expr = (char *)utils_malloc(sizeof(char *) * PARSER_MAX_EXPRESSION_LENGTH);
+	char *expr = (char *)utils_malloc(PARSER_MAX_EXPRESSION_LENGTH);
 	size_t bytes = PARSER_MAX_EXPRESSION_LENGTH;
 	
 	bytes = getline(&expr, &bytes, stdin);
