@@ -35,6 +35,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <assert.h>
 
 #include "search.h"
 #include "parser.h"
@@ -115,6 +116,10 @@ _read_options(int argc, char *argv[], Options *opts)
 
 	int index = 0;
 	Action action = ACTION_EXEC;
+
+	assert(argc >= 1);
+	assert(argv != NULL);
+	assert(opts != NULL);
 
 	memset(opts, 0, sizeof(Options));
 
@@ -220,6 +225,8 @@ _autodetect_homedir(void)
 static bool
 _dir_is_valid(const char *path)
 {
+	assert(path != NULL);
+
 	struct stat sb;
 
 	if(stat(path, &sb))
@@ -233,12 +240,17 @@ _dir_is_valid(const char *path)
 static int32_t
 _get_translation_flags(const Options *opts)
 {
+	assert(opts != NULL);
+
 	return (opts->flags & FLAG_QUOTE) ? TRANSLATION_FLAG_QUOTE : TRANSLATION_FLAG_NONE;
 }
 
 static void
 _build_search_options(const Options *opts, SearchOptions *sopts)
 {
+	assert(opts != NULL);
+	assert(sopts != NULL);
+
 	sopts->max_depth = opts->max_depth;
 	sopts->follow = opts->follow;
 }
@@ -266,6 +278,8 @@ _exec_find(const Options *opts)
 {
 	SearchOptions sopts;
 
+	assert(opts != NULL);
+
 	_build_search_options(opts, &sopts);
 
 	return search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, NULL) >= 0;
@@ -276,6 +290,8 @@ _print_expr(const Options *opts)
 {
 	SearchOptions sopts;
 
+	assert(opts != NULL);
+
 	_build_search_options(opts, &sopts);
 
 	return search_debug(stdout, stderr, opts->dir, opts->expr, _get_translation_flags(opts), &sopts);
@@ -284,6 +300,8 @@ _print_expr(const Options *opts)
 static void
 _print_help(const char *name)
 {
+	assert(name != NULL);
+
 	printf("Usage: %s [OPTIONS]\n\n", name);
 	printf("  -e, --expr          expression to evaluate when finding files\n");
 	printf("  -q, --quote         quote special characters in translated expression\n");
