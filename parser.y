@@ -1,6 +1,7 @@
 %output  "parser.y.c"
 %defines "parser.y.h"
-%define api.pure
+%define api.pure full
+%locations
 
 %parse-param {void* scanner}
 %parse-param {void **root}
@@ -27,9 +28,36 @@ int
 yyparse(void *scanner, void **root);
 
 void
-yyerror(void *scanner, void **root, const char *str)
+yyerror(YYLTYPE *locp, void *scanner, void **root, const char *str)
 {
-	fprintf(stderr, "error: \"%s\"\n", str);
+	assert(locp != NULL);
+
+	if(str)
+	{
+		fprintf(stderr, "%s, ", str);
+	}
+	else
+	{
+		fprintf(stderr, "parsing failed, ");
+	}
+
+	if(locp->first_line == locp->last_line)
+	{
+		fprintf(stderr, "line: %d, ", locp->first_line);
+	}
+	else
+	{
+		fprintf(stderr, "line: %d-%d, ", locp->first_line, locp->last_line);
+	}
+
+	if(locp->first_column == locp->last_column)
+	{
+		fprintf(stderr, "column: %d\n", locp->first_column);
+	}
+	else
+	{
+		fprintf(stderr, "column: %d-%d\n", locp->first_column, locp->last_column);
+	}
 }
 
 bool
@@ -70,6 +98,8 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 	extra.expr_alloc = (Allocator *)chunk_allocator_new(sizeof(ExpressionNode), 16);
 	extra.cond_alloc = (Allocator *)chunk_allocator_new(sizeof(ConditionNode), 16);
 	extra.value_alloc = (Allocator *)chunk_allocator_new(sizeof(ValueNode), 16);
+	extra.column = 1;
+	extra.lineno = 1;
 
 	slist_init(&extra.strings, &direct_equal, &free, NULL);
 
@@ -143,7 +173,6 @@ _parser_memorize_string(void *scanner, char *str)
 %token <svalue> TOKEN_STRING
 %token <ivalue> TOKEN_UNIT
 %token <ivalue> TOKEN_TYPE
-%token TOKEN_UNDEFINED
 
 %type <node> value cond term exprs query flag
 %type <ivalue> property number interval unit compare operator

@@ -52,6 +52,10 @@ typedef struct
 	Allocator *value_alloc;
 	/*! A factory for strings. */
 	SList strings;
+	/*! Current column. */
+	int column;
+	/*! Current line number. */
+	int lineno;
 } ParserExtra;
 
 /**

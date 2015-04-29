@@ -1,6 +1,6 @@
 %option outfile="lexer.l.c" header-file="lexer.l.h"
 %option noyywrap nounput noinput
-%option reentrant bison-bridge
+%option reentrant bison-bridge bison-locations
 
 %{
 #include <stdio.h>
@@ -10,18 +10,26 @@
 #include "parser.h"
 #include "parser.y.h"
 
-void yyerror(void *scanner, void **root, const char *msg);
+/*! @cond INTERNAL */
+#define YY_USER_ACTION yylloc->first_line = yylloc->last_line; \
+                       yylloc->last_line = yyextra->lineno; \
+                       yylloc->first_column = yyextra->column; \
+                       yylloc->last_column = yyextra->column + yyleng - 1; \
+                       yyextra->column += yyleng;
+/*! @endcond */
+
+void yyerror(YYLTYPE *locp, void *scanner, void **root, const char *msg);
 
 #define YY_EXTRA_TYPE ParserExtra *
 
 static bool
-_write_to_buffer(void *scanner, Buffer *buf, const char *str)
+_write_to_buffer(YYLTYPE *locp, void *scanner, Buffer *buf, const char *str)
 {
 	bool success = true;
 
 	if(!buffer_fill(buf, str, strlen(str)))
 	{
-		yyerror(scanner, NULL, "Couldn't read string.");
+		yyerror(locp, scanner, NULL, "Couldn't read string.");
 		success = false;
 	}
 
@@ -42,7 +50,8 @@ TYPE			file|dir|directory|block|character|pipe|link|socket
 %x STRING
 
 %%
-[ \r\t\n]*		/* ignore whitespace */
+\n			yyextra->column = 1; yyextra->lineno++;
+[ \r\t]*		/* ignore whitespace */
 {NUMBER}		{ yylval->ivalue = atoi(yytext); return TOKEN_NUMBER; }
 {LPAREN}		{ return TOKEN_LPAREN; }
 {RPAREN}		{ return TOKEN_RPAREN; }
@@ -58,7 +67,7 @@ TYPE			file|dir|directory|block|character|pipe|link|socket
 {UNIT}			{ yylval->ivalue = ast_str_to_unit(yytext); return TOKEN_UNIT; }
 {TYPE}			{ yylval->ivalue = ast_str_to_type(yytext); return TOKEN_TYPE; }
 \"                      { BEGIN STRING; buffer_clear(&(yyextra->buffer)); }
-.                       { return TOKEN_UNDEFINED; }
+.			{ return 1; }
 
 <STRING>\" {
 	if(buffer_is_valid(&(yyextra->buffer)))
@@ -67,9 +76,11 @@ TYPE			file|dir|directory|block|character|pipe|link|socket
 	}
 	else
 	{
-		return TOKEN_UNDEFINED;
+		yyerror(yylloc, yyscanner, NULL, "Couldn't read string.");
+
+		return 0;
 	}
 }
-<STRING>\\.		{ if(!_write_to_buffer(yyscanner, &(yyextra->buffer), yytext)) return TOKEN_UNDEFINED; }
-<STRING>.		{ if(!_write_to_buffer(yyscanner, &(yyextra->buffer), yytext)) return TOKEN_UNDEFINED; }
+<STRING>\\.		{ if(!_write_to_buffer(yylloc, yyscanner, &(yyextra->buffer), yytext)) return 1; }
+<STRING>.		{ if(!_write_to_buffer(yylloc, yyscanner, &(yyextra->buffer), yytext)) return 1; }
 %%
