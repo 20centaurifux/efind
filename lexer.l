@@ -29,7 +29,7 @@ _write_to_buffer(YYLTYPE *locp, void *scanner, Buffer *buf, const char *str)
 
 	if(!buffer_fill(buf, str, strlen(str)))
 	{
-		yyerror(locp, scanner, NULL, "Couldn't read string.");
+		yyerror(locp, scanner, NULL, "Couldn't parse string.");
 		success = false;
 	}
 
@@ -76,7 +76,7 @@ TYPE			file|dir|directory|block|character|pipe|link|socket
 	}
 	else
 	{
-		yyerror(yylloc, yyscanner, NULL, "Couldn't read string.");
+		yyerror(yylloc, yyscanner, NULL, "Couldn't parse string.");
 
 		return 0;
 	}
