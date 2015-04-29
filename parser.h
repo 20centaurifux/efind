@@ -44,13 +44,9 @@ typedef struct
 {
 	/*! A buffer used to read string data. */
 	Buffer buffer;
-	/*! Expression node allocator. */
-	Allocator *expr_alloc;
-	/*! Condition node allocator. */
-	Allocator *cond_alloc;
-	/*! Value node allocator. */
-	Allocator *value_alloc;
-	/*! A factory for strings. */
+	/*! Memory allocator for nodes. */
+	Allocator *alloc;
+	/*! List containing pointers of allocated strings. */
 	SList strings;
 	/*! Current column. */
 	int column;
