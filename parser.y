@@ -136,7 +136,7 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 		{
 			for(i = 0; i < *argc; ++i)
 			{
-				free(argv[i]);
+				free((*argv)[i]);
 			}
 
 			*argc = 0;
