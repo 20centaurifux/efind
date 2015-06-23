@@ -144,13 +144,16 @@ size_t
 utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, ...)
 {
 	va_list ap;
-	const YYLTYPE *locp = &node->loc;
+	const YYLTYPE *locp;
 	char tmp[512];
 	size_t ret;
 
+	assert(node != NULL);
 	assert(locp != NULL);
 	assert(buf != NULL);
 	assert(size > 0);
+
+	locp = &node->loc;
 
 	memset(buf, 0, size);
 	memset(tmp, 0, sizeof(tmp));
