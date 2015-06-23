@@ -357,7 +357,8 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 static bool
 _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, int val, const char *suffix)
 {
-	char value[64];
+	char v0[64];
+	char v1[64];
 	char *lparen, *rparen;
 	bool success = true;
 
@@ -375,28 +376,30 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 	switch(cmp)
 	{
 		case CMP_LT_EQ:
-			snprintf(value, 64, "-%d%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, lparen, arg, value, "-o", arg, value, rparen, NULL);
+			snprintf(v0, 64, "%d%s", val, suffix);
+			snprintf(v1, 64, "-%d%s", val, suffix);
+			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v0, rparen, NULL);
 			break;
 
 		case CMP_GT_EQ:
-			snprintf(value, 64, "+%d%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, lparen, arg, value, "-o", arg, value, rparen, NULL);
+			snprintf(v0, 64, "%d%s", val, suffix);
+			snprintf(v1, 64, "+%d%s", val, suffix);
+			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL);
 			break;
 
 		case CMP_EQ:
-			snprintf(value, 64, "%d%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, arg, value, NULL);
+			snprintf(v0, 64, "%d%s", val, suffix);
+			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
 		case CMP_LT:
-			snprintf(value, 64, "-%d%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, arg, value, NULL);
+			snprintf(v0, 64, "-%d%s", val, suffix);
+			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
 		case CMP_GT:
-			snprintf(value, 64, "+%d%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, arg, value, NULL);
+			snprintf(v0, 64, "+%d%s", val, suffix);
+			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
 		default:
