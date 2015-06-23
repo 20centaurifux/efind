@@ -24,6 +24,7 @@
 #define AST_H
 
 #include "allocator.h"
+#include "parser.y.h"
 
 /**
    @enum PropertyId
@@ -173,6 +174,8 @@ typedef struct
 {
 	/*! Type of the node. */
 	NodeType type;
+	/*! Location information. */
+	YYLTYPE loc;
 } Node;
 
 /**
@@ -332,12 +335,13 @@ Node *ast_value_node_new_str_nodup(char *value);
 
 /**
    @param alloc an Allocator
+   @param locp location information
    @param value string to assign
    @return a new Node
 
    Creates a new ValueNode with an assigned string getting memory from an Allocator.
  */
-Node *ast_value_node_new_str_nodup_alloc(Allocator *alloc, char *value);
+Node *ast_value_node_new_str_nodup_alloc(Allocator *alloc, const YYLTYPE *locp, char *value);
 
 /**
    @param value a number to assign
@@ -349,12 +353,13 @@ Node *ast_value_node_new_int(int value);
 
 /**
    @param alloc an Allocator
+   @param locp location information
    @param value a number to assign
    @return a new Node
 
    Creates a new ValueNode with an assigned integer getting memory from an Allocator.
  */
-Node *ast_value_node_new_int_alloc(Allocator *alloc, int value);
+Node *ast_value_node_new_int_alloc(Allocator *alloc, const YYLTYPE *locp, int value);
 
 /**
    @param type file type
@@ -366,12 +371,13 @@ Node *ast_value_node_new_type(FileType type);
 
 /**
    @param alloc an Allocator
+   @param locp location information
    @param type file type
    @return a new Node
 
    Creates a new ValueNode with an assigned file type getting memory from an Allocator.
  */
-Node *ast_value_node_new_type_alloc(Allocator *alloc, FileType type);
+Node *ast_value_node_new_type_alloc(Allocator *alloc, const YYLTYPE *locp, FileType type);
 
 /**
    @param flag file flag
@@ -383,12 +389,13 @@ Node *ast_value_node_new_flag(FileFlag flag);
 
 /**
    @param alloc an Allocator
+   @param locp location information
    @param flag file flag
    @return a new Node
 
    Creates a new ValueNode with an assigned file flag getting memory from an Allocator.
  */
-Node *ast_value_node_new_flag_alloc(Allocator *alloc, FileFlag flag);
+Node *ast_value_node_new_flag_alloc(Allocator *alloc, const YYLTYPE *locp, FileFlag flag);
 
 /**
    @param type type of the value to store
@@ -402,6 +409,7 @@ Node *ast_value_node_new_int_pair(ValueType type, int a, int b);
 
 /**
    @param alloc an Allocator
+   @param locp location information
    @param type type of the value to store
    @param a first integer to store
    @param b second integer to store
@@ -409,7 +417,7 @@ Node *ast_value_node_new_int_pair(ValueType type, int a, int b);
 
    Creates a new ValueNode with an assigned integer pair getting memory from an Allocator.
  */
-Node *ast_value_node_new_int_pair_alloc(Allocator *alloc, ValueType type, int a, int b);
+Node *ast_value_node_new_int_pair_alloc(Allocator *alloc, const YYLTYPE *locp, ValueType type, int a, int b);
 
 /**
    @param prop a PropertyId
@@ -423,6 +431,7 @@ Node *ast_cond_node_new(PropertyId prop, CompareType cmp, ValueNode *value);
 
 /**
    @param alloc an Allocator
+   @param locp location information
    @param prop a PropertyId
    @param cmp a compare operator
    @param value a ValueNode
@@ -430,7 +439,7 @@ Node *ast_cond_node_new(PropertyId prop, CompareType cmp, ValueNode *value);
 
    Creates a new ConditionNode getting memory from an Allocator.
  */
-Node *ast_cond_node_new_alloc(Allocator *alloc, PropertyId prop, CompareType cmp, ValueNode *value);
+Node *ast_cond_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, PropertyId prop, CompareType cmp, ValueNode *value);
 
 /**
    @param first a Node
@@ -451,7 +460,7 @@ Node *ast_expr_node_new(Node *first, OperatorType op, Node *second);
 
    Creates a new ExpressionNode getting memory from an Allocator.
  */
-Node *ast_expr_node_new_alloc(Allocator *alloc, Node *first, OperatorType op, Node *second);
+Node *ast_expr_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorType op, Node *second);
 
 /**
    @param node node to free

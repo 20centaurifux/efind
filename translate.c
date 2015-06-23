@@ -118,9 +118,10 @@ _translation_ctx_append_args(TranslationCtx *ctx, ...)
 
 /* set error message */
 static void
-_set_error(TranslationCtx *ctx, const char *fmt, ...)
+_set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 {
 	char msg[512];
+	char loc_msg[576];
 	va_list ap;
 
 	assert(ctx != NULL);
@@ -133,8 +134,18 @@ _set_error(TranslationCtx *ctx, const char *fmt, ...)
 	}
 
 	va_start(ap, fmt);
-	vsnprintf(msg, 512, fmt, ap);
-	ctx->err = strdup(msg);
+	vsnprintf(msg, sizeof(msg), fmt, ap);
+	va_end(ap);
+
+	if(node)
+	{
+		utils_printf_loc(node, loc_msg, sizeof(loc_msg), msg);
+		ctx->err = strdup(loc_msg);
+	}
+	else
+	{
+		ctx->err = strdup(msg);
+	}
 }
 
 /*
@@ -194,7 +205,7 @@ _property_to_str(PropertyId id)
 			break;
 
 		default:
-			fprintf(stderr, "Invalid property id: %d", id);
+			fprintf(stderr, "%s:: critical error => invalid property id: %d", __func__, id);
 	}
 
 	return name;
@@ -253,7 +264,7 @@ _property_to_arg(PropertyId id, int arg)
 			break;
 
 		default:
-			fprintf(stderr, "Invalid property id: %d\n", id);
+			fprintf(stderr, "%s:: critical error => invalid property id: %d\n", __func__, id);
 	}
 
 	return name;
@@ -280,7 +291,7 @@ _flag_to_arg(FileFlag id)
 			break;
 
 		default:
-			fprintf(stderr, "Invalid flag: %d\n", id);
+			fprintf(stderr, "%s:: critical error => invalid flag: %d\n", __func__, id);
 	}
 
 	return name;
@@ -323,7 +334,7 @@ _property_supports_type(PropertyId prop)
 
 /* test if a datatype can be assigned to a property by calling the specified validation function and set error message on failure */
 static bool
-_test_property(TranslationCtx *ctx, PropertyId prop, bool (*test_property)(PropertyId id), const char *type_desc)
+_test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_property)(PropertyId id), const char *type_desc)
 {
 	bool success = true;
 
@@ -331,10 +342,9 @@ _test_property(TranslationCtx *ctx, PropertyId prop, bool (*test_property)(Prope
 	assert(test_property != NULL);
 	assert(type_desc != NULL);
 
-	if(!test_property(prop))
+	if(!test_property(node->prop))
 	{
-		_set_error(ctx, "Cannot assign %s value to property \"%s\".", type_desc, _property_to_str(prop));
-
+		_set_error(ctx, (Node *)node, "Cannot assign %s value to property \"%s\".", type_desc, _property_to_str(node->prop));
 		success = false;
 	}
 
@@ -390,7 +400,7 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 			break;
 
 		default:
-			_set_error(ctx, "%s:: unsupported compare id: %d", __func__, cmp);
+			_set_error(ctx, NULL, "%s:: critical error => unsupported compare id: %d", __func__, cmp);
 			success = false;
 	}
 
@@ -410,7 +420,7 @@ _append_time_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 
 		if(val64 > INT32_MAX || val64 < INT32_MIN)
 		{
-			_set_error(ctx, "%s:: integer overflow", __func__);
+			_set_error(ctx, NULL, "%s:: critical error => integer overflow", __func__);
 			success = false;
 		}
 		else
@@ -454,7 +464,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 			break;
 
 		default:
-			_set_error(ctx, "%s:: unsupported size id: %d", __func__, unit);
+			_set_error(ctx, NULL, "%s:: critical error => unsupported size id: %d", __func__, unit);
 			success = false;
 	}
 
@@ -505,7 +515,7 @@ _append_type_cond(TranslationCtx *ctx, PropertyId prop, FileType type)
 			break;
 
 		default:
-			_set_error(ctx, "%s:: unsupported file type: %d", __func__, type);
+			_set_error(ctx, NULL, "%s:: critical error => unsupported file type: %d", __func__, type);
 			success = false;
 
 	}
@@ -616,7 +626,7 @@ _process_condition(TranslationCtx *ctx, ConditionNode *node)
 	switch(node->value->vtype)
 	{
 		case VALUE_NUMERIC:
-			if((success = _test_property(ctx, node->prop, &_property_supports_number, "numeric")))
+			if((success = _test_property(ctx, node, &_property_supports_number, "numeric")))
 			{
 				if(_property_supports_time(node->prop))
 				{
@@ -634,35 +644,35 @@ _process_condition(TranslationCtx *ctx, ConditionNode *node)
 			break;
 
 		case VALUE_TIME:
-			if((success = _test_property(ctx, node->prop, &_property_supports_time, "time")))
+			if((success = _test_property(ctx, node, &_property_supports_time, "time")))
 			{
 				success = _append_time_cond(ctx, node->prop, node->cmp, node->value->value.pair.a, node->value->value.pair.b);
 			}
 			break;
 
 		case VALUE_STRING:
-			if((success = _test_property(ctx, node->prop, &_property_supports_string, "string")))
+			if((success = _test_property(ctx, node, &_property_supports_string, "string")))
 			{
 				success = _append_string_arg(ctx, _property_to_arg(node->prop, 0), node->value->value.svalue);
 			}
 			break;
 
 		case VALUE_SIZE:
-			if((success = _test_property(ctx, node->prop, &_property_supports_size, "size")))
+			if((success = _test_property(ctx, node, &_property_supports_size, "size")))
 			{
 				success = _append_size_cond(ctx, node->prop, node->cmp, node->value->value.pair.a, node->value->value.pair.b);
 			}
 			break;
 
 		case VALUE_TYPE:
-			if((success = _test_property(ctx, node->prop, &_property_supports_type, "filetype")))
+			if((success = _test_property(ctx, node, &_property_supports_type, "filetype")))
 			{
 				success = _append_type_cond(ctx, node->prop, node->value->value.ivalue);
 			}
 			break;
 
 		default:
-			_set_error(ctx, "%s:: unsupported value type: %d", __func__, node->value->vtype);
+			_set_error(ctx, NULL, "%s:: critical error => unsupported value type: %d", __func__, node->value->vtype);
 			break;
 	}
 
@@ -700,7 +710,7 @@ _process_node(TranslationCtx *ctx, Node *node)
 		}
 		else
 		{
-			_set_error(ctx, "%s:: unsupported node type: %d", __func__, node->type);
+			_set_error(ctx, node, "%s:: critical error => unsupported node type: %d", __func__, node->type);
 		}
 	}
 

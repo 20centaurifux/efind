@@ -192,32 +192,32 @@ query:
     exprs                           { *root = $$; }
 
 exprs:
-    term operator exprs             { $$ = ast_expr_node_new_alloc(ALLOC(scanner), $1, $2, $3); }
-    | term                          { $$ = ast_expr_node_new_alloc(ALLOC(scanner), $1, OP_UNDEFINED, NULL); }
+    term operator exprs             { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, $2, $3); }
+    | term                          { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, OP_UNDEFINED, NULL); }
     ;
 
 term:
-    TOKEN_LPAREN exprs TOKEN_RPAREN { $$ = ast_expr_node_new_alloc(ALLOC(scanner), $2, OP_UNDEFINED, NULL); }
+    TOKEN_LPAREN exprs TOKEN_RPAREN { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $2, OP_UNDEFINED, NULL); }
     | cond                          { $$ = $1; }
-    | flag                          { $$ = ast_expr_node_new_alloc(ALLOC(scanner), $1, OP_UNDEFINED, NULL); }
+    | flag                          { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, OP_UNDEFINED, NULL); }
     ;
 
 cond:
-    property compare value          { $$ = ast_cond_node_new_alloc(ALLOC(scanner), $1, $2, $3); }
+    property compare value          { $$ = ast_cond_node_new_alloc(ALLOC(scanner), &@1, $1, $2, $3); }
     ;
 
 flag:
-    TOKEN_FLAG                      { $$ = ast_value_node_new_flag_alloc(ALLOC(scanner), yylval.ivalue); }
+    TOKEN_FLAG                      { $$ = ast_value_node_new_flag_alloc(ALLOC(scanner), &@1, yylval.ivalue); }
 
 property:
     TOKEN_PROPERTY                  { $$ = yylval.ivalue; }
 
 value:
-    number                          { $$ = ast_value_node_new_int_alloc(ALLOC(scanner), $1); }
-    | number interval               { $$ = ast_value_node_new_int_pair_alloc(ALLOC(scanner), VALUE_TIME, $1, $2); }
-    | number unit                   { $$ = ast_value_node_new_int_pair_alloc(ALLOC(scanner), VALUE_SIZE, $1, $2); }
-    | TOKEN_STRING                  { $$ = ast_value_node_new_str_nodup_alloc(ALLOC(scanner), _parser_memorize_string(scanner, yylval.svalue)); }
-    | TOKEN_TYPE                    { $$ = ast_value_node_new_type_alloc(ALLOC(scanner), yylval.ivalue); }
+    number                          { $$ = ast_value_node_new_int_alloc(ALLOC(scanner), &@1, $1); }
+    | number interval               { $$ = ast_value_node_new_int_pair_alloc(ALLOC(scanner), &@1, VALUE_TIME, $1, $2); }
+    | number unit                   { $$ = ast_value_node_new_int_pair_alloc(ALLOC(scanner), &@1, VALUE_SIZE, $1, $2); }
+    | TOKEN_STRING                  { $$ = ast_value_node_new_str_nodup_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
+    | TOKEN_TYPE                    { $$ = ast_value_node_new_type_alloc(ALLOC(scanner), &@1, yylval.ivalue); }
 
 number:
     TOKEN_NUMBER                    { $$ = yylval.ivalue; }
