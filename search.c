@@ -260,7 +260,7 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		{
 			if(_search_translate_expr(path, expr, flags, opts, &argc, &argv))
 			{
-				if(execv("/usr/bin/find", argv) == -1)
+				if(execv(exe, argv) == -1)
 				{
 					perror("execl()");
 					goto out;
