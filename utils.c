@@ -23,10 +23,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <bsd/string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include "utils.h"
 
@@ -136,5 +138,61 @@ utils_whereis(const char *name)
 	}
 
 	return NULL;
+}
+
+size_t
+utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, ...)
+{
+	va_list ap;
+	const YYLTYPE *locp = &node->loc;
+	char tmp[512];
+	size_t ret;
+
+	assert(locp != NULL);
+	assert(buf != NULL);
+	assert(size > 0);
+
+	memset(buf, 0, size);
+	memset(tmp, 0, sizeof(tmp));
+
+	if(locp->first_line == locp->last_line)
+	{
+		snprintf(tmp, sizeof(tmp), "line: %d, ", locp->first_line);
+	}
+	else
+	{
+		snprintf(tmp, sizeof(tmp), "line: %d-%d, ", locp->first_line, locp->last_line);
+	}
+
+	if((ret = strlcat(buf, tmp, size)) > size)
+	{
+		goto out;
+	}
+
+	if(locp->first_column == locp->last_column)
+	{
+		snprintf(tmp, 32, "column: %d: ", locp->first_column);
+	}
+	else
+	{
+		snprintf(tmp, 32, "column: %d-%d: ", locp->first_column, locp->last_column);
+	}
+
+	if((ret = strlcat(buf, tmp, size)) > size)
+	{
+		goto out;
+	}
+
+	va_start(ap, format);
+
+	if(vsnprintf(tmp, sizeof(tmp), format, ap) < sizeof(tmp))
+	{
+		ret = strlcat(buf, tmp, size);
+	}
+
+	va_end(ap);
+
+	out:
+		return ret;
 }
 

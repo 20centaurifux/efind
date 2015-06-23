@@ -25,6 +25,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "ast.h"
+
 /**
    @param size number of bytes to allocate
    @return pointer to the allocated memory block
@@ -58,5 +60,17 @@ size_t utils_next_pow2(size_t n);
    environment variable.
  */
 char * utils_whereis(const char *name);
+
+/**
+   @param node a node providing location details
+   @param buf buffer to write message to
+   @param size size of buffer
+   @param format a format string
+   @param ... optional arguments
+   @return length of the message written to buffer
+
+   Writes a message to a string and prepends location details.
+ */
+size_t utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, ...);
 #endif
 

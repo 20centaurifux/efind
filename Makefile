@@ -4,11 +4,12 @@ DOXYGEN=doxygen
 
 CC=gcc
 CFLAGS=-Wall -std=gnu99 -g
+LIBS=-lbsd
 
 all:
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) main.c parser.y.c lexer.l.c buffer.c utils.c ast.c translate.c search.c allocator.c slist.c datatypes.c -o efind $(CFLAGS)
+	$(CC) main.c parser.y.c lexer.l.c buffer.c utils.c ast.c translate.c search.c allocator.c slist.c datatypes.c -o efind $(CFLAGS) $(LIBS)
 
 doc:
 	$(DOXYGEN) ./doxygen_config
