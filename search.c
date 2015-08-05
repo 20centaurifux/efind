@@ -20,6 +20,11 @@
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
    @version 0.1.0
 */
+
+/*! @cond INTERNAL */
+#define _GNU_SOURCE
+/*! @endcond */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
