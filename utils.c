@@ -62,25 +62,6 @@ utils_realloc(void *ptr, size_t size)
 	return ptr;
 }
 
-size_t
-utils_next_pow2(size_t n)
-{
-	assert(n >= 2);
-
-	n -= 1;
-
-	n = (n >> 1) | n;
-	n = (n >> 2) | n;
-	n = (n >> 4) | n;
-	n = (n >> 8) | n;
-	n = (n >> 16) | n;
-	#if UINTPTR_MAX == 0xffffffffffffffff
-	n = (n >> 32) | n;
-	#endif
-
-	return n + 1;
-}
-
 char *
 utils_whereis(const char *name)
 {

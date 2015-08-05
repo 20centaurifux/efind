@@ -72,16 +72,21 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 	assert(ctx != NULL);
 	assert(arg != NULL);
 
-	if(ctx->argc >= ctx->msize)
+	if(ctx->argc > ctx->msize)
 	{
-		size_t new_size = utils_next_pow2(ctx->msize + ctx->argc);
+		size_t new_size = ctx->msize;
 
-		if(new_size < ctx->msize)
+		do
 		{
-			fprintf(stderr, "overflow in ctx->msize calculation");
+			new_size *= 2;
 
-			return false;
-		}
+			if(new_size < ctx->msize)
+			{
+				fprintf(stderr, "overflow in ctx->msize calculation");
+
+				return false;
+			}
+		} while(new_size < ctx->argc);
 
 		ctx->msize = new_size;
 		ctx->argv = (char **)utils_realloc(ctx->argv, ctx->msize * sizeof(char *));
