@@ -1,3 +1,5 @@
+PREFIX=/usr/local
+
 FLEX=flex
 BISON=bison
 DOXYGEN=doxygen
@@ -11,6 +13,13 @@ all:
 	$(FLEX) lexer.l
 	$(BISON) parser.y
 	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./search.c -o ./efind $(CFLAGS) $(LIBS)
+
+install:
+	cp ./efind $(PREFIX)/bin/
+	chmod 555 $(PREFIX)/bin/efind
+
+uninstall:
+	rm -f $(PREFIX)/bin/efind
 
 doc:
 	$(DOXYGEN) ./doxygen_config
