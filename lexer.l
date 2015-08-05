@@ -6,7 +6,6 @@
 #include <stdio.h>
 
 #include "ast.h"
-#include "buffer.h"
 #include "parser.h"
 #include "parser.y.h"
 

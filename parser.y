@@ -24,6 +24,8 @@
 #include "search.h"
 #include "utils.h"
 
+#define BUFFER_MAX 512
+
 int
 yyparse(void *scanner, void **root);
 
@@ -111,7 +113,7 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 
 	/* initialize extra data */
 	memset(&extra, 0, sizeof(ParserExtra));
-	buffer_init(&extra.buffer);
+	buffer_init(&extra.buffer, BUFFER_MAX);
 
 	extra.alloc = (Allocator *)chunk_allocator_new(_parser_get_alloc_item_size(), 16);
 	extra.column = 1;

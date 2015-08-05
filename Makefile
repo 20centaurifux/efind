@@ -3,13 +3,14 @@ BISON=bison
 DOXYGEN=doxygen
 
 CC=gcc
-CFLAGS=-Wall -std=gnu99 -g
-LIBS=-lbsd
+CFLAGS=-Wall -std=gnu99
+LIBS=-lbsd -ldatatypes-0.1
+INC=-I/usr/local/include/datatypes
 
 all:
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) main.c parser.y.c lexer.l.c buffer.c utils.c ast.c translate.c search.c allocator.c slist.c datatypes.c -o efind $(CFLAGS) $(LIBS)
+	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./search.c -o ./efind $(CFLAGS) $(LIBS)
 
 doc:
 	$(DOXYGEN) ./doxygen_config

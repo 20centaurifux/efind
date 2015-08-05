@@ -25,10 +25,8 @@
 
 #include <stdint.h>
 
-#include "buffer.h"
+#include <datatypes.h>
 #include "translate.h"
-#include "allocator.h"
-#include "slist.h"
 
 /*! Maximum expression length. */
 #define PARSER_MAX_EXPRESSION_LENGTH 512

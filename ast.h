@@ -23,7 +23,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include "allocator.h"
+#include <datatypes.h>
 #include "parser.y.h"
 
 /**

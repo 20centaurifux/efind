@@ -30,8 +30,8 @@
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+#include <datatypes.h>
 
-#include "buffer.h"
 #include "search.h"
 #include "parser.h"
 #include "utils.h"
@@ -298,8 +298,8 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		Buffer outbuf;
 		Buffer errbuf;
 
-		buffer_init(&outbuf);
-		buffer_init(&errbuf);
+		buffer_init(&outbuf, 4096);
+		buffer_init(&errbuf, 4096);
 
 		char *line = NULL;
 		size_t llen = 0;
