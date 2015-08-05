@@ -72,7 +72,7 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 	assert(ctx != NULL);
 	assert(arg != NULL);
 
-	if(ctx->argc > ctx->msize)
+	if(ctx->argc >= ctx->msize)
 	{
 		size_t new_size = ctx->msize;
 
@@ -86,7 +86,7 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 
 				return false;
 			}
-		} while(new_size < ctx->argc);
+		} while(new_size <= ctx->argc);
 
 		ctx->msize = new_size;
 		ctx->argv = (char **)utils_realloc(ctx->argv, ctx->msize * sizeof(char *));
