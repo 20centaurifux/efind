@@ -7,13 +7,14 @@ Basically it's a wrapper for *GNU find* providing an easier expression syntax.
 
 ## Building efind
 
-**efind** is shipped with a small Makefile. To compile the program type
-in *make* and to cleanup the working directory *make clean*. The source code
-documentation can be build with *make doc*. Kindly note that this step
-requires *doxygen*.
+**efind** is shipped with a small Makefile. To compile and install the program
+type in *make* and *make install*. The source code documentation can be build
+with *make doc*. Kindly note that this step requires *doxygen*. Installation
+options can be customized in the Makefile.
 
 Before building **efind** ensure *GNU Bison* and *GNU Flex* is installed on
-your system.
+your system. You also need *libdatatypes-0.1*
+(https://github.com/20centaurifux/datatypes).
 
 ## Expression syntax
 
@@ -87,4 +88,4 @@ To show additional options type in
 
 The development of **efind** is at a very early stage. It has been tested only
 on *x86_64* with *GNU find 4.4.2*, *GNU Bison 2.7* *GNU Flex 2.5.3* and *gcc
-4.8.4*. It isn't ported to big endian yet.
+4.8.4*.
