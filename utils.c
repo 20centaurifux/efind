@@ -130,9 +130,9 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 	size_t ret;
 
 	assert(node != NULL);
-	assert(locp != NULL);
 	assert(buf != NULL);
 	assert(size > 0);
+	assert(format != NULL);
 
 	locp = &node->loc;
 
