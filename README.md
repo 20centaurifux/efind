@@ -14,7 +14,7 @@ options can be customized in the Makefile.
 
 Before building **efind** ensure *GNU Bison* and *GNU Flex* is installed on
 your system. You also need *libdatatypes-0.1*
-(https://github.com/20centaurifux/datatypes).
+(https://github.com/20centaurifux/datatypes) and libbsd.
 
 ## Expression syntax
 
