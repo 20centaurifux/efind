@@ -4,7 +4,7 @@ FLEX=flex
 BISON=bison
 DOXYGEN=doxygen
 
-CC=gcc
+CC=gcc -DWITH_OPENMP -fopenmp 
 CFLAGS=-Wall -std=gnu99
 LIBS=-lbsd -ldatatypes-0.1
 INC=-I/usr/local/include/datatypes
