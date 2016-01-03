@@ -397,7 +397,7 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 		case CMP_LT_EQ:
 			snprintf(v0, 64, "%d%s", val, suffix);
 			snprintf(v1, 64, "-%d%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v0, rparen, NULL);
+			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL);
 			break;
 
 		case CMP_GT_EQ:
