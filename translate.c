@@ -470,7 +470,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 	switch(unit)
 	{
 		case UNIT_BYTES:
-			suffix = "b";
+			suffix = "c";
 			break;
 
 		case UNIT_KB:
