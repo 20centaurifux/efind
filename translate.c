@@ -40,7 +40,6 @@
 typedef struct
 {
 	Node *root;    /* root node of the tree */
-	int level;     /* parenthesis level */
 	char *err;     /* error message */
 	char **argv;   /* translated arguments */
 	size_t argc;   /* number of translated arguments */
