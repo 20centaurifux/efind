@@ -94,11 +94,11 @@ utils_whereis(const char *name)
 
 		if(token[len - 1] == '/')
 		{
-			written = snprintf(path, 512, "%sfind", token);
+			written = snprintf(path, 512, "%s%s", token, name);
 		}
 		else
 		{
-			written = snprintf(path, 512, "%s/find", token);
+			written = snprintf(path, 512, "%s/%s", token, name);
 		}
 
 		if(written >= 512)
