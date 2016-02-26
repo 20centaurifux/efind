@@ -6,7 +6,7 @@ DOXYGEN=doxygen
 
 CC=gcc -DWITH_OPENMP -fopenmp 
 CFLAGS=-Wall -std=gnu99
-LIBS=-lbsd -ldatatypes-0.1
+LIBS=-lbsd -ldatatypes-0.1.0
 INC=-I/usr/local/include/datatypes
 
 all:
