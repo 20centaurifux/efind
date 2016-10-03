@@ -47,7 +47,7 @@ typedef struct
 	int32_t flags; /* translation flags */
 } TranslationCtx;
 
-#define QUOTE_ARGS(ctx) ctx->flags & TRANSLATION_FLAG_QUOTE
+#define QUOTE_ARGS(ctx) (ctx->flags & TRANSLATION_FLAG_QUOTE)
 /*! @endcond */
 
 /* initialize context */
@@ -125,7 +125,6 @@ static void
 _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 {
 	char msg[512];
-	char loc_msg[576];
 	va_list ap;
 
 	assert(ctx != NULL);
@@ -143,6 +142,8 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 
 	if(node)
 	{
+		char loc_msg[576];
+
 		utils_printf_loc(node, loc_msg, sizeof(loc_msg), msg);
 		ctx->err = strdup(loc_msg);
 	}

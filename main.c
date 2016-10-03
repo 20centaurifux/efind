@@ -190,7 +190,7 @@ _read_expr_from_stdin(void)
 	
 	bytes = getline(&expr, &bytes, stdin);
 
-	if(bytes <= 0)
+	if(!bytes)
 	{
 		if(bytes == -1)
 		{

@@ -147,7 +147,6 @@ search_merge_options(size_t *argc, char ***argv, const char *path, const SearchO
 	char **nargv;
 	size_t maxsize;
 	size_t index = 0;
-	char buffer[16];
 
 	assert(argc != NULL);
 	assert(argv != NULL);
@@ -181,6 +180,8 @@ search_merge_options(size_t *argc, char ***argv, const char *path, const SearchO
 	/* maximum search depth */
 	if(opts && opts->max_depth >= 0)
 	{
+		char buffer[16];
+
 		snprintf(buffer, 16, "%d", opts->max_depth);
 
 		nargv[index++] = strdup("-maxdepth");
@@ -298,7 +299,6 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		int status;
 		fd_set rfds;
 		int maxfd = (errfds[0] > outfds[0] ? errfds[0] : outfds[0]) + 1;
-		int rc;
 
 		Buffer outbuf;
 		Buffer errbuf;
@@ -350,6 +350,8 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 			} while(sum);
 
 			/* test if child is still running */
+			int rc;
+
 			if((rc = waitpid(pid, &status, WNOHANG)) == pid)
 			{
 				if(WIFEXITED(status))
