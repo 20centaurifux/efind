@@ -3,6 +3,7 @@ PREFIX=/usr/local
 FLEX=flex
 BISON=bison
 DOXYGEN=doxygen
+CPPCHECK=cppcheck
 CTAGS=ctags
 
 CC=gcc -DWITH_OPENMP -fopenmp 
@@ -27,6 +28,9 @@ doc:
 
 tags:
 	$(CTAGS) -R .
+
+cppcheck:
+	$(CPPCHECK) --enable=style --enable=performance --enable=information --std=c99 --force -j2 --template gcc .
 
 clean:
 	rm -f ./*.o
