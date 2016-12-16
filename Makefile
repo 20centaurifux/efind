@@ -3,6 +3,8 @@ PREFIX=/usr/local
 FLEX=flex
 BISON=bison
 DOXYGEN=doxygen
+CPPCHECK=cppcheck
+CTAGS=ctags
 
 CC=gcc -DWITH_OPENMP -fopenmp 
 CFLAGS=-Wall -std=gnu99
@@ -24,7 +26,14 @@ uninstall:
 doc:
 	$(DOXYGEN) ./doxygen_config
 
+tags:
+	$(CTAGS) -R .
+
+cppcheck:
+	$(CPPCHECK) --enable=style --enable=performance --enable=information --std=c99 --force -j2 --template gcc .
+
 clean:
 	rm -f ./*.o
 	rm -f ./lexer.l.h ./lexer.l.c ./parser.y.h ./parser.y.c ./efind
 	rm -fr ./doc
+	rm -f ./tags

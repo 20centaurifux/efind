@@ -68,7 +68,6 @@ utils_whereis(const char *name)
 	char *rest;
 	char *token;
 	char path[512];
-	size_t len;
 	int written;
 	struct stat sb;
 
@@ -85,7 +84,7 @@ utils_whereis(const char *name)
 	while((token = strtok_r(rest, ":", &rest)))
 	{
 		/* build absolute path to executable file */
-		len = strlen(token);
+		size_t len = strlen(token);
 
 		if(!len)
 		{
