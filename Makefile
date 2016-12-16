@@ -6,7 +6,7 @@ DOXYGEN=doxygen
 CPPCHECK=cppcheck
 CTAGS=ctags
 
-CC=gcc -DWITH_OPENMP -fopenmp 
+CC=gcc
 CFLAGS=-Wall -std=gnu99
 LIBS=-lbsd -ldatatypes-0.1.0
 INC=-I/usr/local/include/datatypes
@@ -30,7 +30,7 @@ tags:
 	$(CTAGS) -R .
 
 cppcheck:
-	$(CPPCHECK) --enable=style --enable=performance --enable=information --std=c99 --force -j2 --template gcc .
+	$(CPPCHECK) --enable=style --enable=performance --enable=information --std=c99 --force -j2 --template gcc *.h *.c
 
 clean:
 	rm -f ./*.o
