@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <math.h>
 #include <assert.h>
 
@@ -396,29 +397,29 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 	switch(cmp)
 	{
 		case CMP_LT_EQ:
-			snprintf(v0, 64, "%ld%s", val, suffix);
-			snprintf(v1, 64, "-%ld%s", val, suffix);
+			snprintf(v0, 64, "%" PRId64 "%s", val, suffix);
+			snprintf(v1, 64, "-%" PRId64 "%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL);
 			break;
 
 		case CMP_GT_EQ:
-			snprintf(v0, 64, "%ld%s", val, suffix);
-			snprintf(v1, 64, "+%ld%s", val, suffix);
+			snprintf(v0, 64, "%" PRId64 "%s", val, suffix);
+			snprintf(v1, 64, "+%" PRId64 "%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL);
 			break;
 
 		case CMP_EQ:
-			snprintf(v0, 64, "%ld%s", val, suffix);
+			snprintf(v0, 64, "%" PRId64 "%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
 		case CMP_LT:
-			snprintf(v0, 64, "-%ld%s", val, suffix);
+			snprintf(v0, 64, "-%" PRId64 "%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
 		case CMP_GT:
-			snprintf(v0, 64, "+%ld%s", val, suffix);
+			snprintf(v0, 64, "+%" PRId64 "%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
