@@ -9,19 +9,30 @@ providing an easier and more intuitive expression syntax.
 ## Building efind
 
 **efind** uses [GNU Make](https://www.gnu.org/software/make/) as build system.
-To compile and install the program run
-
-```
-$ make
-$ sudo make install
-```
-
 Installation options can be customized in the Makefile.
 
 Please ensure that [GNU Bison](https://www.gnu.org/software/bison/) and
 [GNU Flex](https://www.gnu.org/software/flex/) is installed on your system before
-you build **efind**. You will also need [libdatatypes](https://github.com/20centaurifux/datatypes)
-and [libbsd](https://libbsd.freedesktop.org/wiki/).
+you build **efind**. You will also need [libdatatypes](https://github.com/20centaurifux/datatypes),
+[libbsd](https://libbsd.freedesktop.org/wiki/) and
+[libreadline](https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html).
+
+If you want to build **efind** on a Debian based distribution follow the steps found in the
+[README](https://github.com/20centaurifux/datatypes/blob/master/README.md) of the datatypes
+library. Then type in these additional commands to prepare your system and checkout the code:
+
+```
+$ apt-get install libbsd-dev bison flex libreadline-dev
+$ git clone https://github.com/20centaurifux/efind.git
+```
+
+Now you can build and install the application:
+
+```
+$ cd efind
+$ make
+$ sudo make install
+```
 
 If you want to generate the source code documentation type in
 
@@ -30,6 +41,7 @@ $ make doc
 ```
 
 This step requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/).
+
 
 ## Expression syntax
 
