@@ -115,6 +115,7 @@ _read_options(int argc, char *argv[], Options *opts)
 	};
 
 	int index = 0;
+	int offset = 0;
 	Action action = ACTION_EXEC;
 
 	assert(argc >= 1);
@@ -126,9 +127,27 @@ _read_options(int argc, char *argv[], Options *opts)
 	opts->flags = FLAG_STDIN;
 	opts->max_depth = -1;
 
+	if(argc >=3)
+	{
+		/* try to handle first two options as path & expression strings */
+		if(argv[1][0] != '-')
+		{
+			opts->dir = strdup(argv[1]);
+			++offset;
+		}
+
+		if(argv[2][0] != '-')
+		{
+			opts->expr = strdup(argv[2]);
+			opts->flags &= ~FLAG_STDIN; 
+			++offset;
+		}
+	}
+
+	/* read options */
 	while(action != ACTION_ABORT)
 	{
-		int opt = getopt_long(argc, argv, "e:d:qpvhL", long_options, &index);
+		int opt = getopt_long(argc - offset, argv + offset, "e:d:qpvhL", long_options, &index);
 
 		if(opt == -1)
 		{
@@ -138,12 +157,18 @@ _read_options(int argc, char *argv[], Options *opts)
 		switch(opt)
 		{
 			case 'e':
-				opts->expr = strdup(optarg);
-				opts->flags &= ~FLAG_STDIN; 
+				if(!opts->expr)
+				{
+					opts->expr = strdup(optarg);
+					opts->flags &= ~FLAG_STDIN; 
+				}
 				break;
 
 			case 'd':
-				opts->dir = strdup(optarg);
+				if(!opts->dir)
+				{
+					opts->dir = strdup(optarg);
+				}
 				break;
 
 			case 'q':
@@ -302,7 +327,9 @@ _print_help(const char *name)
 {
 	assert(name != NULL);
 
-	printf("Usage: %s [OPTIONS]\n\n", name);
+	printf("Usage: %s [options]\n", name);
+	printf("       %s [path] [options]\n", name);
+	printf("       %s [path] [expression] [options]\n\n", name);
 	printf("  -e, --expr          expression to evaluate when finding files\n");
 	printf("  -q, --quote         quote special characters in translated expression\n");
 	printf("  -d, --dir           root directory\n");
