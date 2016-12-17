@@ -497,12 +497,11 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 			success = false;
 	}
 
-	for(int i = 0; i < loops; i++)
+	for(int i = 0; success && i < loops; i++)
 	{
 		if(bytes > max_val)
 		{
 			_set_error(ctx, NULL, "%s:: integer overflow, couldn't convert %d%s to bytes.", __func__, val, unit_name);
-			success = false;
 			break;
 		}
 
