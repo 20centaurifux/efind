@@ -3,12 +3,13 @@
 ## Introduction
 
 **efind** (expression find) searches for files in a directory hierarchy.
-Basically, it's a wrapper for GNU find providing an easier and more
-intuitive expression syntax.
+Basically it's a wrapper for [GNU find](https://www.gnu.org/software/findutils/)
+providing an easier and more intuitive expression syntax.
 
 ## Building efind
 
-**efind** uses GNU Make as build system. To compile and install the program run
+**efind** uses [GNU Make](https://www.gnu.org/software/make/) as build system.
+To compile and install the program run
 
 ```
 $ make
@@ -17,7 +18,8 @@ $ sudo make install
 
 Installation options can be customized in the Makefile.
 
-Please ensure that GNU Bison and GNU Flex is installed on your system before
+Please ensure that [GNU Bison](https://www.gnu.org/software/bison/) and
+[GNU Flex](https://www.gnu.org/software/flex/) is installed on your system before
 you build **efind**. You will also need [libdatatypes](https://github.com/20centaurifux/datatypes)
 and [libbsd](https://libbsd.freedesktop.org/wiki/).
 
@@ -27,7 +29,7 @@ If you want to generate the source code documentation type in
 $ make doc
 ```
 
-This step requires Doxygen.
+This step requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/).
 
 ## Expression syntax
 
@@ -104,11 +106,19 @@ expression can be specified with the *--dir* and *--expr* options:
 $ efind --dir=/tmp --expr="size>1M and type=file"
 ```
 
+Kindly note that **efind** tries to handle the first two arguments as path
+and expression. It's valid to run **efind** the following way:
+
+```
+$ efind ~ "type=dir" --follow
+```
+
 If you want to show the translated arguments without running GNU find use the
 *--print* option. To quote special shell characters append *--quote*:
 
 ```
-$ echo 'name="*.py" and mtime<30 days' | efind --print --quote
+$ efind ~ 'iname="*.py" and (mtime<30 days or size>=1M)' --print --quote
+$ find /home/john -iname "*.py" -a \( -mtime -30 -o \( -size 1M -o -size +1M \) \)
 ```
 
 The available options can be displayed with
