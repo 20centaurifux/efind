@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <math.h>
 #include <assert.h>
 
 #include "translate.h"
@@ -374,7 +375,7 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
  *	append find arguments to translation context
  */
 static bool
-_append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, int val, const char *suffix)
+_append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, int64_t val, const char *suffix)
 {
 	char v0[64];
 	char v1[64];
@@ -395,29 +396,29 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 	switch(cmp)
 	{
 		case CMP_LT_EQ:
-			snprintf(v0, 64, "%d%s", val, suffix);
-			snprintf(v1, 64, "-%d%s", val, suffix);
+			snprintf(v0, 64, "%ld%s", val, suffix);
+			snprintf(v1, 64, "-%ld%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL);
 			break;
 
 		case CMP_GT_EQ:
-			snprintf(v0, 64, "%d%s", val, suffix);
-			snprintf(v1, 64, "+%d%s", val, suffix);
+			snprintf(v0, 64, "%ld%s", val, suffix);
+			snprintf(v1, 64, "+%ld%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL);
 			break;
 
 		case CMP_EQ:
-			snprintf(v0, 64, "%d%s", val, suffix);
+			snprintf(v0, 64, "%ld%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
 		case CMP_LT:
-			snprintf(v0, 64, "-%d%s", val, suffix);
+			snprintf(v0, 64, "-%ld%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
 		case CMP_GT:
-			snprintf(v0, 64, "+%d%s", val, suffix);
+			snprintf(v0, 64, "+%ld%s", val, suffix);
 			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
 			break;
 
@@ -462,27 +463,32 @@ _append_time_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 static bool
 _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val, UnitType unit)
 {
-	const char *suffix = NULL;
+	const char *unit_name = "bytes";
 	bool success = true;
+	uint64_t bytes = val, max_val = INT64_MAX / 1024;
+	int loops;
 
 	assert(ctx != NULL);
 
 	switch(unit)
 	{
 		case UNIT_BYTES:
-			suffix = "c";
+			loops = 0;
 			break;
 
 		case UNIT_KB:
-			suffix = "k";
+			unit_name = "K";
+			loops = 1;
 			break;
 
 		case UNIT_MB:
-			suffix = "M";
+			unit_name = "M";
+			loops = 2;
 			break;
 
 		case UNIT_G:
-			suffix = "G";
+			unit_name = "G";
+			loops = 3;
 			break;
 
 		default:
@@ -490,9 +496,21 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 			success = false;
 	}
 
+	for(int i = 0; i < loops; i++)
+	{
+		if(bytes > max_val)
+		{
+			_set_error(ctx, NULL, "%s:: integer overflow, couldn't convert %d%s to bytes.", __func__, val, unit_name);
+			success = false;
+			break;
+		}
+
+		bytes *= 1024;
+	}
+
 	if(success)
 	{
-		success = _append_numeric_cond_arg(ctx, _property_to_arg(prop, unit), cmp, val, suffix);
+		success = _append_numeric_cond_arg(ctx, _property_to_arg(prop, 0), cmp, bytes, "c");
 	}
 
 	return success;

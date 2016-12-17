@@ -126,3 +126,24 @@ The available options can be displayed with
 ```
 $ efind --help
 ```
+
+## Differences from GNU find
+
+GNU find rounds up file sizes to the specified unit. This behaviour is quite stupid.
+Look at this example:
+
+```
+$ find . -size 1G
+```
+
+This will find *all* documents in the current folder with a file size less or equal
+to 1G because every file with at least one byte is rounded up.
+
+Therefore **efind** converts file sizes to byte to avoid this behaviour:
+
+```
+$ efind . "size=1G" --print
+$ find . -size 1073741824c
+```
+
+I created a [ticket](https://savannah.gnu.org/bugs/?46815) regarding this bug.
