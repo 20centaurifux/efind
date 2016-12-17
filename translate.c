@@ -343,7 +343,7 @@ _property_supports_numeric_operators(PropertyId prop)
 	return prop == PROP_ATIME || prop == PROP_CTIME || prop == PROP_MTIME || prop == PROP_SIZE;
 }
 
-/* test if a datatype can be assigned to a property by calling the specified validation function and set error message on failure */
+/* test if a datatype can be compared to a property by calling the specified validation function and set error message on failure */
 static bool
 _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_property)(PropertyId id), const char *type_desc)
 {
@@ -354,7 +354,7 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 	/* test if property supports given type */
 	if(!test_property(node->prop))
 	{
-		_set_error(ctx, (Node *)node, "Cannot assign %s value to property \"%s\".", type_desc, _property_to_str(node->prop));
+		_set_error(ctx, (Node *)node, "Cannot compare %s value to property \"%s\".", type_desc, _property_to_str(node->prop));
 
 		return false;
 	}
