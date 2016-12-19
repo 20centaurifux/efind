@@ -127,21 +127,21 @@ _read_options(int argc, char *argv[], Options *opts)
 	opts->flags = FLAG_STDIN;
 	opts->max_depth = -1;
 
-	if(argc >=3)
+	/* try to handle first two options as path & expression strings */
+	if(argc >= 2 && argv[1][0] != '-')
 	{
-		/* try to handle first two options as path & expression strings */
 		if(argv[1][0] != '-')
 		{
 			opts->dir = strdup(argv[1]);
 			++offset;
 		}
+	}
 
-		if(argv[2][0] != '-')
-		{
-			opts->expr = strdup(argv[2]);
-			opts->flags &= ~FLAG_STDIN; 
-			++offset;
-		}
+	if(argc >= 3 && argv[2][0] != '-')
+	{
+		opts->expr = strdup(argv[2]);
+		opts->flags &= ~FLAG_STDIN; 
+		++offset;
 	}
 
 	/* read options */
