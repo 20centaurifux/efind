@@ -72,5 +72,26 @@ char * utils_whereis(const char *name);
    Writes a message to a string and prepends location details.
  */
 size_t utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, ...);
+
+/**
+   @param dir directory name
+   @param filename a filename
+   @param dst location to write combined path to
+   @param max_len maximum buffer size
+   @return TRUE on success
+
+   Joins a path with a filename. The buffer size has to be at least PATH_MAX bytes.
+ */
+bool utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len);
+
+/**
+   @param dst return location for the newly-allocated string
+   @param fmt format string
+
+   Similar to the standard sprintf() function but writes the string to new allocated memory.
+   The function fails if the string length exceeds the internal maximum buffer size (4096).
+ */
+void utils_strdup_printf(char **dst, const char *fmt, ...);
+
 #endif
 

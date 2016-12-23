@@ -179,3 +179,55 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 		return ret;
 }
 
+bool
+utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len)
+{
+	bool result = false;
+
+	assert(dir != NULL);
+	assert(filename != NULL);
+
+	memset(dst, 0, max_len);
+
+	size_t len = strlen(dir);
+
+	if(len < max_len)
+	{
+		if(dir[len - 1] == '/')
+		{
+			len = snprintf(dst, max_len, "%s%s", dir, filename);
+		}
+		else
+		{
+			len = snprintf(dst, max_len, "%s/%s", dir, filename);
+		}
+
+		result = len <= max_len;
+	}
+
+	return result;
+}
+
+void
+utils_strdup_printf(char **dst, const char *fmt, ...)
+{
+	char str[4096];
+	va_list ap;
+
+	if(!dst || !fmt || *dst)
+	{
+		return;
+	}
+
+	*dst = NULL;
+
+	va_start(ap, fmt);
+
+	if(vsnprintf(str, sizeof(str), fmt, ap) < 4096)
+	{
+		*dst = strdup(str);
+	}
+	
+	va_end(ap);
+}
+
