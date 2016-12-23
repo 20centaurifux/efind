@@ -7,14 +7,14 @@ CPPCHECK=cppcheck
 CTAGS=ctags
 
 CC=gcc
-CFLAGS=-Wall -std=gnu99
-LIBS=-lbsd -ldatatypes-0.1.0
+CFLAGS=-Wall -std=gnu99 -O0 -g
+LIBS=-lbsd -ldatatypes-0.1.0 -ldl -ljansson
 INC=-I/usr/local/include/datatypes
 
 all:
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./search.c -o ./efind $(CFLAGS) $(LIBS)
+	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./search.c ./extension.c  ./dl-ext-backend.c -o ./efind $(CFLAGS) $(LIBS)
 
 install:
 	cp ./efind $(PREFIX)/bin/
@@ -37,3 +37,6 @@ clean:
 	rm -f ./lexer.l.h ./lexer.l.c ./parser.y.h ./parser.y.c ./efind
 	rm -fr ./doc
 	rm -f ./tags
+
+foobar:
+	gcc -shared ./extensions/foobar.c -Wall -std=c99 -nostartfiles -o ./extensions/foobar.so
