@@ -42,7 +42,6 @@ _dl_ext_backend_invoke(void *handle, const char *name, const char *filename, str
 	assert(handle != NULL);
 	assert(name != NULL);
 	assert(filename != NULL);
-	assert(argv != NULL);
 	assert(result != NULL);
 
 	int (*fn)(const char *filename, struct stat *stbuf, int argc, void **argv);
