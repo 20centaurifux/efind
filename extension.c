@@ -37,13 +37,18 @@ extension_callback_arg_type_try_parse(const char *string)
 {
 	ExtensionCallbackArgType type = EXTENSION_CALLBACK_ARG_TYPE_UNDEFINED;
 
-	if(!strcmp(string, "integer"))
+	assert(string != NULL);
+
+	if(string)
 	{
-		type = EXTENSION_CALLBACK_ARG_TYPE_INTEGER;
-	}
-	else if(!strcmp(string, "string"))
-	{
-		type = EXTENSION_CALLBACK_ARG_TYPE_STRING;
+		if(!strcmp(string, "integer"))
+		{
+			type = EXTENSION_CALLBACK_ARG_TYPE_INTEGER;
+		}
+		else if(!strcmp(string, "string"))
+		{
+			type = EXTENSION_CALLBACK_ARG_TYPE_STRING;
+		}
 	}
 
 	return type;
@@ -65,6 +70,8 @@ extension_callback_new(const char *name, uint32_t argc)
 {
 	ExtensionCallback *cb = NULL;
 
+	assert(name != NULL);
+
 	if(name)
 	{
 		cb = (ExtensionCallback *)utils_malloc(sizeof(ExtensionCallback));
@@ -84,9 +91,12 @@ extension_module_type_try_parse(const char *string)
 
 	assert(string != NULL);
 
-	if(!strcmp(string, "shared-library"))
+	if(string)
 	{
-		type = EXTENSION_MODULE_TYPE_SHARED_LIB;
+		if(!strcmp(string, "shared-library"))
+		{
+			type = EXTENSION_MODULE_TYPE_SHARED_LIB;
+		}
 	}
 
 	return type;
@@ -142,15 +152,17 @@ extension_module_new(const char *filename, ExtensionModuleType type)
 		module = (ExtensionModule *)utils_malloc(sizeof(ExtensionModule));
 		memset(module, 0, sizeof(ExtensionModule));
 
-		if(!_extension_module_set_backend_class(&module->backend, type))
+		if(_extension_module_set_backend_class(&module->backend, type))
 		{
-			extension_module_free(module);
-			return NULL;
+			module->filename = strdup(filename);
+			module->type = type;
+			module->callbacks = assoc_array_new(str_compare, free, (FreeFunc)extension_callback_free);
 		}
-
-		module->filename = strdup(filename);
-		module->type = type;
-		module->callbacks = assoc_array_new(str_compare, free, (FreeFunc)extension_callback_free);
+		else
+		{
+			free(module);
+			module = NULL;
+		}
 	}
 
 	return module;
@@ -198,14 +210,13 @@ extension_dir_load(const char *path, char **err)
 			{
 				char filename[PATH_MAX];
 
-				if(!utils_path_join(dir->path, entry->d_name, filename, PATH_MAX))
+				if(utils_path_join(dir->path, entry->d_name, filename, PATH_MAX))
+				{
+					success = extension_json_load_file(dir, filename, err);
+				}
+				else
 				{
 					utils_strdup_printf(err, "Path to extension description file exceeds maximum allowed path length.");
-					success = false;
-				}
-
-				if(!extension_json_load_file(dir, filename, err))
-				{
 					success = false;
 				}
 			}
@@ -268,6 +279,7 @@ _extension_dir_find_callback(ExtensionDir *dir, const char *name, ExtensionCallb
 
 	assert(dir != NULL);
 	assert(name != NULL);
+	assert(cb != NULL);
 
 	assoc_array_iter_init(dir->modules, &iter);
 
@@ -295,27 +307,25 @@ extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, 
 
 	assert(dir != NULL);
 
-	if(name == NULL)
+	if(name != NULL)
 	{
-		return EXTENSION_CALLBACK_STATUS_NOT_FOUND;
-	}
-
-	if(_extension_dir_find_callback(dir, name, &cb))
-	{
-		if(cb->argc != argc)
+		if(_extension_dir_find_callback(dir, name, &cb))
 		{
-			return EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE;
-		}
-
-		for(uint32_t i = 0; i < argc; ++i)
-		{
-			if(types[i] != cb->types[i])
+			if(cb->argc != argc)
 			{
 				return EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE;
 			}
-		}
 
-		return EXTENSION_CALLBACK_STATUS_OK;
+			for(uint32_t i = 0; i < argc; ++i)
+			{
+				if(types[i] != cb->types[i])
+				{
+					return EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE;
+				}
+			}
+
+			return EXTENSION_CALLBACK_STATUS_OK;
+		}
 	}
 
 	return EXTENSION_CALLBACK_STATUS_NOT_FOUND;
@@ -331,6 +341,7 @@ extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, 
 	assert(dir != NULL);
 	assert(name != NULL);
 	assert(filename != NULL);
+	assert(stbuf != NULL);
 
 	if((module = _extension_dir_find_callback(dir, name, &cb)))
 	{
