@@ -149,6 +149,21 @@ typedef enum
 	EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE
 } ExtensionCallbackStatus;
 
+
+/*!
+ *\struct ExtensionCallbackArgs
+ *\brief Function argument vector.
+ */
+typedef struct
+{
+	/*! Argument vector. */
+	void **argv;
+	/*! Size of the vector. */
+	uint32_t argc;
+	/*! Argument data types. */
+	ExtensionCallbackArgType *types;
+} ExtensionCallbackArgs;
+
 /**
  *\param string string to parse
  *\return the mapped ExtensionCallbackArgType
@@ -255,6 +270,40 @@ ExtensionCallbackStatus extension_dir_test_callback(ExtensionDir *dir, const cha
  * Executes a callback.
  */
 ExtensionCallbackStatus extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, struct stat *stbuf, uint32_t argc, void **argv, int *result);
+
+/**
+ *\param argc number of arguments
+ *\return a new ExtensionCallbackArgs instance
+ *
+ * Creates a new ExtensionCallbackArgs instance.
+ */
+ExtensionCallbackArgs *extension_callback_args_new(uint32_t argc);
+
+/**
+ *\param args ExtensionCallbackArgs instance to free
+ *\return a new ExtensionCallbackArgs instance
+ *
+ * Frees an ExtensionCallbackArgs instance.
+ */
+void extension_callback_args_free(ExtensionCallbackArgs *args);
+
+/**
+ *\param args ExtensionCallbackArgs instance
+ *\param offset position of the argument to set
+ *\param value value to set
+ *
+ * Copies an int32_t value to the specified position of the argument vector.
+ */
+void extension_callback_args_set_integer(ExtensionCallbackArgs *args, uint32_t offset, int32_t value);
+
+/**
+ *\param args ExtensionCallbackArgs instance
+ *\param offset position of the argument to set
+ *\param value value to set
+ *
+ * Copies a string to the specified position of the argument vector.
+ */
+void extension_callback_args_set_string(ExtensionCallbackArgs *args, uint32_t offset, const char *value);
 
 #endif
 

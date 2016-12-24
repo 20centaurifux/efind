@@ -368,3 +368,76 @@ extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, 
 	return status;
 }
 
+ExtensionCallbackArgs *
+extension_callback_args_new(uint32_t argc)
+{
+	ExtensionCallbackArgs *args;
+
+	args = (ExtensionCallbackArgs *)utils_malloc(sizeof(ExtensionCallbackArgs));
+	memset(args, 0, sizeof(ExtensionCallbackArgs));
+	args->argc = argc;
+	
+	if(args->argc > 0)
+	{
+		args->argv = (void **)utils_malloc(sizeof(void *) * argc);
+		memset(args->argv, 0, sizeof(void *) * argc);
+
+		args->types = (ExtensionCallbackArgType *)utils_malloc(sizeof(ExtensionCallbackArgType) * argc);
+		memset(args->types, 0, sizeof(ExtensionCallbackArgType) * argc);
+	}
+
+	return args;
+}
+
+void
+extension_callback_args_free(ExtensionCallbackArgs *args)
+{
+	if(args && args->argc > 0)
+	{
+		assert(args->argv != NULL);
+		assert(args->types != NULL);
+
+		free(args->types);
+
+		for(uint32_t i = 0; i < args->argc; ++i)
+		{
+			free(args->argv[i]);
+		}
+
+		free(args->argv);
+	}
+
+	free(args);
+}
+
+void
+extension_callback_args_set_integer(ExtensionCallbackArgs *args, uint32_t offset, int32_t value)
+{
+	assert(args);
+	assert(args->argc > offset);
+
+	if(args->argv[offset])
+	{
+		free(args->argv[offset]);
+	}
+
+	args->argv[offset] = utils_malloc(sizeof(int32_t));
+	*((int32_t *)args->argv[offset]) = value;
+	args->types[offset] = EXTENSION_CALLBACK_ARG_TYPE_INTEGER;
+}
+
+void
+extension_callback_args_set_string(ExtensionCallbackArgs *args, uint32_t offset, const char *string)
+{
+	assert(args);
+	assert(args->argc > offset);
+
+	if(args->argv[offset])
+	{
+		free(args->argv[offset]);
+	}
+
+	args->argv[offset] = strdup(string);
+	args->types[offset] = EXTENSION_CALLBACK_ARG_TYPE_STRING;
+}
+
