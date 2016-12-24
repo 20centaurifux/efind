@@ -75,10 +75,17 @@ extension_callback_new(const char *name, uint32_t argc)
 	if(name)
 	{
 		cb = (ExtensionCallback *)utils_malloc(sizeof(ExtensionCallback));
+
+		memset(cb, 0, sizeof(ExtensionCallback));
+
 		cb->name = strdup(name);
 		cb->argc = argc;
-		cb->types = (ExtensionCallbackArgType *)utils_malloc(sizeof(ExtensionCallbackArgType) * argc);
-		memset(cb->types, 0, sizeof(ExtensionModuleType));
+
+		if(argc)
+		{
+			cb->types = (ExtensionCallbackArgType *)utils_malloc(sizeof(ExtensionCallbackArgType) * argc);
+			memset(cb->types, 0, sizeof(ExtensionModuleType));
+		}
 	}
 
 	return cb;
