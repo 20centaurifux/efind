@@ -297,7 +297,7 @@ extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, 
 
 	if(name == NULL)
 	{
-		return EXTENSION_CALLBACK_NOT_FOUND;
+		return EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 	}
 
 	if(_extension_dir_find_callback(dir, name, &cb))
@@ -318,13 +318,13 @@ extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, 
 		return EXTENSION_CALLBACK_STATUS_OK;
 	}
 
-	return EXTENSION_CALLBACK_NOT_FOUND;
+	return EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 }
 
 ExtensionCallbackStatus
 extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, struct stat *stbuf, uint32_t argc, void **argv, int *result)
 {
-	ExtensionCallbackStatus status = EXTENSION_CALLBACK_NOT_FOUND;
+	ExtensionCallbackStatus status = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 	ExtensionModule *module;
 	ExtensionCallback *cb;
 

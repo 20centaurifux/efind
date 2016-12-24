@@ -144,7 +144,7 @@ typedef enum
 	/*! No failure occured. */
 	EXTENSION_CALLBACK_STATUS_OK,
 	/*! Callback not found. */
-	EXTENSION_CALLBACK_NOT_FOUND,
+	EXTENSION_CALLBACK_STATUS_NOT_FOUND,
 	/*! Invalid signature. */
 	EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE
 } ExtensionCallbackStatus;
