@@ -15,24 +15,27 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /*!
- * \file dl-ext-backend.h
- * \brief Plugable post-processing hooks backend using libdl.
+ * \file extension-json.h
+ * \brief Load modules from JSON files.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  * \version 0.1.0
- * \date 23. December 2016
+ * \date 24. December 2016
  */
 
-#ifndef __DL_EXT_BACKEND_H__
-#define __DL_EXT_BACKEND_H__
+#ifndef __EXTENSION_JSON_H__
+#define __EXTENSION_JSON_H__
 
 #include "extension.h"
 
-/**
- *\param cls extension class
+/*!
+ *\param dir ExtensionDir instance
+ *\param filename name of the extension description file
+ *\param err destination to store error message
+ *\return true on success
  *
- * Extension backend functions for libdl.
+ * Loads modules from a JSON file.
  */
-void dl_extension_backend_get_class(ExtensionBackendClass *cls);
+bool extension_json_load_file(ExtensionDir *dir, const char *filename, char **err);
 
 #endif
 

@@ -14,7 +14,7 @@ INC=-I/usr/local/include/datatypes
 all:
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./search.c ./extension.c  ./dl-ext-backend.c -o ./efind $(CFLAGS) $(LIBS)
+	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./search.c ./extension.c ./extension-json.c ./dl-ext-backend.c -o ./efind $(CFLAGS) $(LIBS)
 
 install:
 	cp ./efind $(PREFIX)/bin/
