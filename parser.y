@@ -261,17 +261,18 @@ post_exprs:
     ;
 
 post_term:
-    fn TOKEN_LPAREN TOKEN_RPAREN              { $$ = ast_compare_node_new(
+    fn TOKEN_LPAREN TOKEN_RPAREN            { $$ = ast_compare_node_new(
                                                      ALLOC(scanner),
                                                      &@1,
                                                      ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL),
                                                      CMP_EQ,
                                                      ast_true_node_new(ALLOC(scanner), &@1)); }
-    | fn TOKEN_LPAREN fn_args TOKEN_RPAREN    { $$ = ast_compare_node_new(
+    | fn TOKEN_LPAREN fn_args TOKEN_RPAREN  { $$ = ast_compare_node_new(
                                                      ALLOC(scanner), &@1,
                                                      ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3),
                                                      CMP_EQ,
                                                      ast_true_node_new(ALLOC(scanner), &@1)); }
+    | TOKEN_LPAREN post_exprs TOKEN_RPAREN  { $$ = $2; }
     ;
 
 fn:
