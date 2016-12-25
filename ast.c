@@ -29,11 +29,11 @@
 #include "utils.h"
 
 /*! @cond INTERNAL */
-#define NODE_TYPE_IS_VALID(t) (t > NODE_UNDEFINED && t <= NODE_VALUE)
+#define NODE_TYPE_IS_VALID(t) (t > NODE_UNDEFINED && t <= NODE_FUNC)
 #define FILE_FLAG_IS_VALID(f) (f > FILE_FLAG_UNDEFINED && f <= FILE_FLAG_EXECUTABLE)
 #define PROPERTY_IS_VALID(p)  (p > PROP_UNDEFINED && p <= PROP_TYPE)
 #define CMP_TYPE_IS_VALID(c)  (c >= CMP_UNDEFINED && c <= CMP_GT)
-#define OPERATOR_IS_VALID(op) (op >= OP_UNDEFINED && op <= OP_OR)
+#define OPERATOR_IS_VALID(op) (op >= OP_UNDEFINED && op <= OP_COMMA)
 /*! @endcond */
 
 TimeInterval
@@ -459,6 +459,19 @@ ast_expr_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, Node *first, Oper
 	return (Node *)node;
 }
 
+Node *
+ast_func_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args)
+{
+	assert(name != NULL);
+
+	FuncNode *node = node_new_alloc(alloc, locp, FuncNode, NODE_FUNC);
+
+	node->name = name;
+	node->args = args;
+
+	return (Node *)node;
+}
+
 void
 ast_free(Node *node)
 {
@@ -496,5 +509,26 @@ ast_free(Node *node)
 
 		free(node);
 	}
+}
+
+RootNode *
+ast_root_node_new(Node *exprs, Node *post_exprs)
+{
+	RootNode *node;
+
+	assert(exprs != NULL);
+
+	node = (RootNode *)utils_malloc(sizeof(RootNode));
+
+	node->exprs = exprs;
+	node->post_exprs = post_exprs;
+
+	return node;
+}
+
+void
+ast_root_node_free(RootNode *node)
+{
+	free(node);
 }
 

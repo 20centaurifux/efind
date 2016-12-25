@@ -12,6 +12,7 @@
     int ivalue;
     char *svalue;
     void *node;
+    void *root;
 }
 
 %{
@@ -84,7 +85,7 @@ bool
 parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv, char **err)
 {
 	void* scanner;
-	Node *root = NULL;
+	RootNode *root = NULL;
 	ParserExtra extra;
 	YY_BUFFER_STATE buf;
 	bool success = false;
@@ -131,7 +132,12 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 	if(!yyparse(scanner, (void *)&root))
 	{
 		/* string parsed successfully => translate generated tree to argument list */
-		success = translate(root, flags, argc, argv, err);
+		success = translate(root->exprs, flags, argc, argv, err);
+
+		if(root->post_exprs)
+		{
+			printf("%d\n", root->post_exprs->type);
+		}
 
 		/* reset parsed arguments if translation has failed */
 		if(!success && *argv)
@@ -145,6 +151,8 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 			free(*argv);
 			*argv = NULL;
 		}
+
+		ast_root_node_free(root);
 	}
 
 	/* free buffer state & scanner */
@@ -180,59 +188,96 @@ _parser_memorize_string(void *scanner, char *str)
 %token TOKEN_OPERATOR
 %token TOKEN_PROPERTY
 %token TOKEN_FLAG
+%token TOKEN_COMMA
 %token <ivalue>TOKEN_INTERVAL
 %token <ivalue> TOKEN_NUMBER
 %token <svalue> TOKEN_STRING
+%token <svalue> TOKEN_FN_NAME
 %token <ivalue> TOKEN_UNIT
 %token <ivalue> TOKEN_TYPE
 
-%type <node> value cond term exprs query flag
+%type <root> query
+%type <node> value cond term exprs flag post_exprs post_term fn fn_arg fn_args
 %type <ivalue> property number interval unit compare operator
 
 %%
 query:
-    exprs                           { *root = $$; }
+    exprs                                   { *root = ast_root_node_new($1, NULL); }
+    | exprs post_exprs                      { *root = ast_root_node_new($1, $2); }
+    ;
 
 exprs:
-    term operator exprs             { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, $2, $3); }
-    | term                          { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, OP_UNDEFINED, NULL); }
+    term operator exprs                     { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, $2, $3); }
+    | term                                  { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, OP_UNDEFINED, NULL); }
     ;
 
 term:
-    TOKEN_LPAREN exprs TOKEN_RPAREN { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $2, OP_UNDEFINED, NULL); }
-    | cond                          { $$ = $1; }
-    | flag                          { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, OP_UNDEFINED, NULL); }
+    TOKEN_LPAREN exprs TOKEN_RPAREN         { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $2, OP_UNDEFINED, NULL); }
+    | cond                                  { $$ = $1; }
+    | flag                                  { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, OP_UNDEFINED, NULL); }
     ;
 
 cond:
-    property compare value          { $$ = ast_cond_node_new_alloc(ALLOC(scanner), &@1, $1, $2, $3); }
+    property compare value                  { $$ = ast_cond_node_new_alloc(ALLOC(scanner), &@1, $1, $2, $3); }
     ;
 
 flag:
-    TOKEN_FLAG                      { $$ = ast_value_node_new_flag_alloc(ALLOC(scanner), &@1, yylval.ivalue); }
+    TOKEN_FLAG                              { $$ = ast_value_node_new_flag_alloc(ALLOC(scanner), &@1, yylval.ivalue); }
+    ;
 
 property:
-    TOKEN_PROPERTY                  { $$ = yylval.ivalue; }
+    TOKEN_PROPERTY                          { $$ = yylval.ivalue; }
+    ;
 
 value:
-    number                          { $$ = ast_value_node_new_int_alloc(ALLOC(scanner), &@1, $1); }
-    | number interval               { $$ = ast_value_node_new_int_pair_alloc(ALLOC(scanner), &@1, VALUE_TIME, $1, $2); }
-    | number unit                   { $$ = ast_value_node_new_int_pair_alloc(ALLOC(scanner), &@1, VALUE_SIZE, $1, $2); }
-    | TOKEN_STRING                  { $$ = ast_value_node_new_str_nodup_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
-    | TOKEN_TYPE                    { $$ = ast_value_node_new_type_alloc(ALLOC(scanner), &@1, yylval.ivalue); }
+    number                                  { $$ = ast_value_node_new_int_alloc(ALLOC(scanner), &@1, $1); }
+    | number interval                       { $$ = ast_value_node_new_int_pair_alloc(ALLOC(scanner), &@1, VALUE_TIME, $1, $2); }
+    | number unit                           { $$ = ast_value_node_new_int_pair_alloc(ALLOC(scanner), &@1, VALUE_SIZE, $1, $2); }
+    | TOKEN_STRING                          { $$ = ast_value_node_new_str_nodup_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
+    | TOKEN_TYPE                            { $$ = ast_value_node_new_type_alloc(ALLOC(scanner), &@1, yylval.ivalue); }
+    ;
+
+post_exprs:
+    post_term                               { $$ = $1; }
+    | post_term operator post_exprs         { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, $2, $3); }
+    ;
+
+post_term:
+    fn TOKEN_LPAREN TOKEN_RPAREN            { $$ = ast_func_node_new_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL); }
+    | fn TOKEN_LPAREN fn_args TOKEN_RPAREN  { $$ = ast_func_node_new_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3); }
+    ;
+
+fn:
+    TOKEN_FN_NAME                           { $$ = yylval.svalue; }
+    ;
+
+fn_args:
+     fn_arg
+     | fn_arg TOKEN_COMMA fn_args           { $$ = ast_expr_node_new_alloc(ALLOC(scanner), &@1, $1, OP_COMMA, $3); }
+     ;
+
+fn_arg:
+    number                                  { $$ = ast_value_node_new_int_alloc(ALLOC(scanner), &@1, yylval.ivalue); }
+    | TOKEN_STRING                          { $$ = ast_value_node_new_str_nodup_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
+    | post_term                             { $$ = $1; }
+    ;
 
 number:
-    TOKEN_NUMBER                    { $$ = yylval.ivalue; }
+    TOKEN_NUMBER                            { $$ = yylval.ivalue; }
     ;
 
 interval:
-    TOKEN_INTERVAL                  { $$ = yylval.ivalue; }
+    TOKEN_INTERVAL                          { $$ = yylval.ivalue; }
+    ;
 
 unit:
-    TOKEN_UNIT                      { $$ = yylval.ivalue; }
+    TOKEN_UNIT                              { $$ = yylval.ivalue; }
+    ;
 
 compare:
-    TOKEN_CMP                       { $$ = yylval.ivalue; }
+    TOKEN_CMP                               { $$ = yylval.ivalue; }
+    ;
 
 operator:
-    TOKEN_OPERATOR                  { $$ = yylval.ivalue; }
+    TOKEN_OPERATOR                          { $$ = yylval.ivalue; }
+    ;

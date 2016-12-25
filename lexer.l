@@ -45,6 +45,8 @@ FLAG			readable|writable|executable
 INTERVAL		hours|hour|h|minutes|minute|m|days|day|d
 UNIT			b|bytes|byte|k|kb|kilobytes|kilobyte|M|mb|megabytes|megabyte|G|gb|gigabytes|gigabyte
 TYPE			file|dir|directory|block|character|pipe|link|socket
+FN_NAME			[a-zA-Z_]++[a-zA-Z0-9_]+
+COMMA			","
 
 %x STRING
 
@@ -65,6 +67,8 @@ TYPE			file|dir|directory|block|character|pipe|link|socket
 {INTERVAL}		{ yylval->ivalue = ast_str_to_interval(yytext); return TOKEN_INTERVAL; }
 {UNIT}			{ yylval->ivalue = ast_str_to_unit(yytext); return TOKEN_UNIT; }
 {TYPE}			{ yylval->ivalue = ast_str_to_type(yytext); return TOKEN_TYPE; }
+{FN_NAME}		{ yylval->svalue = strdup(yytext); return TOKEN_FN_NAME; }
+{COMMA}			{ return TOKEN_COMMA; }
 \"                      { BEGIN STRING; buffer_clear(&(yyextra->buffer)); }
 .			{ return 1; }
 

@@ -89,7 +89,9 @@ typedef enum
 	/*! And operator. */
 	OP_AND,
 	/*! Or operator. */
-	OP_OR
+	OP_OR,
+	/*! Comma operator. */
+	OP_COMMA
 } OperatorType;
 
 /**
@@ -163,7 +165,9 @@ typedef enum
 	/*! Node is of type ConditionNode. */
 	NODE_CONDITION,
 	/*! Node is of type ValueNode. */
-	NODE_VALUE
+	NODE_VALUE,
+	/*! Node is of type FuncNode. */
+	NODE_FUNC
 } NodeType;
 
 /**
@@ -177,6 +181,18 @@ typedef struct
 	/*! Location information. */
 	YYLTYPE loc;
 } Node;
+
+/**
+   @struct RootNode
+   @brief Root node of the tree.
+ */
+typedef struct
+{
+	/*! Root node of the expression tree. */
+	Node *exprs;
+	/*! Root node of the post-processing hooks tree. */
+	Node *post_exprs;
+} RootNode;
 
 /**
    @enum ValueType
@@ -276,6 +292,20 @@ typedef struct
 	/*! A second node. */
 	Node *second;
 } ExpressionNode;
+
+/**
+   @struct ConditionNode
+   @brief Condition nodes hold a property id, a compare operator and a value node.
+ */
+typedef struct
+{
+	/*! Base type. */
+	Node padding;
+	/*! Function name. */
+	char *name;
+	/*! First function argument. */
+	Node *args;
+} FuncNode;
 
 /**
    @param str string to convert
@@ -464,11 +494,38 @@ Node *ast_expr_node_new(Node *first, OperatorType op, Node *second);
 Node *ast_expr_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorType op, Node *second);
 
 /**
+   @param alloc an Allocator
+   @param locp location information
+   @param name functon name
+   @param args argument node
+   @return a new Node
+
+   Creates a new FuncNode getting memory from an Allocator.
+ */
+Node *ast_func_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args);
+
+/**
    @param node node to free
 
    Frees a node.
  */
-void ast_free(Node *node);
+void ast_node_free(Node *node);
 
+/**
+   @param alloc an Allocator
+   @param exprs expressions root node
+   @param post expressions root node
+   @return a new RootNode
+
+   Creates an empty RootNode.
+ */
+RootNode *ast_root_node_new(Node *exprs, Node *post_exprs);
+
+/**
+   @param node RootNode to free
+
+   Frees a RootNode.
+  */
+void ast_root_node_free(RootNode *node);
 #endif
 
