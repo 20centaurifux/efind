@@ -1,4 +1,5 @@
 /***************************************************************************
+ * pe
     begin........: April 2015
     copyright....: Sebastian Fedrau
     email........: sebastian.fedrau@gmail.com
@@ -594,9 +595,14 @@ _append_string_arg(TranslationCtx *ctx, const char *propname, const char *val)
 static bool _process_node(TranslationCtx *ctx, Node *root);
 
 static bool
-_open_parenthese(ExpressionNode *node)
+_open_parenthese(ExpressionNode *node, Node *child)
 {
-	return node->first && node->first->type == NODE_EXPRESSION && ((ExpressionNode *)node->first)->second;
+	if(node->op == OP_AND && child->type == NODE_EXPRESSION)
+	{
+		return ((ExpressionNode *)child)->op == OP_OR;
+	}
+
+	return false;
 }
 
 static bool
@@ -608,45 +614,45 @@ _process_expression(TranslationCtx *ctx, ExpressionNode *node)
 
 	assert(ctx != NULL);
 	assert(node != NULL);
+	assert(node->first != NULL);
+	assert(node->second != NULL);
 
 	lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
 	rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
 
-	if(_open_parenthese(node))
+	if(_open_parenthese(node, node->first))
 	{
 		_translation_ctx_append_arg(ctx, lparen);
 		open = true;
 	}
 
-	if(node->second)
+	if(_process_node(ctx, node->first))
 	{
-		if(_process_node(ctx, node->first))
+		if(open)
+		{
+			_translation_ctx_append_arg(ctx, rparen);
+			open = false;
+		}
+
+		if(!_translation_ctx_append_arg(ctx, (node->op == OP_AND) ? "-a" : "-o"))
+		{
+			goto out;
+		}
+
+		if(_open_parenthese(node, node->second))
+		{
+			_translation_ctx_append_arg(ctx, lparen);
+			open = true;
+		}
+
+		if(_process_node(ctx, node->second))
 		{
 			if(open)
 			{
 				_translation_ctx_append_arg(ctx, rparen);
 			}
 
-			if(!_translation_ctx_append_arg(ctx, (node->op == OP_AND) ? "-a" : "-o"))
-			{
-				goto out;
-			}
-
-			if(!_process_node(ctx, node->second))
-			{
-				goto out;
-			}
-
 			success = true;
-		}
-	}
-	else
-	{
-		success = _process_node(ctx, node->first);
-
-		if(open)
-		{
-			_translation_ctx_append_arg(ctx, rparen);
 		}
 	}
 

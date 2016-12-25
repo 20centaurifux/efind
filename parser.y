@@ -226,13 +226,13 @@ query:
 
 exprs:
     term operator exprs                     { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
-    | term                                  { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, OP_UNDEFINED, NULL); }
+    | term                                  { $$ = $1; }
     ;
 
 term:
-    TOKEN_LPAREN exprs TOKEN_RPAREN         { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $2, OP_UNDEFINED, NULL); }
+    TOKEN_LPAREN exprs TOKEN_RPAREN         { $$ = $2; }
     | cond                                  { $$ = $1; }
-    | flag                                  { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, OP_UNDEFINED, NULL); }
+    | flag                                  { $$ = $1; }
     ;
 
 cond:
