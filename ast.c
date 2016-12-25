@@ -29,7 +29,7 @@
 #include "utils.h"
 
 /*! @cond INTERNAL */
-#define NODE_TYPE_IS_VALID(t) (t > NODE_UNDEFINED && t <= NODE_FUNC)
+#define NODE_TYPE_IS_VALID(t) (t > NODE_UNDEFINED && t <= NODE_COMPARE)
 #define FILE_FLAG_IS_VALID(f) (f > FILE_FLAG_UNDEFINED && f <= FILE_FLAG_EXECUTABLE)
 #define PROPERTY_IS_VALID(p)  (p > PROP_UNDEFINED && p <= PROP_TYPE)
 #define CMP_TYPE_IS_VALID(c)  (c >= CMP_UNDEFINED && c <= CMP_GT)
@@ -276,6 +276,14 @@ _node_new_alloc(Allocator *alloc, const YYLTYPE *locp, size_t size, NodeType typ
 /*! @endcond */
 
 Node *
+ast_true_node_new_alloc(Allocator *alloc, const YYLTYPE *locp)
+{
+	TrueNode *node = node_new_alloc(alloc, locp, TrueNode, NODE_TRUE);
+
+	return (Node *)node;
+}
+
+Node *
 ast_value_node_new_str_nodup(char *value)
 {
 	ValueNode *node = node_new(ValueNode, NODE_VALUE);
@@ -389,6 +397,22 @@ ast_value_node_new_int_pair_alloc(Allocator *alloc, const YYLTYPE *locp, ValueTy
 	node->vtype = type;
 	node->value.pair.a = a;
 	node->value.pair.b = b;
+
+	return (Node *)node;
+}
+
+Node *
+ast_compare_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, Node *first, CompareType cmp, Node *second)
+{
+	CompareNode *node = node_new_alloc(alloc, locp, CompareNode, NODE_COMPARE);
+
+	assert(first != NULL);
+	assert(second != NULL);
+	assert(CMP_TYPE_IS_VALID(cmp));
+
+	node->first = first;
+	node->cmp = cmp;
+	node->second = second;
 
 	return (Node *)node;
 }
@@ -512,23 +536,17 @@ ast_free(Node *node)
 }
 
 RootNode *
-ast_root_node_new(Node *exprs, Node *post_exprs)
+ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *post_exprs)
 {
 	RootNode *node;
 
 	assert(exprs != NULL);
 
-	node = (RootNode *)utils_malloc(sizeof(RootNode));
+	node = node_new_alloc(alloc, locp, RootNode, NODE_ROOT);
 
 	node->exprs = exprs;
 	node->post_exprs = post_exprs;
 
 	return node;
-}
-
-void
-ast_root_node_free(RootNode *node)
-{
-	free(node);
 }
 

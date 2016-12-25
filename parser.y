@@ -68,6 +68,11 @@ _parser_get_alloc_item_size(void)
 {
 	size_t size = sizeof(ExpressionNode);
 
+	if(sizeof(RootNode) > size)
+	{
+		size = sizeof(RootNode);
+	}
+
 	if(sizeof(ConditionNode) > size)
 	{
 		size = sizeof(ConditionNode);
@@ -76,6 +81,21 @@ _parser_get_alloc_item_size(void)
 	if(sizeof(ValueNode) > size)
 	{
 		size = sizeof(ValueNode);
+	}
+
+	if(sizeof(ExpressionNode) > size)
+	{
+		size = sizeof(ExpressionNode);
+	}
+
+	if(sizeof(FuncNode) > size)
+	{
+		size = sizeof(FuncNode);
+	}
+
+	if(sizeof(CompareNode) > size)
+	{
+		size = sizeof(CompareNode);
 	}
 
 	return size;
@@ -151,8 +171,6 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 			free(*argv);
 			*argv = NULL;
 		}
-
-		ast_root_node_free(root);
 	}
 
 	/* free buffer state & scanner */
@@ -202,8 +220,8 @@ _parser_memorize_string(void *scanner, char *str)
 
 %%
 query:
-    exprs                                   { *root = ast_root_node_new($1, NULL); }
-    | exprs post_exprs                      { *root = ast_root_node_new($1, $2); }
+    exprs                                   { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, NULL); }
+    | exprs post_exprs                      { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, $2); }
     ;
 
 exprs:
@@ -243,8 +261,17 @@ post_exprs:
     ;
 
 post_term:
-    fn TOKEN_LPAREN TOKEN_RPAREN            { $$ = ast_func_node_new_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL); }
-    | fn TOKEN_LPAREN fn_args TOKEN_RPAREN  { $$ = ast_func_node_new_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3); }
+    fn TOKEN_LPAREN TOKEN_RPAREN              { $$ = ast_compare_node_new_alloc(
+                                                     ALLOC(scanner),
+                                                     &@1,
+                                                     ast_func_node_new_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL),
+                                                     CMP_EQ,
+                                                     ast_true_node_new_alloc(ALLOC(scanner), &@1)); }
+    | fn TOKEN_LPAREN fn_args TOKEN_RPAREN    { $$ = ast_compare_node_new_alloc(
+                                                     ALLOC(scanner), &@1,
+                                                     ast_func_node_new_alloc(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3),
+                                                     CMP_EQ,
+                                                     ast_true_node_new_alloc(ALLOC(scanner), &@1)); }
     ;
 
 fn:

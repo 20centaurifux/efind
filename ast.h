@@ -160,6 +160,10 @@ typedef enum
 {
 	/*! Undefined. */
 	NODE_UNDEFINED,
+	/*! Node is of type RootNode. */
+	NODE_ROOT,
+	/*! Node is of type TrueNode. */
+	NODE_TRUE,
 	/*! Node is of type ExpressionNode. */
 	NODE_EXPRESSION,
 	/*! Node is of type ConditionNode. */
@@ -167,7 +171,9 @@ typedef enum
 	/*! Node is of type ValueNode. */
 	NODE_VALUE,
 	/*! Node is of type FuncNode. */
-	NODE_FUNC
+	NODE_FUNC,
+	/*! Node is of type CompareNode. */
+	NODE_COMPARE
 } NodeType;
 
 /**
@@ -188,11 +194,23 @@ typedef struct
  */
 typedef struct
 {
+	/*! Base type. */
+	Node padding;
 	/*! Root node of the expression tree. */
 	Node *exprs;
 	/*! Root node of the post-processing hooks tree. */
 	Node *post_exprs;
 } RootNode;
+
+/**
+   @struct TrueNode
+   @brief A node representing true.
+ */
+typedef struct
+{
+	/*! Base type. */
+	Node padding;
+} TrueNode;
 
 /**
    @enum ValueType
@@ -277,6 +295,22 @@ typedef struct
 } ConditionNode;
 
 /**
+   @struct CompareNode
+   @brief Compare nodes compare a node to another.
+ */
+typedef struct
+{
+	/*! Base type. */
+	Node padding;
+	/*! A node. */
+	Node *first;
+	/*! A compare operator. */
+	CompareType cmp;
+	/*! A second node. */
+	Node *second;
+} CompareNode;
+
+/**
    @struct ExpressionNode
    @brief Expression nodes hold at least a single node. A second node and a related operator
           can also be assigned.
@@ -294,8 +328,8 @@ typedef struct
 } ExpressionNode;
 
 /**
-   @struct ConditionNode
-   @brief Condition nodes hold a property id, a compare operator and a value node.
+   @struct FuncNode
+   @brief FuncNodes hold a function name and arguments.
  */
 typedef struct
 {
@@ -354,6 +388,15 @@ FileType ast_str_to_type(const char *str);
    Converts a string to a FileFlag.
  */
 FileFlag ast_str_to_flag(const char *str);
+
+/**
+   @param alloc an Allocator
+   @param locp location information
+   @return a new Node
+
+   Creates a new TrueNode.
+ */
+Node *ast_true_node_new_alloc(Allocator *alloc, const YYLTYPE *locp);
 
 /**
    @param value string to assign
@@ -450,6 +493,18 @@ Node *ast_value_node_new_int_pair(ValueType type, int a, int b);
 Node *ast_value_node_new_int_pair_alloc(Allocator *alloc, const YYLTYPE *locp, ValueType type, int a, int b);
 
 /**
+   @param alloc an Allocator
+   @param locp location information
+   @param first a node
+   @param cmp a compare operator
+   @param second another node
+   @return a new Node
+
+   Creates a new CompareNode.
+ */
+Node *ast_compare_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, Node *first, CompareType cmp, Node *second);
+
+/**
    @param prop a PropertyId
    @param cmp a compare operator
    @param value a ValueNode
@@ -513,19 +568,13 @@ void ast_node_free(Node *node);
 
 /**
    @param alloc an Allocator
+   @param locp location information
    @param exprs expressions root node
    @param post expressions root node
    @return a new RootNode
 
    Creates an empty RootNode.
  */
-RootNode *ast_root_node_new(Node *exprs, Node *post_exprs);
-
-/**
-   @param node RootNode to free
-
-   Frees a RootNode.
-  */
-void ast_root_node_free(RootNode *node);
+RootNode *ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *post_exprs);
 #endif
 
