@@ -238,22 +238,7 @@ ast_str_to_flag(const char *str)
 }
 
 static void *
-_node_new(size_t size, NodeType type)
-{
-	assert(size > 0);
-	assert(NODE_TYPE_IS_VALID(type));
-
-	void *ptr = utils_malloc(size);
-
-	memset(ptr, 0, size);
-
-	((Node *)ptr)->type = type;
-
-	return ptr;
-}
-
-static void *
-_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, size_t size, NodeType type)
+_node_new(Allocator *alloc, const YYLTYPE *locp, size_t size, NodeType type)
 {
 	assert(alloc != NULL);
 	assert(size > 0);
@@ -271,22 +256,21 @@ _node_new_alloc(Allocator *alloc, const YYLTYPE *locp, size_t size, NodeType typ
 }
 
 /*! @cond INTERNAL */
-#define node_new(t, id) (t *)_node_new(sizeof(t), id)
-#define node_new_alloc(a, l, t, id) (t *)_node_new_alloc(a, l, sizeof(t), id)
+#define node_new(a, l, t, id) (t *)_node_new(a, l, sizeof(t), id)
 /*! @endcond */
 
 Node *
-ast_true_node_new_alloc(Allocator *alloc, const YYLTYPE *locp)
+ast_true_node_new(Allocator *alloc, const YYLTYPE *locp)
 {
-	TrueNode *node = node_new_alloc(alloc, locp, TrueNode, NODE_TRUE);
+	TrueNode *node = node_new(alloc, locp, TrueNode, NODE_TRUE);
 
 	return (Node *)node;
 }
 
 Node *
-ast_value_node_new_str_nodup(char *value)
+ast_value_node_new_str_nodup(Allocator *alloc, const YYLTYPE *locp, char *value)
 {
-	ValueNode *node = node_new(ValueNode, NODE_VALUE);
+	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
 
 	node->vtype = VALUE_STRING;
 	node->value.svalue = value;
@@ -295,20 +279,9 @@ ast_value_node_new_str_nodup(char *value)
 }
 
 Node *
-ast_value_node_new_str_nodup_alloc(Allocator *alloc, const YYLTYPE *locp, char *value)
+ast_value_node_new_int(Allocator *alloc, const YYLTYPE *locp, int value)
 {
-	ValueNode *node = node_new_alloc(alloc, locp, ValueNode, NODE_VALUE);
-
-	node->vtype = VALUE_STRING;
-	node->value.svalue = value;
-
-	return (Node *)node;
-}
-
-Node *
-ast_value_node_new_int(int value)
-{
-	ValueNode *node = node_new(ValueNode, NODE_VALUE);
+	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
 
 	node->vtype = VALUE_NUMERIC;
 	node->value.ivalue = value;
@@ -317,20 +290,9 @@ ast_value_node_new_int(int value)
 }
 
 Node *
-ast_value_node_new_int_alloc(Allocator *alloc, const YYLTYPE *locp, int value)
+ast_value_node_new_type(Allocator *alloc, const YYLTYPE *locp, FileType type)
 {
-	ValueNode *node = node_new_alloc(alloc, locp, ValueNode, NODE_VALUE);
-
-	node->vtype = VALUE_NUMERIC;
-	node->value.ivalue = value;
-
-	return (Node *)node;
-}
-
-Node *
-ast_value_node_new_type(FileType type)
-{
-	ValueNode *node = node_new(ValueNode, NODE_VALUE);
+	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
 
 	node->vtype = VALUE_TYPE;
 	node->value.ivalue = type;
@@ -339,22 +301,9 @@ ast_value_node_new_type(FileType type)
 }
 
 Node *
-ast_value_node_new_type_alloc(Allocator *alloc, const YYLTYPE *locp, FileType type)
+ast_value_node_new_flag(Allocator *alloc, const YYLTYPE *locp, FileFlag flag)
 {
-	ValueNode *node = node_new_alloc(alloc, locp, ValueNode, NODE_VALUE);
-
-	node->vtype = VALUE_TYPE;
-	node->value.ivalue = type;
-
-	return (Node *)node;
-}
-
-Node *
-ast_value_node_new_flag(FileFlag flag)
-{
-	ValueNode *node = node_new(ValueNode, NODE_VALUE);
-
-	assert(FILE_FLAG_IS_VALID(flag));
+	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
 
 	node->vtype = VALUE_FLAG;
 	node->value.ivalue = flag;
@@ -363,36 +312,11 @@ ast_value_node_new_flag(FileFlag flag)
 }
 
 Node *
-ast_value_node_new_flag_alloc(Allocator *alloc, const YYLTYPE *locp, FileFlag flag)
-{
-	ValueNode *node = node_new_alloc(alloc, locp, ValueNode, NODE_VALUE);
-
-	node->vtype = VALUE_FLAG;
-	node->value.ivalue = flag;
-
-	return (Node *)node;
-}
-
-Node *
-ast_value_node_new_int_pair(ValueType type, int a, int b)
+ast_value_node_new_int_pair(Allocator *alloc, const YYLTYPE *locp, ValueType type, int a, int b)
 {
 	assert(type == VALUE_TIME || type == VALUE_SIZE);
 
-	ValueNode *node = node_new(ValueNode, NODE_VALUE);
-
-	node->vtype = type;
-	node->value.pair.a = a;
-	node->value.pair.b = b;
-
-	return (Node *)node;
-}
-	
-Node *
-ast_value_node_new_int_pair_alloc(Allocator *alloc, const YYLTYPE *locp, ValueType type, int a, int b)
-{
-	assert(type == VALUE_TIME || type == VALUE_SIZE);
-
-	ValueNode *node = node_new_alloc(alloc, locp, ValueNode, NODE_VALUE);
+	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
 
 	node->vtype = type;
 	node->value.pair.a = a;
@@ -402,9 +326,9 @@ ast_value_node_new_int_pair_alloc(Allocator *alloc, const YYLTYPE *locp, ValueTy
 }
 
 Node *
-ast_compare_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, Node *first, CompareType cmp, Node *second)
+ast_compare_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, CompareType cmp, Node *second)
 {
-	CompareNode *node = node_new_alloc(alloc, locp, CompareNode, NODE_COMPARE);
+	CompareNode *node = node_new(alloc, locp, CompareNode, NODE_COMPARE);
 
 	assert(first != NULL);
 	assert(second != NULL);
@@ -431,19 +355,9 @@ _ast_cond_node_init(ConditionNode *node, PropertyId prop, CompareType cmp, Value
 }
 
 Node *
-ast_cond_node_new(PropertyId prop, CompareType cmp, ValueNode *value)
+ast_cond_node_new(Allocator *alloc, const YYLTYPE *locp, PropertyId prop, CompareType cmp, ValueNode *value)
 {
-	ConditionNode *node = node_new(ConditionNode, NODE_CONDITION);
-
-	_ast_cond_node_init(node, prop, cmp, value);
-
-	return (Node *)node;
-}
-
-Node *
-ast_cond_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, PropertyId prop, CompareType cmp, ValueNode *value)
-{
-	ConditionNode *node = node_new_alloc(alloc, locp, ConditionNode, NODE_CONDITION);
+	ConditionNode *node = node_new(alloc, locp, ConditionNode, NODE_CONDITION);
 
 	_ast_cond_node_init(node, prop, cmp, value);
 
@@ -464,9 +378,13 @@ _ast_expr_node_init(ExpressionNode *node, Node *first, OperatorType op, Node *se
 }
 
 Node *
-ast_expr_node_new(Node *first, OperatorType op, Node *second)
+ast_expr_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorType op, Node *second)
 {
-	ExpressionNode *node = node_new(ExpressionNode, NODE_EXPRESSION);
+	ExpressionNode *node;
+
+	assert(OPERATOR_IS_VALID(op));
+
+	node = node_new(alloc, locp, ExpressionNode, NODE_EXPRESSION);
 
 	_ast_expr_node_init(node, first, op, second);
 
@@ -474,65 +392,20 @@ ast_expr_node_new(Node *first, OperatorType op, Node *second)
 }
 
 Node *
-ast_expr_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorType op, Node *second)
+ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args)
 {
-	ExpressionNode *node = node_new_alloc(alloc, locp, ExpressionNode, NODE_EXPRESSION);
+	FuncNode *node;
 
-	_ast_expr_node_init(node, first, op, second);
-
-	return (Node *)node;
-}
-
-Node *
-ast_func_node_new_alloc(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args)
-{
 	assert(name != NULL);
 
-	FuncNode *node = node_new_alloc(alloc, locp, FuncNode, NODE_FUNC);
+	node = node_new(alloc, locp, FuncNode, NODE_FUNC);
+
+	node = node_new(alloc, locp, FuncNode, NODE_FUNC);
 
 	node->name = name;
 	node->args = args;
 
 	return (Node *)node;
-}
-
-void
-ast_free(Node *node)
-{
-	if(node)
-	{
-		if(node->type == NODE_EXPRESSION)
-		{
-			ExpressionNode *exnode = (ExpressionNode *)node;
-
-			/* free child nodes */
-			ast_free(exnode->first);
-			ast_free(exnode->second);
-		}
-		else if(node->type == NODE_CONDITION)
-		{
-			ConditionNode *cnode = (ConditionNode *)node;
-
-			/* free value node assigned to condition */
-			ast_free((Node *)cnode->value);
-		}
-		else if(node->type == NODE_VALUE)
-		{
-			ValueNode *vnode = (ValueNode *)node;
-
-			/* free string value */
-			if(vnode->vtype == VALUE_STRING)
-			{
-				free(vnode->value.svalue);
-			}
-		}
-		else
-		{
-			fprintf(stderr, "%s:: invalid node type: %d\n", __func__, node->type);
-		}
-
-		free(node);
-	}
 }
 
 RootNode *
@@ -542,7 +415,7 @@ ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *post
 
 	assert(exprs != NULL);
 
-	node = node_new_alloc(alloc, locp, RootNode, NODE_ROOT);
+	node = node_new(alloc, locp, RootNode, NODE_ROOT);
 
 	node->exprs = exprs;
 	node->post_exprs = post_exprs;
