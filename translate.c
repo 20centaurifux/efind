@@ -1,5 +1,4 @@
 /***************************************************************************
- * pe
     begin........: April 2015
     copyright....: Sebastian Fedrau
     email........: sebastian.fedrau@gmail.com
@@ -657,7 +656,6 @@ _process_expression(TranslationCtx *ctx, ExpressionNode *node)
 	}
 
 out:
-
 	return success;
 }
 
@@ -774,7 +772,6 @@ _translate(TranslationCtx *ctx)
 /*
  *	global:
  */
-
 bool
 translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char **err)
 {
