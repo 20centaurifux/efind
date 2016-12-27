@@ -154,11 +154,6 @@ parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv
 		/* string parsed successfully => translate generated tree to argument list */
 		success = translate(root->exprs, flags, argc, argv, err);
 
-		if(root->post_exprs)
-		{
-			printf("%d\n", root->post_exprs->type);
-		}
-
 		/* reset parsed arguments if translation has failed */
 		if(!success && *argv)
 		{
