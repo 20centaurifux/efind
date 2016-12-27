@@ -287,7 +287,8 @@ fn_args:
 fn_arg:
     number                                  { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, yylval.ivalue); }
     | TOKEN_STRING                          { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
-    | post_term                             { $$ = $1; }
+    | fn TOKEN_LPAREN TOKEN_RPAREN          { $$ = ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL); }
+    | fn TOKEN_LPAREN fn_args TOKEN_RPAREN  { $$ = ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3); }
     ;
 
 number:

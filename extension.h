@@ -149,7 +149,6 @@ typedef enum
 	EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE
 } ExtensionCallbackStatus;
 
-
 /*!
  *\struct ExtensionCallbackArgs
  *\brief Function argument vector.
