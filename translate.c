@@ -619,6 +619,11 @@ _process_expression(TranslationCtx *ctx, ExpressionNode *node)
 	lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
 	rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
 
+	if(node->op != OP_AND && node->op != OP_OR)
+	{
+		_set_error(ctx, NULL, "%s:: critical error => unsupported operator: %d", __func__, node->op);
+	}
+
 	if(_open_parenthese(node, node->first))
 	{
 		_translation_ctx_append_arg(ctx, lparen);
