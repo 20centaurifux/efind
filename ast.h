@@ -501,7 +501,7 @@ Node *ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node 
    @param alloc an Allocator
    @param locp location information
    @param exprs expressions root node
-   @param post expressions root node
+   @param post_exprs post expressions root node
    @return a new RootNode
 
    Creates an empty RootNode.

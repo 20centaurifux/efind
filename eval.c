@@ -36,7 +36,7 @@ typedef struct
 	ExtensionDir *dir;
 } EvalContext;
 
-EvalResult _eval_node(Node *node, EvalContext *ctx);
+static EvalResult _eval_node(Node *node, EvalContext *ctx);
 /*! @endcond */
 
 static bool
@@ -68,13 +68,15 @@ static bool
 _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 {
 	int argc = 0;
-	FuncNode *fn = (FuncNode *)node;
+	FuncNode *fn;
 	ExtensionCallbackArgs* args;
 	int result;
 	bool success = true;
 
 	assert(node != NULL);
 	assert(fn_result != NULL);
+
+	fn = (FuncNode *)node;
 
 	*fn_result = 0;
 	args = extension_callback_args_new(FN_STACK_SIZE);
@@ -287,7 +289,7 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 	return result;
 }
 
-EvalResult
+static EvalResult
 _eval_node(Node *node, EvalContext *ctx)
 {
 	EvalResult result = EVAL_RESULT_ABORTED;
@@ -320,7 +322,6 @@ EvalResult
 evaluate(Node *node, ExtensionDir *dir, const char *filename, struct stat *stbuf)
 {
 	EvalContext ctx;
-	EvalResult result = EVAL_RESULT_ABORTED;
 
 	assert(node != NULL);
 	assert(dir != NULL);
@@ -333,8 +334,6 @@ evaluate(Node *node, ExtensionDir *dir, const char *filename, struct stat *stbuf
 	ctx.filename = filename;
 	ctx.stbuf = stbuf;
 
-	result = _eval_node(node, &ctx);
-
-	return result;
+	return _eval_node(node, &ctx);
 }
 

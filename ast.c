@@ -400,8 +400,6 @@ ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args)
 
 	node = node_new(alloc, locp, FuncNode, NODE_FUNC);
 
-	node = node_new(alloc, locp, FuncNode, NODE_FUNC);
-
 	node->name = name;
 	node->args = args;
 
