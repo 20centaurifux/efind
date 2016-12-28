@@ -40,9 +40,40 @@
 #include "search.h"
 #include "parser.h"
 #include "utils.h"
+#include "eval.h"
+
+/*! @cond INTERNAL */
+typedef EvalResult (*PreCondition)(const char *filename, struct stat *stbuf, void *user_data);
+
+typedef struct
+{
+	ParserResult *result;
+	ExtensionDir *dir;
+} PostExprsArgs;
+
+#define ABORT_SEARCH -1
+/*! @endcond */
+
+static EvalResult
+_search_post_exprs(const char *filename, struct stat *stbuf, void *user_data)
+{
+	PostExprsArgs *args = (PostExprsArgs *)user_data;
+	EvalResult result = EVAL_RESULT_TRUE;
+
+	assert(filename != NULL);
+	assert(stbuf != NULL);
+	assert(args != NULL);
+
+	if(args->result->root->post_exprs)
+	{
+		result = evaluate(args->result->root->post_exprs, args->dir, filename, stbuf);
+	}
+
+	return result;
+}
 
 static int
-_search_read_lines(Buffer *buf, char **line, size_t *llen, Callback cb, void *user_data)
+_search_process_lines(Buffer *buf, char **line, size_t *llen, PreCondition pre, void *pre_data, Callback cb, void *user_data)
 {
 	int count = 0;
 
@@ -51,21 +82,46 @@ _search_read_lines(Buffer *buf, char **line, size_t *llen, Callback cb, void *us
 	assert(llen != NULL);
 	assert(cb != NULL);
 
-	while(buffer_read_line(buf, line, llen))
+	while(count != ABORT_SEARCH && buffer_read_line(buf, line, llen))
 	{
 		if(cb)
 		{
-			cb(*line, user_data);
-		}
+			if(pre)
+			{
+				struct stat stbuf;
 
-		++count;
+				if(!stat(*line, &stbuf))
+				{
+					EvalResult result = pre(*line, &stbuf, pre_data);
+
+					if(result == EVAL_RESULT_TRUE)
+					{
+						cb(*line, user_data);
+						++count;
+					}
+					else if(result == EVAL_RESULT_ABORTED)
+					{
+						count = ABORT_SEARCH;
+					}
+				}
+				else
+				{
+					fprintf(stderr, "Couldn't stat \"%s\".", *line);
+				}
+			}
+			else
+			{
+				cb(*line, user_data);
+				++count;
+			}
+		}
 	}
 
 	return count;
 }
 
 static int
-_search_flush_buffer(Buffer *buf, char **line, size_t *llen, Callback cb, void *user_data)
+_search_flush_buffer(Buffer *buf, char **line, size_t *llen, PreCondition pre, void *pre_data, Callback cb, void *user_data)
 {
 	int count = 0;
 
@@ -76,16 +132,45 @@ _search_flush_buffer(Buffer *buf, char **line, size_t *llen, Callback cb, void *
 
 	if(cb && !buffer_is_empty(buf))
 	{
-		count = _search_read_lines(buf, line, llen, cb, user_data);
+		count = _search_process_lines(buf, line, llen, pre, pre_data, cb, user_data);
 
-		if(buffer_flush(buf, line, llen))
+		if(count != ABORT_SEARCH)
 		{
-			cb(*line, user_data);
-			++count;
+			if(buffer_flush(buf, line, llen))
+			{
+				cb(*line, user_data);
+				++count;
+			}
 		}
 	}
 
 	return count;
+}
+
+static ExtensionDir *
+_search_load_extension_dir(void)
+{
+	ExtensionDir *dir = NULL;
+	const char *home = getenv("HOME");
+	char path[PATH_MAX];
+
+	if(home)
+	{
+		if(utils_path_join(home, ".efind/extensions", path, PATH_MAX))
+		{
+			char *err = NULL;
+
+			dir = extension_dir_load(path, &err);
+
+			if(err)
+			{
+				fprintf(stderr, "%s\n", err);
+				free(err);
+			}
+		}
+	}
+
+	return dir;
 }
 
 static int
@@ -110,11 +195,11 @@ _search_close_fd(int *fd)
 	return ret;
 }
 
-static bool
+static ParserResult *
 _search_translate_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, size_t *argc, char ***argv)
 {
+	ParserResult *result;
 	char *err = NULL;
-	bool success = false;
 
 	assert(path != NULL);
 	assert(expr != NULL);
@@ -126,19 +211,37 @@ _search_translate_expr(const char *path, const char *expr, TranslationFlags flag
 	*argv = NULL;
 
 	/* translate string to find arguments */
-	if(parse_string(expr, flags, argc, argv, &err))
+	result = parse_string(expr);
+
+	if(result->success)
 	{
-		search_merge_options(argc, argv, path, opts);
-		success = true;
+		if(translate(result->root->exprs, flags, argc, argv, &err))
+		{
+			search_merge_options(argc, argv, path, opts);
+		}
+		else
+		{
+			result->success = false;
+			result->err = err;
+		}
+	}
+	else
+	{
+		/* reset parsed arguments if translation has failed */
+		if(*argv)
+		{
+			for(size_t i = 0; i < *argc; ++i)
+			{
+				free((*argv)[i]);
+			}
+
+			*argc = 0;
+			free(*argv);
+			*argv = NULL;
+		}
 	}
 
-	if(err)
-	{
-		fprintf(stderr, "%s\n", err);
-		free(err);
-	}
-
-	return success;
+	return result;
 }
 
 void
@@ -200,9 +303,12 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 	int i;
 	int ret = -1;
 	pid_t pid;
+	ParserResult *result = NULL;
 	int outfds[2]; // redirect stdout
 	int errfds[2]; // redirect stderr
-
+	char **argv = NULL;
+	size_t argc = 0;
+	
 	assert(path != NULL);
 	assert(expr != NULL);
 	assert(opts != NULL);
@@ -216,6 +322,14 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 	if(pipe2(outfds, 0) == -1 || pipe2(errfds, 0) == -1)
 	{
 		perror("pipe2()");
+		goto out;
+	}
+
+	/* parse expression */
+	result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
+
+	if(!result->success)
+	{
 		goto out;
 	}
 
@@ -258,13 +372,11 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		}
 
 		/* run find */
-		char **argv = NULL;
-		size_t argc = 0;
 		char *exe;
 
 		if((exe = utils_whereis("find")))
 		{
-			if(_search_translate_expr(path, expr, flags, opts, &argc, &argv))
+			if(result->success)
 			{
 				if(execv(exe, argv) == -1)
 				{
@@ -273,13 +385,6 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 				}
 			}
 
-			/* cleanup */
-			for(size_t i = 0; i < argc; ++i)
-			{
-				free(argv[i]);
-			}
-
-			free(argv);
 			free(exe);
 		}
 		else
@@ -294,6 +399,13 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		{
 			goto out;
 		}
+
+		/* initialize post processing arguments */
+		PostExprsArgs post_args;
+		memset(&post_args, 0, sizeof(PostExprsArgs));
+
+		post_args.result = result;
+		post_args.dir = _search_load_extension_dir();
 
 		/* read from pipes until child process terminates */
 		int status;
@@ -333,7 +445,14 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 					{
 						while((bytes = buffer_fill_from_fd(&outbuf, outfds[0], 512)) > 0)
 						{
-							ret += _search_read_lines(&outbuf, &line, &llen, found_file, user_data);
+							int count = _search_process_lines(&outbuf, &line, &llen, _search_post_exprs, &post_args, found_file, user_data);
+
+							if(count == ABORT_SEARCH)
+							{
+								break;
+							}
+
+							ret += count;
 							sum += bytes;
 						}
 					}
@@ -342,7 +461,7 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 					{
 						while((bytes = buffer_fill_from_fd(&errbuf, errfds[0], 512)) > 0)
 						{
-							_search_read_lines(&errbuf, &line, &llen, err_message, user_data);
+							_search_process_lines(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
 							sum += bytes;
 						}
 					}
@@ -367,16 +486,35 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		}
 
 		/* flush buffers */
-		ret += _search_flush_buffer(&outbuf, &line, &llen, found_file, user_data);
-		_search_flush_buffer(&errbuf, &line, &llen, err_message, user_data);
+		ret += _search_flush_buffer(&outbuf, &line, &llen, _search_post_exprs, &post_args, found_file, user_data);
+		_search_flush_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
 
 		/* clean up */
 		buffer_free(&outbuf);
 		buffer_free(&errbuf);
 		free(line);
+		
+		if(post_args.dir)
+		{
+			extension_dir_destroy(post_args.dir);
+		}
 	}
 
+
 	out:
+		/* cleanup */
+		if(argv)
+		{
+			for(size_t i = 0; i < argc; ++i)
+			{
+				free(argv[i]);
+			}
+
+			free(argv);
+		}
+
+		parser_result_free(result);
+
 		/* close descriptors */
 		for(i = 0; i < 2; ++i)
 		{
@@ -392,7 +530,7 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 {
 	size_t argc;
 	char **argv;
-	char *errmsg = NULL;
+	ParserResult *result;
 	bool success = false;
 
 	assert(out != NULL);
@@ -401,7 +539,9 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 	assert(expr != NULL);
 	assert(opts != NULL);
 
-	if(_search_translate_expr(path, expr, flags, opts, &argc, &argv))
+	result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
+
+	if(result->success)
 	{
 		for(size_t i = 0; i < argc; ++i)
 		{
@@ -415,11 +555,12 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 		success = true;
 	}
 
-	if(errmsg)
+	if(result->err)
 	{
-		fprintf(err, "%s\n", errmsg);
-		free(errmsg);
+		fprintf(err, "%s\n", result->err);
 	}
+
+	parser_result_free(result);
 
 	return success;
 }

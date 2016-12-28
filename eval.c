@@ -229,10 +229,8 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 				{
 					if(!_eval_func_node(cmp->second, ctx, &b))
 					{
-						fprintf(stderr, "Couldn't invoke function \"%s\".\n", ((FuncNode *)cmp->second)->name);
+						result = EVAL_RESULT_ABORTED;
 					}
-
-					result = EVAL_RESULT_ABORTED;
 				}
 				else
 				{

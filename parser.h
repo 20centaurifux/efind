@@ -53,15 +53,35 @@ typedef struct
 } ParserExtra;
 
 /**
-   @param str string to parse
-   @param flags translation flags
-   @param argc number of translated find arguments
-   @param argv translated find arguments
-   @param err location to store error message
-   @return true on success
-
-   Converts an expression to a find-compatible argument vector.
+   @struct ParserResult
+   @brief The parsing result.
  */
-bool parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv, char **err);
+typedef struct
+{
+	/*! Parser data. */
+	ParserExtra data;
+	/*! true if parsing was successfully. */
+	bool success;
+	/*! Root node of the abstract syntax tree. */
+	RootNode *root;
+	/*! Error message. */
+	char *err;
+} ParserResult;
+
+/**
+   @param str string to parse
+   @return a ParserResult
+
+   Parses an expression and returns the result.
+ */
+ParserResult *parse_string(const char *str);
+
+/**
+   @param result ParserResult to free
+
+   Frees a ParserResult.
+  */
+void parser_result_free(ParserResult *result);
+
 #endif
 

@@ -67,7 +67,8 @@ void search_merge_options(size_t *argc, char ***argv, const char *path, const Se
    @param user_data user data
    @return number of found files
 
-   Translates expr and executes find with the translated arguments.
+   Translates expr, executes find with the translated arguments and filters the result using the
+   specified post-processing expression.
  */
 int search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data);
 

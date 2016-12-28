@@ -101,83 +101,66 @@ _parser_get_alloc_item_size(void)
 	return size;
 }
 
-bool
-parse_string(const char *str, TranslationFlags flags, size_t *argc, char ***argv, char **err)
+ParserResult *
+parse_string(const char *str)
 {
 	void* scanner;
-	RootNode *root = NULL;
-	ParserExtra extra;
+	ParserResult *result;
 	YY_BUFFER_STATE buf;
-	bool success = false;
-	size_t i;
 
-	assert(argc != NULL);
-	assert(argv != NULL);
-	assert(err != NULL);
+	/* create and initialize parser result */
+	result = (ParserResult *)utils_malloc(sizeof(ParserResult));
+	memset(result, 0, sizeof(ParserResult));
 
-	*argc = 0;
-	*argv = NULL;
-	*err = NULL;
+	buffer_init(&result->data.buffer, BUFFER_MAX);
+	slist_init(&result->data.strings, &direct_equal, &free, NULL);
+
+	result->data.alloc = (Allocator *)chunk_allocator_new(_parser_get_alloc_item_size(), 16);
+	result->data.column = 1;
+	result->data.lineno = 1;
 
 	/* test expression length */
 	if(!str)
 	{
-		*err = strdup("Expression cannot be empty.");
+		result->err = strdup("Expression cannot be empty.");
 		return false;
 	}
 
 	if(strlen(str) > PARSER_MAX_EXPRESSION_LENGTH)
 	{
-		*err = strdup("Expression length exceeds maximum.");
+		result->err = strdup("Expression length exceeds maximum.");
 		return false;
 	}
 
-	/* initialize extra data */
-	memset(&extra, 0, sizeof(ParserExtra));
-	buffer_init(&extra.buffer, BUFFER_MAX);
-
-	extra.alloc = (Allocator *)chunk_allocator_new(_parser_get_alloc_item_size(), 16);
-	extra.column = 1;
-	extra.lineno = 1;
-
-	slist_init(&extra.strings, &direct_equal, &free, NULL);
-
 	/* setup scanner */
 	yylex_init(&scanner);
-	yyset_extra(&extra, scanner);
+	yyset_extra(&result->data, scanner);
 
 	/* parse string*/
 	buf = yy_scan_string(str, scanner);
 
-	if(!yyparse(scanner, (void *)&root))
+	if(!yyparse(scanner, (void *)&result->root))
 	{
-		/* string parsed successfully => translate generated tree to argument list */
-		success = translate(root->exprs, flags, argc, argv, err);
-
-		/* reset parsed arguments if translation has failed */
-		if(!success && *argv)
-		{
-			for(i = 0; i < *argc; ++i)
-			{
-				free((*argv)[i]);
-			}
-
-			*argc = 0;
-			free(*argv);
-			*argv = NULL;
-		}
+		result->success = true;
 	}
 
 	/* free buffer state & scanner */
 	yy_delete_buffer(buf, scanner);
 	yylex_destroy(scanner);
 
-	/* cleanup */
-	chunk_allocator_destroy((ChunkAllocator *)extra.alloc);
-	slist_clear(&extra.strings);
-	buffer_free(&extra.buffer);
+	return result;
+}
 
-	return success;
+void parser_result_free(ParserResult *result)
+{
+	if(result)
+	{
+		free(result->err);
+		chunk_allocator_destroy((ChunkAllocator *)result->data.alloc);
+		slist_clear(&result->data.strings);
+		buffer_free(&result->data.buffer);
+		free(result);
+	}
 }
 
 #define ALLOC(scanner) ((ParserExtra *)yyget_extra(scanner))->alloc
