@@ -175,9 +175,7 @@ _eval_expression_node(Node *node, EvalContext *ctx)
 	ExpressionNode *expr = (ExpressionNode *)node;
 
 	assert(expr->first != NULL);
-	assert(expr->first->type == NODE_COMPARE);
 	assert(expr->second != NULL);
-	assert(expr->second->type == NODE_COMPARE);
 
 	if(expr->op == OP_AND)
 	{
