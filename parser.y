@@ -193,98 +193,98 @@ _parser_memorize_string(void *scanner, char *str)
 %token <ivalue> TOKEN_TYPE
 
 %type <root> query
-%type <node> value cond term exprs flag post_exprs post_term fn fn_arg fn_args
+%type <node> value cond term exprs flag post_exprs post_expr post_term fn_name fn_call fn_arg fn_args
 %type <ivalue> property number interval unit compare operator
 
 %%
 query:
-    exprs                                   { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, NULL); }
-    | exprs post_exprs                      { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, $2); }
+    exprs                                       { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, NULL); }
+    | exprs post_exprs                          { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, $2); }
     ;
 
 exprs:
-    term operator exprs                     { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
-    | term                                  { $$ = $1; }
+    term operator exprs                         { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    | term                                      { $$ = $1; }
     ;
 
 term:
-    TOKEN_LPAREN exprs TOKEN_RPAREN         { $$ = $2; }
-    | cond                                  { $$ = $1; }
-    | flag                                  { $$ = $1; }
+    TOKEN_LPAREN exprs TOKEN_RPAREN             { $$ = $2; }
+    | cond                                      { $$ = $1; }
+    | flag                                      { $$ = $1; }
     ;
 
 cond:
-    property compare value                  { $$ = ast_cond_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    property compare value                      { $$ = ast_cond_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
     ;
 
 flag:
-    TOKEN_FLAG                              { $$ = ast_value_node_new_flag(ALLOC(scanner), &@1, yylval.ivalue); }
+    TOKEN_FLAG                                  { $$ = ast_value_node_new_flag(ALLOC(scanner), &@1, yylval.ivalue); }
     ;
 
 property:
-    TOKEN_PROPERTY                          { $$ = yylval.ivalue; }
+    TOKEN_PROPERTY                              { $$ = yylval.ivalue; }
     ;
 
 value:
-    number                                  { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, $1); }
-    | number interval                       { $$ = ast_value_node_new_int_pair(ALLOC(scanner), &@1, VALUE_TIME, $1, $2); }
-    | number unit                           { $$ = ast_value_node_new_int_pair(ALLOC(scanner), &@1, VALUE_SIZE, $1, $2); }
-    | TOKEN_STRING                          { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
-    | TOKEN_TYPE                            { $$ = ast_value_node_new_type(ALLOC(scanner), &@1, yylval.ivalue); }
+    number                                      { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, $1); }
+    | number interval                           { $$ = ast_value_node_new_int_pair(ALLOC(scanner), &@1, VALUE_TIME, $1, $2); }
+    | number unit                               { $$ = ast_value_node_new_int_pair(ALLOC(scanner), &@1, VALUE_SIZE, $1, $2); }
+    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
+    | TOKEN_TYPE                                { $$ = ast_value_node_new_type(ALLOC(scanner), &@1, yylval.ivalue); }
     ;
 
 post_exprs:
-    post_term                               { $$ = $1; }
-    | post_term operator post_exprs         { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    post_expr                                   { $$ = $1; }
+    | post_expr operator post_exprs             { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    ;
+
+post_expr:
+    post_term                                   { $$ = ast_compare_node_new(ALLOC(scanner), &@1, $1, CMP_EQ, ast_true_node_new(ALLOC(scanner), &@1)); }
+    | post_term compare post_term               { $$ = ast_compare_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    | TOKEN_LPAREN post_exprs TOKEN_RPAREN      { $$ = $2; }
     ;
 
 post_term:
-    fn TOKEN_LPAREN TOKEN_RPAREN            { $$ = ast_compare_node_new(
-                                                     ALLOC(scanner),
-                                                     &@1,
-                                                     ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL),
-                                                     CMP_EQ,
-                                                     ast_true_node_new(ALLOC(scanner), &@1)); }
-    | fn TOKEN_LPAREN fn_args TOKEN_RPAREN  { $$ = ast_compare_node_new(
-                                                     ALLOC(scanner), &@1,
-                                                     ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3),
-                                                     CMP_EQ,
-                                                     ast_true_node_new(ALLOC(scanner), &@1)); }
-    | TOKEN_LPAREN post_exprs TOKEN_RPAREN  { $$ = $2; }
+    fn_call                                     { $$ = $1; }
+    | number                                    { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, yylval.ivalue); }
     ;
 
-fn:
-    TOKEN_FN_NAME                           { $$ = yylval.svalue; }
+fn_name:
+    TOKEN_FN_NAME                               { $$ = yylval.svalue; }
     ;
+
+fn_call:
+    fn_name TOKEN_LPAREN TOKEN_RPAREN           { $$ = ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL); }
+    | fn_name TOKEN_LPAREN fn_args TOKEN_RPAREN { $$ = ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3); }
+
 
 fn_args:
      fn_arg
-     | fn_arg TOKEN_COMMA fn_args           { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, OP_COMMA, $3); }
+     | fn_arg TOKEN_COMMA fn_args               { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, OP_COMMA, $3); }
      ;
 
 fn_arg:
-    number                                  { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, yylval.ivalue); }
-    | TOKEN_STRING                          { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
-    | fn TOKEN_LPAREN TOKEN_RPAREN          { $$ = ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL); }
-    | fn TOKEN_LPAREN fn_args TOKEN_RPAREN  { $$ = ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3); }
+    number                                      { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, yylval.ivalue); }
+    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
+    | fn_call                                   { $$ = $1; }
     ;
 
 number:
-    TOKEN_NUMBER                            { $$ = yylval.ivalue; }
+    TOKEN_NUMBER                                { $$ = yylval.ivalue; }
     ;
 
 interval:
-    TOKEN_INTERVAL                          { $$ = yylval.ivalue; }
+    TOKEN_INTERVAL                              { $$ = yylval.ivalue; }
     ;
 
 unit:
-    TOKEN_UNIT                              { $$ = yylval.ivalue; }
+    TOKEN_UNIT                                  { $$ = yylval.ivalue; }
     ;
 
 compare:
-    TOKEN_CMP                               { $$ = yylval.ivalue; }
+    TOKEN_CMP                                   { $$ = yylval.ivalue; }
     ;
 
 operator:
-    TOKEN_OPERATOR                          { $$ = yylval.ivalue; }
+    TOKEN_OPERATOR                              { $$ = yylval.ivalue; }
     ;

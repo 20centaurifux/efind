@@ -203,6 +203,40 @@ _eval_expression_node(Node *node, EvalContext *ctx)
 	return result;
 }
 
+static bool
+_eval_node_get_int(Node *node, EvalContext *ctx, int *result)
+{
+	bool success = false;
+
+	assert(node != NULL);
+	assert(result != NULL);
+
+	if(node->type == NODE_FUNC)
+	{
+		success = _eval_func_node(node, ctx, result);
+	}
+	else if(node->type == NODE_VALUE)
+	{
+		ValueNode *val = (ValueNode *)node;
+
+		if(val->vtype == VALUE_NUMERIC)
+		{
+			*result = val->value.ivalue;
+			success = true;
+		}
+		else
+		{
+			fprintf(stderr, "Oops, that shouldn't have happened. Data type: %d cannot be casted to integer.\n", val->vtype);
+		}
+	}
+	else
+	{
+		fprintf(stderr, "Oops, that shouldn't have happened. Node type %d is not supported in %s.\n", node->type, __func__);
+	}
+
+	return success;
+}
+
 static EvalResult
 _eval_compare_node(Node *node, EvalContext *ctx)
 {
@@ -213,75 +247,44 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 	assert(cmp->first != NULL);
 	assert(cmp->second != NULL);
 
-	if(cmp->first->type == NODE_FUNC)
+	if(_eval_node_get_int(cmp->first, ctx, &a))
 	{
-		if(_eval_func_node(cmp->first, ctx, &a))
+		if(cmp->cmp == CMP_EQ && cmp->second->type == NODE_TRUE)
 		{
-			if(cmp->cmp == CMP_EQ && cmp->second->type == NODE_TRUE)
-			{
-				result = (a == 0) ? EVAL_RESULT_FALSE : EVAL_RESULT_TRUE;
-			}
-			else if(cmp->second->type == NODE_FUNC || (cmp->second->type == NODE_VALUE && ((ValueNode *)cmp->second)->vtype == VALUE_NUMERIC))
-			{
-				result = EVAL_RESULT_FALSE;
-
-				if(cmp->second->type == NODE_FUNC)
-				{
-					if(!_eval_func_node(cmp->second, ctx, &b))
-					{
-						result = EVAL_RESULT_ABORTED;
-					}
-				}
-				else
-				{
-					b = ((ValueNode *)cmp->second)->value.ivalue;
-				}
-
-				if(result != EVAL_RESULT_ABORTED)
-				{
-					switch(cmp->cmp)
-					{
-						case CMP_EQ:
-							result = (a == b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
-							break;
-
-						case CMP_LT_EQ:
-							result = (a <= b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
-							break;
-
-						case CMP_LT:
-							result = (a < b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
-							break;
-
-						case CMP_GT_EQ:
-							result = (a >= b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
-							break;
-
-						case CMP_GT:
-							result = (a > b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
-							break;
-
-						default:
-							fprintf(stderr, "Oops, that shouldn't have happened. Unsupported compare operator %d in %s.\n", cmp->cmp, __func__);
-							result = EVAL_RESULT_ABORTED;
-					}
-				}
-			}
-			else
-			{
-				fprintf(stderr,
-				        "Oops, that shouldn't have happened. Cannot compare result of function \"%s\" to node of type %d.\n",
-				        ((FuncNode *)cmp->first)->name, cmp->second->type);
-			}
+			result = (a == 0) ? EVAL_RESULT_FALSE : EVAL_RESULT_TRUE;
 		}
-		else
+		else if(_eval_node_get_int(cmp->second, ctx, &b))
 		{
-			fprintf(stderr, "Couldn't invoke function \"%s\".\n", ((FuncNode *)cmp->first)->name);
+			result = EVAL_RESULT_FALSE;
+
+			switch(cmp->cmp)
+			{
+				case CMP_EQ:
+					result = (a == b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
+					break;
+
+				case CMP_LT_EQ:
+					result = (a <= b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
+					break;
+
+				case CMP_LT:
+					result = (a < b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
+					break;
+
+				case CMP_GT_EQ:
+					result = (a >= b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
+					break;
+
+				case CMP_GT:
+					result = (a > b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
+					break;
+
+				default:
+					fprintf(stderr, "Oops, that shouldn't have happened. Unsupported compare operator %d in %s.\n", cmp->cmp, __func__);
+					result = EVAL_RESULT_ABORTED;
+			}
+		
 		}
-	}
-	else
-	{
-		fprintf(stderr, "Oops, that shouldn't have happened. Node type %d is unexpected as first child node in %s.\n", node->type, __func__);
 	}
 
 	return result;
