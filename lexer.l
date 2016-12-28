@@ -79,7 +79,7 @@ COMMA			","
 	}
 	else
 	{
-		yyerror(yylloc, yyscanner, NULL, "Couldn't parse string.");
+		yyerror(yylloc, yyscanner, NULL, "couldn't parse string");
 
 		return 0;
 	}

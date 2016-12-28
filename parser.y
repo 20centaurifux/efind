@@ -192,6 +192,8 @@ _parser_memorize_string(void *scanner, char *str)
 %token <ivalue> TOKEN_UNIT
 %token <ivalue> TOKEN_TYPE
 
+%left TOKEN_OPERATOR
+
 %type <root> query
 %type <node> value cond term exprs flag post_exprs post_expr post_term fn_name fn_call fn_arg fn_args
 %type <ivalue> property number interval unit compare operator
@@ -199,11 +201,20 @@ _parser_memorize_string(void *scanner, char *str)
 %%
 query:
     exprs                                       { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, NULL); }
-    | exprs post_exprs                          { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, $2); }
+    | exprs operator post_exprs                 { if($2 == OP_AND)
+                                                  {
+                                                    *root = ast_root_node_new(ALLOC(scanner), &@1, $1, $3);
+                                                  }
+                                                  else
+                                                  {
+                                                    yyerror(&@1, scanner, NULL, "post processing expressions have to be added with the \"and\" operator");
+                                                    YYABORT;
+                                                  }
+                                                }
     ;
 
 exprs:
-    term operator exprs                         { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    exprs operator term                         { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
     | term                                      { $$ = $1; }
     ;
 
