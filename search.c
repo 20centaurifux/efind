@@ -84,36 +84,33 @@ _search_process_lines(Buffer *buf, char **line, size_t *llen, PreCondition pre, 
 
 	while(count != ABORT_SEARCH && buffer_read_line(buf, line, llen))
 	{
-		if(cb)
+		if(pre)
 		{
-			if(pre)
+			struct stat stbuf;
+
+			if(!stat(*line, &stbuf))
 			{
-				struct stat stbuf;
+				EvalResult result = pre(*line, &stbuf, pre_data);
 
-				if(!stat(*line, &stbuf))
+				if(result == EVAL_RESULT_TRUE)
 				{
-					EvalResult result = pre(*line, &stbuf, pre_data);
-
-					if(result == EVAL_RESULT_TRUE)
-					{
-						cb(*line, user_data);
-						++count;
-					}
-					else if(result == EVAL_RESULT_ABORTED)
-					{
-						count = ABORT_SEARCH;
-					}
+					cb(*line, user_data);
+					++count;
 				}
-				else
+				else if(result == EVAL_RESULT_ABORTED)
 				{
-					fprintf(stderr, "Couldn't stat \"%s\".", *line);
+					count = ABORT_SEARCH;
 				}
 			}
 			else
 			{
-				cb(*line, user_data);
-				++count;
+				fprintf(stderr, "Couldn't stat \"%s\".", *line);
 			}
+		}
+		else
+		{
+			cb(*line, user_data);
+			++count;
 		}
 	}
 
@@ -152,10 +149,11 @@ _search_load_extension_dir(void)
 {
 	ExtensionDir *dir = NULL;
 	const char *home = getenv("HOME");
-	char path[PATH_MAX];
 
 	if(home)
 	{
+		char path[PATH_MAX];
+
 		if(utils_path_join(home, ".efind/extensions", path, PATH_MAX))
 		{
 			char *err = NULL;
@@ -297,133 +295,84 @@ search_merge_options(size_t *argc, char ***argv, const char *path, const SearchO
 	*argv = nargv;
 }
 
-int
-search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data)
+static void
+_search_child_process(int outfds[2], int errfds[2], ParserResult *result, char **argv)
 {
-	int i;
-	int ret = -1;
-	pid_t pid;
-	ParserResult *result = NULL;
-	int outfds[2]; // redirect stdout
-	int errfds[2]; // redirect stderr
-	char **argv = NULL;
-	size_t argc = 0;
-	
-	assert(path != NULL);
-	assert(expr != NULL);
-	assert(opts != NULL);
-	assert(found_file != NULL);
-	assert(err_message != NULL);
+	char *exe;
 
-	memset(outfds, 0, sizeof(outfds));
-	memset(errfds, 0, sizeof(errfds));
-
-	/* create pipes */
-	if(pipe2(outfds, 0) == -1 || pipe2(errfds, 0) == -1)
+	/* close/dup descriptors */
+	if(close(0))
 	{
-		perror("pipe2()");
-		goto out;
+		perror("close()");
+		return;
 	}
 
-	/* parse expression */
-	result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
-
-	if(!result->success)
+	if(dup2(outfds[1], 1) == -1)
 	{
-		goto out;
+		perror("dup2()");
+		return;
 	}
 
-	/* create child process */
-	pid = fork();
-
-	if(pid == -1)
+	if(dup2(errfds[1], 2) == -1)
 	{
-		perror("fork()");
-		goto out;
+		perror("dup2()");
+		return;
 	}
 
-	if(pid == 0)
+	for(int i = 0; i < 2; ++i)
 	{
-		/* close/dup descriptors */
-		if(close(0))
+		if(_search_close_fd(&outfds[i]) || _search_close_fd(&errfds[i]))
 		{
-			perror("close()");
-			goto out;
+			return;
 		}
+	}
 
-		if(dup2(outfds[1], 1) == -1)
+	/* run find */
+	if((exe = utils_whereis("find")))
+	{
+		if(result->success)
 		{
-			perror("dup2()");
-			goto out;
-		}
-
-		if(dup2(errfds[1], 2) == -1)
-		{
-			perror("dup2()");
-			goto out;
-		}
-
-		for(i = 0; i < 2; ++i)
-		{
-			if(_search_close_fd(&outfds[i]) || _search_close_fd(&errfds[i]))
+			if(execv(exe, argv) == -1)
 			{
-				goto out;
+				perror("execl()");
 			}
 		}
 
-		/* run find */
-		char *exe;
-
-		if((exe = utils_whereis("find")))
-		{
-			if(result->success)
-			{
-				if(execv(exe, argv) == -1)
-				{
-					perror("execl()");
-					goto out;
-				}
-			}
-
-			free(exe);
-		}
-		else
-		{
-			fprintf(stderr, "Couldn't find 'find' executable.\n");
-		}
+		free(exe);
 	}
 	else
 	{
-		/* close descriptors */
-		if(_search_close_fd(&outfds[1]) || _search_close_fd(&errfds[1]))
-		{
-			goto out;
-		}
+		fprintf(stderr, "Couldn't find 'find' executable.\n");
+	}
+}
 
-		/* initialize post processing arguments */
-		PostExprsArgs post_args;
-		memset(&post_args, 0, sizeof(PostExprsArgs));
+static int
+_search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *result, Callback found_file, Callback err_message, void *user_data)
+{
+	int status;
+	int ret = 0;
 
-		post_args.result = result;
-		post_args.dir = _search_load_extension_dir();
-
-		/* read from pipes until child process terminates */
-		int status;
+	/* close descriptors */
+	if(!_search_close_fd(&outfds[1]) && !_search_close_fd(&errfds[1]))
+	{
 		fd_set rfds;
-		int maxfd = (errfds[0] > outfds[0] ? errfds[0] : outfds[0]) + 1;
-
 		Buffer outbuf;
 		Buffer errbuf;
+		char *line = NULL;
+		size_t llen = 0;
+		PostExprsArgs post_args;
+		bool finished = false;
+
+		memset(&post_args, 0, sizeof(PostExprsArgs));
 
 		buffer_init(&outbuf, 4096);
 		buffer_init(&errbuf, 4096);
 
-		char *line = NULL;
-		size_t llen = 0;
+		post_args.result = result;
+		post_args.dir = _search_load_extension_dir();
 
-		bool finished = false;
-
-		ret = 0;
+		/* read from pipes until child process terminates or an error occurs */
+		int maxfd = (errfds[0] > outfds[0] ? errfds[0] : outfds[0]) + 1;
 
 		while(!finished)
 		{
@@ -434,6 +383,7 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 
 			ssize_t bytes;
 			ssize_t sum = 0;
+			int rc;
 
 			do
 			{
@@ -449,10 +399,13 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 
 							if(count == ABORT_SEARCH)
 							{
+								ret = -1;
+								finished = true;
 								break;
 							}
 
 							ret += count;
+
 							sum += bytes;
 						}
 					}
@@ -466,10 +419,7 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 						}
 					}
 				}
-			} while(sum);
-
-			/* test if child is still running */
-			int rc;
+			} while(sum && !finished);
 
 			if((rc = waitpid(pid, &status, WNOHANG)) == pid)
 			{
@@ -486,8 +436,11 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		}
 
 		/* flush buffers */
-		ret += _search_flush_buffer(&outbuf, &line, &llen, _search_post_exprs, &post_args, found_file, user_data);
-		_search_flush_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
+		if(ret != -1)
+		{
+			ret += _search_flush_buffer(&outbuf, &line, &llen, _search_post_exprs, &post_args, found_file, user_data);
+			_search_flush_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
+		}
 
 		/* clean up */
 		buffer_free(&outbuf);
@@ -500,8 +453,54 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		}
 	}
 
+	return ret;
+}
 
-	out:
+int
+search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data)
+{
+	int outfds[2]; // redirect stdout
+	int errfds[2]; // redirect stderr
+	int ret = -1;
+	
+	assert(path != NULL);
+	assert(expr != NULL);
+	assert(opts != NULL);
+	assert(found_file != NULL);
+	assert(err_message != NULL);
+
+	memset(outfds, 0, sizeof(outfds));
+	memset(errfds, 0, sizeof(errfds));
+
+	/* create pipes */
+	if(pipe2(outfds, 0) >= 0 && pipe2(errfds, 0) >= 0)
+	{
+		char **argv = NULL;
+		size_t argc = 0;
+		ParserResult *result;
+
+		/* parse expression */
+		result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
+
+		if(result->success)
+		{
+			/* execute find */
+			pid_t pid = fork();
+
+			if(pid == -1)
+			{
+				perror("fork()");
+			}
+			else if(pid == 0)
+			{
+				_search_child_process(outfds, errfds, result, argv);
+			}
+			else
+			{
+				ret = _search_parent_process(pid, outfds, errfds, result, found_file, err_message, user_data);
+			}
+		}
+
 		/* cleanup */
 		if(argv)
 		{
@@ -516,13 +515,18 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		parser_result_free(result);
 
 		/* close descriptors */
-		for(i = 0; i < 2; ++i)
+		for(int i = 0; i < 2; ++i)
 		{
 			_search_close_fd(&outfds[i]);
 			_search_close_fd(&errfds[i]);
 		}
+	}
+	else
+	{
+		perror("pipe2()");
+	}
 
-		return ret;
+	return ret;
 }
 
 bool
