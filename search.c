@@ -63,17 +63,17 @@ _search_post_exprs(const char *filename, void *user_data)
 	assert(filename != NULL);
 	assert(args != NULL);
 
-	if(args->dir)
+	if(args->result->root->post_exprs)
 	{
-		if(args->result->root->post_exprs)
+		if(args->dir)
 		{
 			result = evaluate(args->result->root->post_exprs, args->dir, filename);
 		}
-	}
-	else
-	{
-		fprintf(stderr, "Couldn't evaluate expression, no extensions loaded.\n");
-		result = EVAL_RESULT_ABORTED;
+		else
+		{
+			fprintf(stderr, "Couldn't evaluate expression, no extensions loaded.\n");
+			result = EVAL_RESULT_ABORTED;
+		}
 	}
 
 	return result;
