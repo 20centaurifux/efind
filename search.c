@@ -43,7 +43,7 @@
 #include "eval.h"
 
 /*! @cond INTERNAL */
-typedef EvalResult (*PreCondition)(const char *filename, struct stat *stbuf, void *user_data);
+typedef EvalResult (*PreCondition)(const char *filename, void *user_data);
 
 typedef struct
 {
@@ -55,18 +55,17 @@ typedef struct
 /*! @endcond */
 
 static EvalResult
-_search_post_exprs(const char *filename, struct stat *stbuf, void *user_data)
+_search_post_exprs(const char *filename, void *user_data)
 {
 	PostExprsArgs *args = (PostExprsArgs *)user_data;
 	EvalResult result = EVAL_RESULT_TRUE;
 
 	assert(filename != NULL);
-	assert(stbuf != NULL);
 	assert(args != NULL);
 
 	if(args->result->root->post_exprs)
 	{
-		result = evaluate(args->result->root->post_exprs, args->dir, filename, stbuf);
+		result = evaluate(args->result->root->post_exprs, args->dir, filename);
 	}
 
 	return result;
@@ -86,25 +85,16 @@ _search_process_lines(Buffer *buf, char **line, size_t *llen, PreCondition pre, 
 	{
 		if(pre)
 		{
-			struct stat stbuf;
+			EvalResult result = pre(*line, pre_data);
 
-			if(!stat(*line, &stbuf))
+			if(result == EVAL_RESULT_TRUE)
 			{
-				EvalResult result = pre(*line, &stbuf, pre_data);
-
-				if(result == EVAL_RESULT_TRUE)
-				{
-					cb(*line, user_data);
-					++count;
-				}
-				else if(result == EVAL_RESULT_ABORTED)
-				{
-					count = ABORT_SEARCH;
-				}
+				cb(*line, user_data);
+				++count;
 			}
-			else
+			else if(result == EVAL_RESULT_ABORTED)
 			{
-				fprintf(stderr, "Couldn't stat \"%s\".", *line);
+				count = ABORT_SEARCH;
 			}
 		}
 		else

@@ -8,13 +8,13 @@ CTAGS=ctags
 
 CC=gcc
 CFLAGS=-Wall -std=gnu99 -O0 -g
-LIBS=-lbsd -ldatatypes-0.1.0 -ldl -ljansson
+LIBS=-lbsd -ldatatypes-0.1.0 -ldl
 INC=-I/usr/local/include/datatypes
 
 all:
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./extension-json.c ./dl-ext-backend.c -o ./efind $(CFLAGS) $(LIBS)
+	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c -o ./efind $(CFLAGS) $(LIBS)
 
 install:
 	cp ./efind $(PREFIX)/bin/
@@ -39,4 +39,4 @@ clean:
 	rm -f ./tags
 
 foobar:
-	gcc -shared ./extensions/foobar.c -Wall -std=c99 -nostartfiles -o ./extensions/foobar.so
+	gcc -shared ./extensions/foobar.c -Wall -std=c99 -nostartfiles -fPIC -o ./extensions/foobar.so

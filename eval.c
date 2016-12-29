@@ -32,7 +32,6 @@
 typedef struct
 {
 	const char *filename;
-	struct stat *stbuf;
 	ExtensionDir *dir;
 } EvalContext;
 
@@ -146,7 +145,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 
 		if(status == EXTENSION_CALLBACK_STATUS_OK)
 		{
-			success = extension_dir_invoke(ctx->dir, fn->name, ctx->filename, ctx->stbuf, argc, args->argv, fn_result) == EXTENSION_CALLBACK_STATUS_OK;
+			success = extension_dir_invoke(ctx->dir, fn->name, ctx->filename, argc, args->argv, fn_result) == EXTENSION_CALLBACK_STATUS_OK;
 		}
 		else if(status == EXTENSION_CALLBACK_STATUS_NOT_FOUND)
 		{
@@ -320,20 +319,18 @@ _eval_node(Node *node, EvalContext *ctx)
 }
 
 EvalResult
-evaluate(Node *node, ExtensionDir *dir, const char *filename, struct stat *stbuf)
+evaluate(Node *node, ExtensionDir *dir, const char *filename)
 {
 	EvalContext ctx;
 
 	assert(node != NULL);
 	assert(dir != NULL);
 	assert(filename != NULL);
-	assert(stbuf != NULL);
 
 	memset(&ctx, 0, sizeof(EvalContext));
 
 	ctx.dir = dir;
 	ctx.filename = filename;
-	ctx.stbuf = stbuf;
 
 	return _eval_node(node, &ctx);
 }

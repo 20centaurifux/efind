@@ -26,22 +26,10 @@
 #define __EXTENSION_H__
 
 #include <datatypes.h>
-#include <sys/stat.h>
 #include <linux/limits.h>
 
-/**
- *\enum ExtensionCallbackArgType
- *\brief Allowed data types for additional callback arguments,
- */
-typedef enum
-{
-	/*! Undefined data type. */
-	EXTENSION_CALLBACK_ARG_TYPE_UNDEFINED,
-	/*! Integer. */
-	EXTENSION_CALLBACK_ARG_TYPE_INTEGER,
-	/*! String. */
-	EXTENSION_CALLBACK_ARG_TYPE_STRING,
-} ExtensionCallbackArgType;
+#include "extension-interface.h"
+
 
 /**
  *\struct ExtensionCallback
@@ -54,7 +42,7 @@ typedef struct
 	/*! Number of function arguments. */
 	uint32_t argc;
 	/*! Function argument data types. */
-	ExtensionCallbackArgType *types;
+	CallbackArgType *types;
 } ExtensionCallback;
 
 /**
@@ -85,9 +73,17 @@ typedef struct _ExtensionBackendClass
 
 	/*!
 	 *\param handle backend handle
+	 *\param fn function called for each found callback function
+	 *\param ctx registration context
+	 *
+	 * Discovers available functions.
+	 */
+	void (*discover)(void *handle, RegisterCallback fn, RegistrationCtx *ctx);
+
+	/*!
+	 *\param handle backend handle
 	 *\param name name of the function to invoke
 	 *\param filename name of the found file
-	 *\param stbuf status information of the found file
 	 *\param argc number of optional arguments
 	 *\param argv optional arguments
 	 *\param result location to store callback result
@@ -95,7 +91,7 @@ typedef struct _ExtensionBackendClass
 	 *
 	 * Invokes a function.
 	 */
-	int (*invoke)(void *handle, const char *name, const char *filename, struct stat *stbuf, uint32_t argc, void **argv, int *result);
+	int (*invoke)(void *handle, const char *name, const char *filename, uint32_t argc, void **argv, int *result);
 
 	/*!
 	 *\param handle backend handle
@@ -160,64 +156,8 @@ typedef struct
 	/*! Size of the vector. */
 	uint32_t argc;
 	/*! Argument data types. */
-	ExtensionCallbackArgType *types;
+	CallbackArgType *types;
 } ExtensionCallbackArgs;
-
-/**
- *\param string string to parse
- *\return the mapped ExtensionCallbackArgType
- *
- * Tries to map a string to an ExtensionCallbackArgType.
- */
-ExtensionCallbackArgType extension_callback_arg_type_try_parse(const char *string);
-
-/**
- *\param callback ExtensionCallback to free
- *
- * Frees an ExtensionCallback instance.
- */
-void extension_callback_free(ExtensionCallback *callback);
-
-/**
- *\param name name of the callback
- *\param argc number of function arguments
- *\return a new ExtensionCallback instance or NULL on failure
- *
- * Creates a new ExtensionCallback instance.
- */
-ExtensionCallback *extension_callback_new(const char *name, uint32_t argc);
-
-/**
- *\param string string to parse
- *\return the mapped ExtensionModuleType
- *
- * Tries to map a string to an ExtensionModuleType.
- */
-ExtensionModuleType extension_module_type_try_parse(const char *string);
-
-/**
- *\param module ExtensionModule instance to free
- *
- * Frees an ExtensionModule instance.
- */
-void extension_module_free(ExtensionModule *module);
-
-/**
- *\param filename filename of the extension module
- *\param type module type
- *\return a new ExtensionCallback instance or NULL on failure
- *
- * Creates a new ExtensionModule instance.
- */
-ExtensionModule *extension_module_new(const char *filename, ExtensionModuleType type);
-
-/**
- *\param module an ExtensionModule instance
- *\param callback callback to set
- *
- * Adds a callback to the ExtensionModule instance.
- */
-void extension_module_set_callback(ExtensionModule *module, ExtensionCallback *callback);
 
 /**
  *\param path path of the extension directory
@@ -238,15 +178,6 @@ void extension_dir_destroy(ExtensionDir *dir);
 
 /**
  *\param dir an ExtensionDir instance
- *\param module module to register
- *\return true on success
- *
- * Registers a module.
- */
-bool extension_dir_register_module(ExtensionDir *dir, ExtensionModule *module);
-
-/**
- *\param dir an ExtensionDir instance
  *\param name name of the callback to test
  *\param argc number of function arguments
  *\param types argument data types
@@ -254,13 +185,12 @@ bool extension_dir_register_module(ExtensionDir *dir, ExtensionModule *module);
  *
  * Tests if a callback with the specified signature does exist.
  */
-ExtensionCallbackStatus extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, ExtensionCallbackArgType *types);
+ExtensionCallbackStatus extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, CallbackArgType *types);
 
 /**
  *\param dir an ExtensionDir instance
  *\param name name of the callback to execute
  *\param filename name of the file to test
- *\param stbuf status information of the file to test
  *\param argc number of additional function arguments
  *\param argv additional function arguments
  *\param result destination to store the result of the callback
@@ -268,7 +198,7 @@ ExtensionCallbackStatus extension_dir_test_callback(ExtensionDir *dir, const cha
  *
  * Executes a callback.
  */
-ExtensionCallbackStatus extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, struct stat *stbuf, uint32_t argc, void **argv, int *result);
+ExtensionCallbackStatus extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, uint32_t argc, void **argv, int *result);
 
 /**
  *\param argc number of arguments

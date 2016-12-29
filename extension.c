@@ -26,47 +26,14 @@
 #include <assert.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "extension.h"
-#include "extension-json.h"
 #include "dl-ext-backend.h"
 #include "utils.h"
 
-ExtensionCallbackArgType
-extension_callback_arg_type_try_parse(const char *string)
-{
-	ExtensionCallbackArgType type = EXTENSION_CALLBACK_ARG_TYPE_UNDEFINED;
-
-	assert(string != NULL);
-
-	if(string)
-	{
-		if(!strcmp(string, "integer"))
-		{
-			type = EXTENSION_CALLBACK_ARG_TYPE_INTEGER;
-		}
-		else if(!strcmp(string, "string"))
-		{
-			type = EXTENSION_CALLBACK_ARG_TYPE_STRING;
-		}
-	}
-
-	return type;
-}
-
-void
-extension_callback_free(ExtensionCallback *callback)
-{
-	if(callback)
-	{
-		free(callback->name);
-		free(callback->types);
-		free(callback);
-	}
-}
-
-ExtensionCallback *
-extension_callback_new(const char *name, uint32_t argc)
+static ExtensionCallback *
+_extension_callback_new(const char *name, uint32_t argc)
 {
 	ExtensionCallback *cb = NULL;
 
@@ -75,7 +42,6 @@ extension_callback_new(const char *name, uint32_t argc)
 	if(name)
 	{
 		cb = (ExtensionCallback *)utils_malloc(sizeof(ExtensionCallback));
-
 		memset(cb, 0, sizeof(ExtensionCallback));
 
 		cb->name = strdup(name);
@@ -83,30 +49,23 @@ extension_callback_new(const char *name, uint32_t argc)
 
 		if(argc)
 		{
-			cb->types = (ExtensionCallbackArgType *)utils_malloc(sizeof(ExtensionCallbackArgType) * argc);
-			memset(cb->types, 0, sizeof(ExtensionModuleType));
+			cb->types = (CallbackArgType *)utils_malloc(sizeof(CallbackArgType) * argc);
+			memset(cb->types, 0, sizeof(CallbackArgType) * argc);
 		}
 	}
 
 	return cb;
 }
 
-ExtensionModuleType
-extension_module_type_try_parse(const char *string)
+static void
+_extension_callback_free(ExtensionCallback *callback)
 {
-	ExtensionModuleType type = EXTENSION_MODULE_TYPE_UNDEFINED;
-
-	assert(string != NULL);
-
-	if(string)
+	if(callback)
 	{
-		if(!strcmp(string, "shared-library"))
-		{
-			type = EXTENSION_MODULE_TYPE_SHARED_LIB;
-		}
+		free(callback->name);
+		free(callback->types);
+		free(callback);
 	}
-
-	return type;
 }
 
 static bool
@@ -129,8 +88,34 @@ _extension_module_set_backend_class(ExtensionBackendClass *cls, ExtensionModuleT
 	return success;
 }
 
-void
-extension_module_free(ExtensionModule *module)
+ExtensionModule *
+_extension_module_new(const char *filename, ExtensionModuleType type)
+{
+	ExtensionModule *module = NULL;
+
+	if(filename && type != EXTENSION_MODULE_TYPE_UNDEFINED)
+	{
+		module = (ExtensionModule *)utils_malloc(sizeof(ExtensionModule));
+		memset(module, 0, sizeof(ExtensionModule));
+
+		if(_extension_module_set_backend_class(&module->backend, type))
+		{
+			module->filename = strdup(filename);
+			module->type = type;
+			module->callbacks = assoc_array_new(str_compare, free, (FreeFunc)_extension_callback_free);
+		}
+		else
+		{
+			free(module);
+			module = NULL;
+		}
+	}
+
+	return module;
+}
+
+static void
+_extension_module_free(ExtensionModule *module)
 {
 	if(module)
 	{
@@ -149,40 +134,75 @@ extension_module_free(ExtensionModule *module)
 	}
 }
 
-ExtensionModule *
-extension_module_new(const char *filename, ExtensionModuleType type)
+static void
+_extension_dir_function_discovered(RegistrationCtx *ctx, const char *name, uint32_t argc, ...)
 {
-	ExtensionModule *module = NULL;
+	ExtensionCallback *cb = NULL;
 
-	if(filename && type != EXTENSION_MODULE_TYPE_UNDEFINED)
+	assert(ctx != NULL);
+	assert(name != NULL);
+	assert(argc < 128);
+
+	cb = _extension_callback_new(name, argc);
+
+	if(cb)
 	{
-		module = (ExtensionModule *)utils_malloc(sizeof(ExtensionModule));
-		memset(module, 0, sizeof(ExtensionModule));
+		va_list ap;
+		bool success = true;
 
-		if(_extension_module_set_backend_class(&module->backend, type))
+		va_start(ap, argc);
+
+		for(uint32_t i = 0; i < argc && success; ++i)
 		{
-			module->filename = strdup(filename);
-			module->type = type;
-			module->callbacks = assoc_array_new(str_compare, free, (FreeFunc)extension_callback_free);
+			int val = va_arg(ap, int);
+			
+			if(val == CALLBACK_ARG_TYPE_INTEGER || val == CALLBACK_ARG_TYPE_STRING)
+			{
+				cb->types[i] = val;
+			}
+			else
+			{
+				/* failure => free memory */
+				_extension_callback_free(cb);
+				success = false;
+			}
 		}
-		else
+
+		va_end(ap);
+
+		if(success)
 		{
-			free(module);
-			module = NULL;
+			assoc_array_set(((ExtensionModule *)ctx)->callbacks, strdup(cb->name), cb, true);
+		}
+	}
+}
+
+static bool
+_extension_dir_import_module(ExtensionDir *dir, const char *filename, ExtensionModuleType type)
+{
+	ExtensionModule *module;
+	bool success = false;
+
+	assert(dir != NULL);
+	assert(filename != NULL);
+
+	module = _extension_module_new(filename, type);
+
+	if(module)
+	{
+		/* load module */
+		if((module->handle = module->backend.load(module->filename)))
+		{
+			assoc_array_set(dir->modules, strdup(module->filename), module, true);
+
+			/* discover functions */
+			module->backend.discover(module->handle, _extension_dir_function_discovered, (void *)module);
+
+			success = true;
 		}
 	}
 
-	return module;
-}
-
-void
-extension_module_set_callback(ExtensionModule *module, ExtensionCallback *callback)
-{
-	assert(module != NULL);
-	assert(module->callbacks != NULL);
-	assert(callback != NULL);
-
-	assoc_array_set(module->callbacks, strdup(callback->name), callback, true);
+	return success;
 }
 
 ExtensionDir *
@@ -202,24 +222,29 @@ extension_dir_load(const char *path, char **err)
 		memset(dir, 0, sizeof(ExtensionDir));
 
 		dir->path = strdup(path);
-		dir->modules = (AssocArray *)assoc_array_new(str_compare, free, (FreeFunc)extension_module_free);
+		dir->modules = (AssocArray *)assoc_array_new(str_compare, free, (FreeFunc)_extension_module_free);
 
-		/* search for extension description files */
+		/* search for extensions */
 		struct dirent *entry;
 
 		success = true;
+		entry = readdir(pdir);
 
-		while(success && (entry = readdir(pdir)))
+		while(success && entry)
 		{
 			size_t len = strlen(entry->d_name);
 
-			if(len >= 10 && !strcmp(entry->d_name + len - 9, ".ext.json"))
+			if(len >= 3 && !strcmp(entry->d_name + len - 3, ".so"))
 			{
 				char filename[PATH_MAX];
 
 				if(utils_path_join(dir->path, entry->d_name, filename, PATH_MAX))
 				{
-					success = extension_json_load_file(dir, filename, err);
+					if(!_extension_dir_import_module(dir, filename, EXTENSION_MODULE_TYPE_SHARED_LIB))
+					{
+						utils_strdup_printf(err, "Couldn't load extension \"%s\".", filename);
+						success = false;
+					}
 				}
 				else
 				{
@@ -227,6 +252,8 @@ extension_dir_load(const char *path, char **err)
 					success = false;
 				}
 			}
+
+			entry = readdir(pdir);
 		}
 
 		closedir(pdir);
@@ -308,7 +335,7 @@ _extension_dir_find_callback(ExtensionDir *dir, const char *name, ExtensionCallb
 }
 
 ExtensionCallbackStatus
-extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, ExtensionCallbackArgType *types)
+extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, CallbackArgType *types)
 {
 	ExtensionCallback *cb;
 
@@ -339,7 +366,7 @@ extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, 
 }
 
 ExtensionCallbackStatus
-extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, struct stat *stbuf, uint32_t argc, void **argv, int *result)
+extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, uint32_t argc, void **argv, int *result)
 {
 	ExtensionCallbackStatus status = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 	ExtensionModule *module;
@@ -348,13 +375,12 @@ extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, 
 	assert(dir != NULL);
 	assert(name != NULL);
 	assert(filename != NULL);
-	assert(stbuf != NULL);
 
 	if((module = _extension_dir_find_callback(dir, name, &cb)))
 	{
 		if(cb->argc == argc)
 		{
-			if(!module->backend.invoke(module->handle, name, filename, stbuf, argc, argv, result))
+			if(!module->backend.invoke(module->handle, name, filename, argc, argv, result))
 			{
 				status = EXTENSION_CALLBACK_STATUS_OK;
 			}
@@ -382,8 +408,8 @@ extension_callback_args_new(uint32_t argc)
 		args->argv = (void **)utils_malloc(sizeof(void *) * argc);
 		memset(args->argv, 0, sizeof(void *) * argc);
 
-		args->types = (ExtensionCallbackArgType *)utils_malloc(sizeof(ExtensionCallbackArgType) * argc);
-		memset(args->types, 0, sizeof(ExtensionCallbackArgType) * argc);
+		args->types = (CallbackArgType *)utils_malloc(sizeof(CallbackArgType) * argc);
+		memset(args->types, 0, sizeof(CallbackArgType) * argc);
 	}
 
 	return args;
@@ -423,7 +449,7 @@ extension_callback_args_set_integer(ExtensionCallbackArgs *args, uint32_t offset
 
 	args->argv[offset] = utils_malloc(sizeof(int32_t));
 	*((int32_t *)args->argv[offset]) = value;
-	args->types[offset] = EXTENSION_CALLBACK_ARG_TYPE_INTEGER;
+	args->types[offset] = CALLBACK_ARG_TYPE_INTEGER;
 }
 
 void
@@ -438,6 +464,6 @@ extension_callback_args_set_string(ExtensionCallbackArgs *args, uint32_t offset,
 	}
 
 	args->argv[offset] = strdup(string);
-	args->types[offset] = EXTENSION_CALLBACK_ARG_TYPE_STRING;
+	args->types[offset] = CALLBACK_ARG_TYPE_STRING;
 }
 

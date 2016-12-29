@@ -15,27 +15,41 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /*!
- * \file extension-json.h
- * \brief Load modules from JSON files.
+ * \file extension_interface.h
+ * \brief Interface for extension modules.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  * \version 0.1.0
- * \date 24. December 2016
+ * \date 29. December 2016
  */
 
-#ifndef __EXTENSION_JSON_H__
-#define __EXTENSION_JSON_H__
+#ifndef __EXTENSION_INTERFACE_H__
+#define __EXTENSION_INTERFACE_H__
 
-#include "extension.h"
+/*! Extension registration context. */
+typedef void * RegistrationCtx;
 
-/*!
- *\param dir ExtensionDir instance
- *\param filename name of the extension description file
- *\param err destination to store error message
- *\return true on success
- *
- * Loads modules from a JSON file.
+/**
+   @param ctx registration context
+   @param name name of the function to register
+   @param argc number of optional function arguments
+   @param ... data types of the optional arguments
+
+   Registers a function in the plugin context.
  */
-bool extension_json_load_file(ExtensionDir *dir, const char *filename, char **err);
+typedef void(*RegisterCallback)(RegistrationCtx *ctx, const char *name, uint32_t argc, ...);
 
+/**
+ *\enum CallbackArgType
+ *\brief Allowed data types for additional callback arguments,
+ */
+typedef enum
+{
+	/*! Undefined data type. */
+	CALLBACK_ARG_TYPE_UNDEFINED,
+	/*! Integer. */
+	CALLBACK_ARG_TYPE_INTEGER,
+	/*! String. */
+	CALLBACK_ARG_TYPE_STRING,
+} CallbackArgType;
 #endif
 

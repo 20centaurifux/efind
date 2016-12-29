@@ -26,6 +26,7 @@
 #include <assert.h>
 
 #include "dl-ext-backend.h"
+#include "extension-interface.h"
 #include "utils.h"
 
 static void *
@@ -36,22 +37,37 @@ _dl_ext_backend_load(const char *filename)
 	return dlopen(filename, RTLD_LAZY);
 }
 
+static void
+_dl_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
+{
+	assert(handle != NULL);
+
+	void (*discover)(RegistrationCtx *ctx, RegisterCallback register_fn);
+	
+	discover = dlsym(handle, "discover");
+
+	if(discover)
+	{
+		discover(ctx, fn);
+	}
+}
+
 static int
-_dl_ext_backend_invoke(void *handle, const char *name, const char *filename, struct stat *stbuf, uint32_t argc, void **argv, int *result)
+_dl_ext_backend_invoke(void *handle, const char *name, const char *filename, uint32_t argc, void **argv, int *result)
 {
 	assert(handle != NULL);
 	assert(name != NULL);
 	assert(filename != NULL);
 	assert(result != NULL);
 
-	int (*fn)(const char *filename, struct stat *stbuf, int argc, void **argv);
+	int (*fn)(const char *filename, int argc, void **argv);
 	int success = -1;
 
 	fn = dlsym(handle, name);
 
 	if(fn)
 	{
-		*result = fn(filename, stbuf, argc, argv);
+		*result = fn(filename, argc, argv);
 		success = 0;
 	}
 
@@ -70,7 +86,10 @@ _dl_ext_backend_unload(void *handle)
 void
 dl_extension_backend_get_class(ExtensionBackendClass *cls)
 {
+	assert(cls != NULL);
+
 	cls->load = _dl_ext_backend_load;
+	cls->discover = _dl_ext_discover;
 	cls->invoke = _dl_ext_backend_invoke;
 	cls->unload = _dl_ext_backend_unload;
 }

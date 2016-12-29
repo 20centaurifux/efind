@@ -50,7 +50,6 @@ typedef enum
 
    Evaluates an abstract syntax tree.
   */
-EvalResult evaluate(Node *node, ExtensionDir *dir, const char *filename, struct stat *stbuf);
-
+EvalResult evaluate(Node *node, ExtensionDir *dir, const char *filename);
 #endif
 
