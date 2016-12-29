@@ -36,7 +36,7 @@ _write_to_buffer(YYLTYPE *locp, void *scanner, Buffer *buf, const char *str)
 }
 %}
 
-NUMBER			[0-9]+
+NUMBER			[-]?[0-9]+
 LPAREN			"("
 RPAREN			")"
 OPERATOR		or|and
