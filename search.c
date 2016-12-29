@@ -63,9 +63,17 @@ _search_post_exprs(const char *filename, void *user_data)
 	assert(filename != NULL);
 	assert(args != NULL);
 
-	if(args->result->root->post_exprs)
+	if(args->dir)
 	{
-		result = evaluate(args->result->root->post_exprs, args->dir, filename);
+		if(args->result->root->post_exprs)
+		{
+			result = evaluate(args->result->root->post_exprs, args->dir, filename);
+		}
+	}
+	else
+	{
+		fprintf(stderr, "Couldn't evaluate expression, no extensions loaded.\n");
+		result = EVAL_RESULT_ABORTED;
 	}
 
 	return result;
@@ -134,34 +142,7 @@ _search_flush_buffer(Buffer *buf, char **line, size_t *llen, PreCondition pre, v
 	return count;
 }
 
-static ExtensionDir *
-_search_load_extension_dir(void)
-{
-	ExtensionDir *dir = NULL;
-	const char *home = getenv("HOME");
-
-	if(home)
-	{
-		char path[PATH_MAX];
-
-		if(utils_path_join(home, ".efind/extensions", path, PATH_MAX))
-		{
-			char *err = NULL;
-
-			dir = extension_dir_load(path, &err);
-
-			if(err)
-			{
-				fprintf(stderr, "%s\n", err);
-				free(err);
-			}
-		}
-	}
-
-	return dir;
-}
-
-static int
+int
 _search_close_fd(int *fd)
 {
 	int ret = 0;
@@ -213,9 +194,10 @@ _search_translate_expr(const char *path, const char *expr, TranslationFlags flag
 			result->err = err;
 		}
 	}
-	else
+
+	/* cleanup on failure */
+	if(!result->success && *argv)
 	{
-		/* reset parsed arguments if translation has failed */
 		if(*argv)
 		{
 			for(size_t i = 0; i < *argc; ++i)
@@ -359,7 +341,7 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 		buffer_init(&errbuf, 4096);
 
 		post_args.result = result;
-		post_args.dir = _search_load_extension_dir();
+		post_args.dir = extension_dir_default(NULL);
 
 		/* read from pipes until child process terminates or an error occurs */
 		int maxfd = (errfds[0] > outfds[0] ? errfds[0] : outfds[0]) + 1;

@@ -27,6 +27,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <sys/stat.h>
 
 #include "extension.h"
 #include "dl-ext-backend.h"
@@ -392,6 +393,30 @@ extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, 
 	}
 
 	return status;
+}
+
+ExtensionDir *
+extension_dir_default(char **err)
+{
+	ExtensionDir *dir = NULL;
+	const char *home = getenv("HOME");
+
+	if(home)
+	{
+		char path[PATH_MAX];
+
+		if(utils_path_join(home, ".efind/extensions", path, PATH_MAX))
+		{
+			dir = extension_dir_load(path, NULL);
+		}
+	}
+
+	if(!dir)
+	{
+		dir = extension_dir_load("/etc/efind/extensions", err);
+	}
+
+	return dir;
 }
 
 ExtensionCallbackArgs *

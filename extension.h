@@ -161,13 +161,21 @@ typedef struct
 
 /**
  *\param path path of the extension directory
- *\param err destination to store error message
+ *\param err destination to store error messages
  *\return an ExtensionDir instance or NULL on failure
  *
- * Reads the "extensions.js" file from the given directory & stores
- * the found modules in an associative structure.
+ * Loads extension from the given directory.
  */
 ExtensionDir *extension_dir_load(const char *path, char **err);
+
+/**
+ *\param err destination to store error messages
+ *\return an ExtensionDir instance or NULL on failure
+ *
+ * Tries to load extensions from ~/.efind/extensions or
+ * /etc/efind/extensions.
+ */
+ExtensionDir *extension_dir_default(char **err);
 
 /**
  *\param dir an ExtensionDir instance
