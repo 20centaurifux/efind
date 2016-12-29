@@ -37,6 +37,3 @@ clean:
 	rm -f ./lexer.l.h ./lexer.l.c ./parser.y.h ./parser.y.c ./efind
 	rm -fr ./doc
 	rm -f ./tags
-
-foobar:
-	gcc -shared ./extensions/foobar.c -Wall -std=c99 -nostartfiles -fPIC -o ./extensions/foobar.so
