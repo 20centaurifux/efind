@@ -25,6 +25,8 @@
 #ifndef __EXTENSION_INTERFACE_H__
 #define __EXTENSION_INTERFACE_H__
 
+#include <stdint.h>
+
 /*! Extension registration context. */
 typedef void * RegistrationCtx;
 
