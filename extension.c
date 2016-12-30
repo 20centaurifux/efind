@@ -33,6 +33,32 @@
 #include "dl-ext-backend.h"
 #include "utils.h"
 
+/*! @cond INTERNAL */
+typedef struct
+{
+	char *name;             /* callback name */
+	uint32_t argc;          /* number of optional function arguments */
+	CallbackArgType *types; /* optional function argument data types */
+} ExtensionCallback;
+
+typedef enum
+{
+	EXTENSION_MODULE_TYPE_UNDEFINED,
+	EXTENSION_MODULE_TYPE_SHARED_LIB
+} ExtensionModuleType;
+typedef struct
+{
+	char *filename;                /* filename of the module */
+	char *name;                    /* module name */
+	char *version;                 /* module version */
+	char *description;             /* a brief description */
+	ExtensionModuleType type;      /* type id */
+	ExtensionBackendClass backend; /* backend functions */
+	void *handle;                  /* backend handle */
+	AssocArray *callbacks;         /* associative array containing callback names and ExtensionCallback instances */
+} ExtensionModule;
+/*! @endcond */
+
 static ExtensionCallback *
 _extension_callback_new(const char *name, uint32_t argc)
 {

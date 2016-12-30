@@ -32,32 +32,6 @@
 #include "extension-interface.h"
 
 /**
-   @struct ExtensionCallback
-   @brief A callback description. A callback has a name and a type signature.
- */
-typedef struct
-{
-	/*! The callback name. */
-	char *name;
-	/*! Number of function arguments. */
-	uint32_t argc;
-	/*! Function argument data types. */
-	CallbackArgType *types;
-} ExtensionCallback;
-
-/**
-   @enum ExtensionModuleType
-   @brief Extension module type.
- */
-typedef enum
-{
-	/*! Undefined. */
-	EXTENSION_MODULE_TYPE_UNDEFINED,
-	/*! The module is a shared library. */
-	EXTENSION_MODULE_TYPE_SHARED_LIB
-} ExtensionModuleType;
-
-/**
    @struct ExtensionBackendClass
    @brief Functions an extension backend has to provide.
  */
@@ -104,36 +78,12 @@ typedef struct _ExtensionBackendClass
 } ExtensionBackendClass;
 
 /**
-   @struct ExtensionModule
-   @brief Extension module meta information & callbacks.
- */
-typedef struct
-{
-	/*! Filename of the module. */
-	char *filename;
-	/*! Module name. */
-	char *name;
-	/*! Module version. */
-	char *version;
-	/*! Module description. */
-	char *description;
-	/*! Module type. */
-	ExtensionModuleType type;
-	/*! Backend functions. */
-	ExtensionBackendClass backend;
-	/*! Backend handle. */
-	void *handle;
-	/*! Associative array containing callback names and ExtensionCallback instances. */
-	AssocArray *callbacks;
-} ExtensionModule;
-
-/**
    @struct ExtensionManager
    @brief A list containing callbacks loaded from extension files.
  */
 typedef struct
 {
-	/*! A tree holding extension modules. */
+	/*! Associative array containing module filenames and extension modules. */
 	AssocArray *modules;
 } ExtensionManager;
 
