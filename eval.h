@@ -43,13 +43,13 @@ typedef enum
 
 /**
    @param node node to evaluate
-   @param dir an ExtensionDir
+   @param extensions an ExtensionManager
    @param filename name of the found file
    @param stbuf status of the found file
    @return a boolean
 
    Evaluates an abstract syntax tree.
   */
-EvalResult evaluate(Node *node, ExtensionDir *dir, const char *filename);
+EvalResult evaluate(Node *node, ExtensionManager *manager, const char *filename);
 #endif
 

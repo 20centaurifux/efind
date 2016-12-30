@@ -125,11 +125,9 @@ typedef struct
  */
 typedef struct
 {
-	/*! Filename of the directory. */
-	char *path;
 	/*! A tree holding extension modules. */
 	AssocArray *modules;
-} ExtensionDir;
+} ExtensionManager;
 
 /**
  *\enum ExtensionCallbackStatus
@@ -160,32 +158,40 @@ typedef struct
 } ExtensionCallbackArgs;
 
 /**
+ *\return new ExtensionManager
+ *
+ * Creates an ExtensionManager.
+ */
+ExtensionManager *extension_manager_new(void);
+
+/**
+ *\param manager ExtensionManager to free
+ *
+ * Frees an ExtensionManager.
+ */
+void extension_manager_destroy(ExtensionManager *manager);
+
+/**
+ *\param manager ExtensionManager instance
  *\param path path of the extension directory
  *\param err destination to store error messages
- *\return an ExtensionDir instance or NULL on failure
+ *\return true on success
  *
- * Loads extension from the given directory.
+ * Loads extensions from the given directory.
  */
-ExtensionDir *extension_dir_load(const char *path, char **err);
+bool extension_manager_load_directory(ExtensionManager *manager, const char *path, char **err);
 
 /**
- *\param err destination to store error messages
- *\return an ExtensionDir instance or NULL on failure
+ *\param manager ExtensionManager instance
+ *\return number of read extension directories
  *
- * Tries to load extensions from ~/.efind/extensions or
+ * Tries to load extensions from ~/.efind/extensions and
  * /etc/efind/extensions.
  */
-ExtensionDir *extension_dir_default(char **err);
+int extension_manager_load_default(ExtensionManager *manager);
 
 /**
- *\param dir an ExtensionDir instance
- *
- * Frees an ExtensionDir instance.
- */
-void extension_dir_destroy(ExtensionDir *dir);
-
-/**
- *\param dir an ExtensionDir instance
+ *\param manager ExtensionManager instance
  *\param name name of the callback to test
  *\param argc number of function arguments
  *\param types argument data types
@@ -193,10 +199,10 @@ void extension_dir_destroy(ExtensionDir *dir);
  *
  * Tests if a callback with the specified signature does exist.
  */
-ExtensionCallbackStatus extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, CallbackArgType *types);
+ExtensionCallbackStatus extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, CallbackArgType *types);
 
 /**
- *\param dir an ExtensionDir instance
+ *\param manager ExtensionManager instance
  *\param name name of the callback to execute
  *\param filename name of the file to test
  *\param argc number of additional function arguments
@@ -206,7 +212,7 @@ ExtensionCallbackStatus extension_dir_test_callback(ExtensionDir *dir, const cha
  *
  * Executes a callback.
  */
-ExtensionCallbackStatus extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, uint32_t argc, void **argv, int *result);
+ExtensionCallbackStatus extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void **argv, int *result);
 
 /**
  *\param argc number of arguments

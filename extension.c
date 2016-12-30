@@ -136,7 +136,7 @@ _extension_module_free(ExtensionModule *module)
 }
 
 static void
-_extension_dir_function_discovered(RegistrationCtx *ctx, const char *name, uint32_t argc, ...)
+_extension_manager_function_discovered(RegistrationCtx *ctx, const char *name, uint32_t argc, ...)
 {
 	ExtensionCallback *cb = NULL;
 
@@ -179,12 +179,12 @@ _extension_dir_function_discovered(RegistrationCtx *ctx, const char *name, uint3
 }
 
 static bool
-_extension_dir_import_module(ExtensionDir *dir, const char *filename, ExtensionModuleType type)
+_extension_manager_import_module(ExtensionManager *manager, const char *filename, ExtensionModuleType type)
 {
 	ExtensionModule *module;
 	bool success = false;
 
-	assert(dir != NULL);
+	assert(manager != NULL);
 	assert(filename != NULL);
 
 	module = _extension_module_new(filename, type);
@@ -194,10 +194,10 @@ _extension_dir_import_module(ExtensionDir *dir, const char *filename, ExtensionM
 		/* load module */
 		if((module->handle = module->backend.load(module->filename)))
 		{
-			assoc_array_set(dir->modules, strdup(module->filename), module, true);
+			assoc_array_set(manager->modules, strdup(module->filename), module, true);
 
 			/* discover functions */
-			module->backend.discover(module->handle, _extension_dir_function_discovered, (void *)module);
+			module->backend.discover(module->handle, _extension_manager_function_discovered, (void *)module);
 
 			success = true;
 		}
@@ -206,25 +206,71 @@ _extension_dir_import_module(ExtensionDir *dir, const char *filename, ExtensionM
 	return success;
 }
 
-ExtensionDir *
-extension_dir_load(const char *path, char **err)
+static ExtensionModule *
+_extension_manager_find_callback(ExtensionManager *manager, const char *name, ExtensionCallback **cb)
 {
-	ExtensionDir *dir = NULL;
+	AssocArrayIter iter;
+
+	assert(manager != NULL);
+	assert(name != NULL);
+	assert(cb != NULL);
+
+	assoc_array_iter_init(manager->modules, &iter);
+
+	while(assoc_array_iter_next(&iter))
+	{
+		ExtensionModule *module= (ExtensionModule *)assoc_array_iter_get_value(&iter);
+
+		assert(module != NULL);
+
+		*cb = assoc_array_lookup(module->callbacks, name);
+
+		if(*cb)
+		{
+			return module;
+		}
+	}
+
+	return NULL;
+}
+
+ExtensionManager *
+extension_manager_new(void)
+{
+	ExtensionManager *manager;
+
+	manager = (ExtensionManager *)utils_malloc(sizeof(ExtensionManager));
+	manager->modules = assoc_array_new(str_compare, free, (FreeFunc)_extension_module_free);
+
+	return manager;
+}
+
+void
+extension_manager_destroy(ExtensionManager *manager)
+{
+	if(manager)
+	{
+		if(manager->modules)
+		{
+			assoc_array_destroy(manager->modules);
+		}
+
+		free(manager);
+	}
+}
+
+bool
+extension_manager_load_directory(ExtensionManager *manager, const char *path, char **err)
+{
 	bool success = false;
 	DIR *pdir;
 
+	assert(manager != NULL);
 	assert(path != NULL);
 
 	/* try to open extension folder */
 	if((pdir = opendir(path)))
 	{
-		/* create ExtensionDir instance & copy path */
-		dir = (ExtensionDir *)utils_malloc(sizeof(ExtensionDir));
-		memset(dir, 0, sizeof(ExtensionDir));
-
-		dir->path = strdup(path);
-		dir->modules = (AssocArray *)assoc_array_new(str_compare, free, (FreeFunc)_extension_module_free);
-
 		/* search for extensions */
 		struct dirent *entry;
 
@@ -239,9 +285,9 @@ extension_dir_load(const char *path, char **err)
 			{
 				char filename[PATH_MAX];
 
-				if(utils_path_join(dir->path, entry->d_name, filename, PATH_MAX))
+				if(utils_path_join(path, entry->d_name, filename, PATH_MAX))
 				{
-					if(!_extension_dir_import_module(dir, filename, EXTENSION_MODULE_TYPE_SHARED_LIB))
+					if(!_extension_manager_import_module(manager, filename, EXTENSION_MODULE_TYPE_SHARED_LIB))
 					{
 						utils_strdup_printf(err, "Couldn't load extension \"%s\".", filename);
 						success = false;
@@ -264,87 +310,46 @@ extension_dir_load(const char *path, char **err)
 		utils_strdup_printf(err, "Couldn't open directory \"%s\".", path);
 	}
 
-	if(!success && dir)
-	{
-		extension_dir_destroy(dir);
-		dir = NULL;
-	}
-
-	return dir;
-}
-
-bool
-extension_dir_register_module(ExtensionDir *dir, ExtensionModule *module)
-{
-	bool success = false;
-
-	assert(dir != NULL);
-	assert(dir->modules != NULL);
-	assert(module != NULL);
-	assert(module->filename != NULL);
-
-	if((module->handle = module->backend.load(module->filename)))
-	{
-		assoc_array_set(dir->modules, strdup(module->filename), module, true);
-		success = true;
-	}
-
 	return success;
 }
 
-void
-extension_dir_destroy(ExtensionDir *dir)
+int
+extension_manager_load_default(ExtensionManager *manager)
 {
-	if(dir)
+	const char *home = getenv("HOME");
+	int count = 0;
+
+	if(home)
 	{
-		if(dir->modules)
+		char path[PATH_MAX];
+
+		if(utils_path_join(home, ".efind/extensions", path, PATH_MAX))
 		{
-			assoc_array_destroy(dir->modules);
-		}
-
-		free(dir->path);
-		free(dir);
-	}
-}
-
-static ExtensionModule *
-_extension_dir_find_callback(ExtensionDir *dir, const char *name, ExtensionCallback **cb)
-{
-	AssocArrayIter iter;
-
-	assert(dir != NULL);
-	assert(name != NULL);
-	assert(cb != NULL);
-
-	assoc_array_iter_init(dir->modules, &iter);
-
-	while(assoc_array_iter_next(&iter))
-	{
-		ExtensionModule *module= (ExtensionModule *)assoc_array_iter_get_value(&iter);
-
-		assert(module != NULL);
-
-		*cb = assoc_array_lookup(module->callbacks, name);
-
-		if(*cb)
-		{
-			return module;
+			if(extension_manager_load_directory(manager, path, NULL))
+			{
+				++count;
+			}
 		}
 	}
 
-	return NULL;
+	if(extension_manager_load_directory(manager, "/etc/efind/extensions", NULL))
+	{
+		++count;
+	}
+
+	return count;
 }
 
 ExtensionCallbackStatus
-extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, CallbackArgType *types)
+extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, CallbackArgType *types)
 {
 	ExtensionCallback *cb;
 
-	assert(dir != NULL);
+	assert(manager != NULL);
 
 	if(name != NULL)
 	{
-		if(_extension_dir_find_callback(dir, name, &cb))
+		if(_extension_manager_find_callback(manager, name, &cb))
 		{
 			if(cb->argc != argc)
 			{
@@ -367,17 +372,17 @@ extension_dir_test_callback(ExtensionDir *dir, const char *name, uint32_t argc, 
 }
 
 ExtensionCallbackStatus
-extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, uint32_t argc, void **argv, int *result)
+extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void **argv, int *result)
 {
 	ExtensionCallbackStatus status = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 	ExtensionModule *module;
 	ExtensionCallback *cb;
 
-	assert(dir != NULL);
+	assert(manager != NULL);
 	assert(name != NULL);
 	assert(filename != NULL);
 
-	if((module = _extension_dir_find_callback(dir, name, &cb)))
+	if((module = _extension_manager_find_callback(manager, name, &cb)))
 	{
 		if(cb->argc == argc)
 		{
@@ -393,30 +398,6 @@ extension_dir_invoke(ExtensionDir *dir, const char *name, const char *filename, 
 	}
 
 	return status;
-}
-
-ExtensionDir *
-extension_dir_default(char **err)
-{
-	ExtensionDir *dir = NULL;
-	const char *home = getenv("HOME");
-
-	if(home)
-	{
-		char path[PATH_MAX];
-
-		if(utils_path_join(home, ".efind/extensions", path, PATH_MAX))
-		{
-			dir = extension_dir_load(path, NULL);
-		}
-	}
-
-	if(!dir)
-	{
-		dir = extension_dir_load("/etc/efind/extensions", err);
-	}
-
-	return dir;
 }
 
 ExtensionCallbackArgs *

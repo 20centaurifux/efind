@@ -32,7 +32,7 @@
 typedef struct
 {
 	const char *filename;
-	ExtensionDir *dir;
+	ExtensionManager *extensions;
 } EvalContext;
 
 static EvalResult _eval_node(Node *node, EvalContext *ctx);
@@ -141,11 +141,11 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 	/* invoke function */
 	if(success)
 	{
-		ExtensionCallbackStatus status = extension_dir_test_callback(ctx->dir, fn->name, argc, args->types);
+		ExtensionCallbackStatus status = extension_manager_test_callback(ctx->extensions, fn->name, argc, args->types);
 
 		if(status == EXTENSION_CALLBACK_STATUS_OK)
 		{
-			success = extension_dir_invoke(ctx->dir, fn->name, ctx->filename, argc, args->argv, fn_result) == EXTENSION_CALLBACK_STATUS_OK;
+			success = extension_manager_invoke(ctx->extensions, fn->name, ctx->filename, argc, args->argv, fn_result) == EXTENSION_CALLBACK_STATUS_OK;
 		}
 		else if(status == EXTENSION_CALLBACK_STATUS_NOT_FOUND)
 		{
@@ -319,17 +319,17 @@ _eval_node(Node *node, EvalContext *ctx)
 }
 
 EvalResult
-evaluate(Node *node, ExtensionDir *dir, const char *filename)
+evaluate(Node *node, ExtensionManager *manager, const char *filename)
 {
 	EvalContext ctx;
 
 	assert(node != NULL);
-	assert(dir != NULL);
+	assert(manager != NULL);
 	assert(filename != NULL);
 
 	memset(&ctx, 0, sizeof(EvalContext));
 
-	ctx.dir = dir;
+	ctx.extensions = manager;
 	ctx.filename = filename;
 
 	return _eval_node(node, &ctx);

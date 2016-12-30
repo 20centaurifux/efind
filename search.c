@@ -48,7 +48,7 @@ typedef EvalResult (*PreCondition)(const char *filename, void *user_data);
 typedef struct
 {
 	ParserResult *result;
-	ExtensionDir *dir;
+	ExtensionManager *extensions;
 } PostExprsArgs;
 
 #define ABORT_SEARCH -1
@@ -65,9 +65,9 @@ _search_post_exprs(const char *filename, void *user_data)
 
 	if(args->result->root->post_exprs)
 	{
-		if(args->dir)
+		if(args->extensions)
 		{
-			result = evaluate(args->result->root->post_exprs, args->dir, filename);
+			result = evaluate(args->result->root->post_exprs, args->extensions, filename);
 		}
 		else
 		{
@@ -341,7 +341,9 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 		buffer_init(&errbuf, 4096);
 
 		post_args.result = result;
-		post_args.dir = extension_dir_default(NULL);
+		post_args.extensions = extension_manager_new();
+
+		extension_manager_load_default(post_args.extensions);
 
 		/* read from pipes until child process terminates or an error occurs */
 		int maxfd = (errfds[0] > outfds[0] ? errfds[0] : outfds[0]) + 1;
@@ -419,9 +421,9 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 		buffer_free(&errbuf);
 		free(line);
 		
-		if(post_args.dir)
+		if(post_args.extensions)
 		{
-			extension_dir_destroy(post_args.dir);
+			extension_manager_destroy(post_args.extensions);
 		}
 	}
 
