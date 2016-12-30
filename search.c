@@ -142,7 +142,7 @@ _search_flush_buffer(Buffer *buf, char **line, size_t *llen, PreCondition pre, v
 	return count;
 }
 
-int
+static int
 _search_close_fd(int *fd)
 {
 	int ret = 0;
