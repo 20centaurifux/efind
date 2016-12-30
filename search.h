@@ -48,16 +48,6 @@ typedef struct
 typedef void (*Callback)(const char *str, void *user_data);
 
 /**
-   @param argc number of arguments
-   @param argv vector containing find arguments
-   @param path search path
-   @param opts search options
-
-   Merges a vector containing find arguments with additional search options.
-  */
-void search_merge_options(size_t *argc, char ***argv, const char *path, const SearchOptions *opts);
-
-/**
    @param path directory to search in
    @param expr find expression
    @param flags translation flags
@@ -67,8 +57,8 @@ void search_merge_options(size_t *argc, char ***argv, const char *path, const Se
    @param user_data user data
    @return number of found files
 
-   Translates expr, executes find with the translated arguments and filters the result using the
-   specified post-processing expression.
+   Translates expr to 'find' arguments, executes 'find' and filters the result with the specified
+   post-processing expression.
  */
 int search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data);
 
@@ -81,7 +71,7 @@ int search_files_expr(const char *path, const char *expr, TranslationFlags flags
    @param opts search options
    @return true on success
 
-   Converts an expression to a valid find string an writes it to the specified stream.
+   Converts an expression to 'find' arguments an writes the result to the specified stream.
  */
 bool search_debug(FILE *out, FILE *err, const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts);
 #endif

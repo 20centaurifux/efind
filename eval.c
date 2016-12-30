@@ -27,16 +27,16 @@
 #include "extension.h"
 
 /*! @cond INTERNAL */
-#define FN_STACK_SIZE 32
+#define FN_STACK_SIZE 64
 
 typedef struct
 {
 	const char *filename;
 	ExtensionManager *extensions;
 } EvalContext;
+/*! @endcond */
 
 static EvalResult _eval_node(Node *node, EvalContext *ctx);
-/*! @endcond */
 
 static bool
 _eval_set_fn_arg_from_value_node(ExtensionCallbackArgs *args, uint32_t offset, ValueNode *node)
@@ -319,7 +319,7 @@ _eval_node(Node *node, EvalContext *ctx)
 }
 
 EvalResult
-evaluate(Node *node, ExtensionManager *manager, const char *filename)
+evaluate(ExtensionManager *manager, Node *node, const char *filename)
 {
 	EvalContext ctx;
 

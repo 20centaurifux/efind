@@ -48,7 +48,7 @@ typedef enum
    @param err location to store error message
    @return true on success
 
-   Translated an abstract syntax tree to find arguments.
+   Translates an abstract syntax tree to 'find' arguments.
  */
 bool translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char **err);
 #endif

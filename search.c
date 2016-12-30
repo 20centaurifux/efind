@@ -49,15 +49,15 @@ typedef struct
 {
 	ParserResult *result;
 	ExtensionManager *extensions;
-} PostExprsArgs;
+} PreArgs;
 
 #define ABORT_SEARCH -1
 /*! @endcond */
 
 static EvalResult
-_search_post_exprs(const char *filename, void *user_data)
+_search_evaluate_post_exprs(const char *filename, void *user_data)
 {
-	PostExprsArgs *args = (PostExprsArgs *)user_data;
+	PreArgs *args = (PreArgs *)user_data;
 	EvalResult result = EVAL_RESULT_TRUE;
 
 	assert(filename != NULL);
@@ -67,7 +67,7 @@ _search_post_exprs(const char *filename, void *user_data)
 	{
 		if(args->extensions)
 		{
-			result = evaluate(args->result->root->post_exprs, args->extensions, filename);
+			result = evaluate(args->extensions, args->result->root->post_exprs, filename);
 		}
 		else
 		{
@@ -79,8 +79,37 @@ _search_post_exprs(const char *filename, void *user_data)
 	return result;
 }
 
+static bool
+_search_process_line(const char *line, PreCondition pre, void *pre_data, Callback cb, void *user_data)
+{
+	bool success = true;
+
+	assert(line != NULL);
+	assert(cb != NULL);
+
+	if(pre)
+	{
+		EvalResult result = pre(line, pre_data);
+
+		if(result == EVAL_RESULT_TRUE)
+		{
+			cb(line, user_data);
+		}
+		else if(result == EVAL_RESULT_ABORTED)
+		{
+			success = false;
+		}
+	}
+	else
+	{
+		cb(line, user_data);
+	}
+
+	return success;
+}
+
 static int
-_search_process_lines(Buffer *buf, char **line, size_t *llen, PreCondition pre, void *pre_data, Callback cb, void *user_data)
+_search_process_lines_from_buffer(Buffer *buf, char **line, size_t *llen, PreCondition pre, void *pre_data, Callback cb, void *user_data)
 {
 	int count = 0;
 
@@ -91,24 +120,13 @@ _search_process_lines(Buffer *buf, char **line, size_t *llen, PreCondition pre, 
 
 	while(count != ABORT_SEARCH && buffer_read_line(buf, line, llen))
 	{
-		if(pre)
+		if(_search_process_line(*line, pre, pre_data, cb, user_data))
 		{
-			EvalResult result = pre(*line, pre_data);
-
-			if(result == EVAL_RESULT_TRUE)
-			{
-				cb(*line, user_data);
-				++count;
-			}
-			else if(result == EVAL_RESULT_ABORTED)
-			{
-				count = ABORT_SEARCH;
-			}
+			++count;
 		}
 		else
 		{
-			cb(*line, user_data);
-			++count;
+			count = ABORT_SEARCH;
 		}
 	}
 
@@ -116,7 +134,7 @@ _search_process_lines(Buffer *buf, char **line, size_t *llen, PreCondition pre, 
 }
 
 static int
-_search_flush_buffer(Buffer *buf, char **line, size_t *llen, PreCondition pre, void *pre_data, Callback cb, void *user_data)
+_search_flush_and_process_buffer(Buffer *buf, char **line, size_t *llen, PreCondition pre, void *pre_data, Callback cb, void *user_data)
 {
 	int count = 0;
 
@@ -127,13 +145,12 @@ _search_flush_buffer(Buffer *buf, char **line, size_t *llen, PreCondition pre, v
 
 	if(cb && !buffer_is_empty(buf))
 	{
-		count = _search_process_lines(buf, line, llen, pre, pre_data, cb, user_data);
+		count = _search_process_lines_from_buffer(buf, line, llen, pre, pre_data, cb, user_data);
 
-		if(count != ABORT_SEARCH)
+		if(count != ABORT_SEARCH && buffer_flush(buf, line, llen))
 		{
-			if(buffer_flush(buf, line, llen))
+			if(_search_process_line(*line, pre, pre_data, cb, user_data))
 			{
-				cb(*line, user_data);
 				++count;
 			}
 		}
@@ -164,58 +181,8 @@ _search_close_fd(int *fd)
 	return ret;
 }
 
-static ParserResult *
-_search_translate_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, size_t *argc, char ***argv)
-{
-	ParserResult *result;
-	char *err = NULL;
-
-	assert(path != NULL);
-	assert(expr != NULL);
-	assert(opts != NULL);
-	assert(argc != NULL);
-	assert(argv != NULL);
-
-	*argc = 0;
-	*argv = NULL;
-
-	/* translate string to find arguments */
-	result = parse_string(expr);
-
-	if(result->success)
-	{
-		if(translate(result->root->exprs, flags, argc, argv, &err))
-		{
-			search_merge_options(argc, argv, path, opts);
-		}
-		else
-		{
-			result->success = false;
-			result->err = err;
-		}
-	}
-
-	/* cleanup on failure */
-	if(!result->success && *argv)
-	{
-		if(*argv)
-		{
-			for(size_t i = 0; i < *argc; ++i)
-			{
-				free((*argv)[i]);
-			}
-
-			*argc = 0;
-			free(*argv);
-			*argv = NULL;
-		}
-	}
-
-	return result;
-}
-
-void
-search_merge_options(size_t *argc, char ***argv, const char *path, const SearchOptions *opts)
+static void
+_search_merge_options(size_t *argc, char ***argv, const char *path, const SearchOptions *opts)
 {
 	char **nargv;
 	size_t maxsize;
@@ -267,6 +234,53 @@ search_merge_options(size_t *argc, char ***argv, const char *path, const SearchO
 	*argv = nargv;
 }
 
+static ParserResult *
+_search_translate_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, size_t *argc, char ***argv)
+{
+	ParserResult *result;
+	char *err = NULL;
+
+	assert(path != NULL);
+	assert(expr != NULL);
+	assert(opts != NULL);
+	assert(argc != NULL);
+	assert(argv != NULL);
+
+	*argc = 0;
+	*argv = NULL;
+
+	/* translate string to find arguments */
+	result = parse_string(expr);
+
+	if(result->success)
+	{
+		if(translate(result->root->exprs, flags, argc, argv, &err))
+		{
+			_search_merge_options(argc, argv, path, opts);
+		}
+		else
+		{
+			result->success = false;
+			result->err = err;
+		}
+	}
+
+	/* cleanup on failure */
+	if(!result->success && *argv)
+	{
+		for(size_t i = 0; i < *argc; ++i)
+		{
+			free((*argv)[i]);
+		}
+
+		*argc = 0;
+		free(*argv);
+		*argv = NULL;
+	}
+
+	return result;
+}
+
 static void
 _search_child_process(int outfds[2], int errfds[2], ParserResult *result, char **argv)
 {
@@ -302,12 +316,9 @@ _search_child_process(int outfds[2], int errfds[2], ParserResult *result, char *
 	/* run find */
 	if((exe = utils_whereis("find")))
 	{
-		if(result->success)
+		if(execv(exe, argv) == -1)
 		{
-			if(execv(exe, argv) == -1)
-			{
-				perror("execl()");
-			}
+			perror("execl()");
 		}
 
 		free(exe);
@@ -321,113 +332,131 @@ _search_child_process(int outfds[2], int errfds[2], ParserResult *result, char *
 static int
 _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *result, Callback found_file, Callback err_message, void *user_data)
 {
-	int status;
-	int ret = 0;
+	fd_set rfds;
+	Buffer outbuf;
+	Buffer errbuf;
+	char *line = NULL;
+	size_t llen = 0;
+	int lc = 0;
+	PreArgs pre_args;
+
+	const int PROCESS_STATUS_OK = 0;
+	const int PROCESS_STATUS_ERROR = 1;
+	const int PROCESS_STATUS_FINISHED = 2;
+
+	int status = PROCESS_STATUS_OK;
 
 	/* close descriptors */
-	if(!_search_close_fd(&outfds[1]) && !_search_close_fd(&errfds[1]))
+	if(_search_close_fd(&outfds[1]) || _search_close_fd(&errfds[1]))
 	{
-		fd_set rfds;
-		Buffer outbuf;
-		Buffer errbuf;
-		char *line = NULL;
-		size_t llen = 0;
-		PostExprsArgs post_args;
-		bool finished = false;
+		return -1;
+	}
 
-		memset(&post_args, 0, sizeof(PostExprsArgs));
+	/* initialize buffers */
+	buffer_init(&outbuf, 4096);
+	buffer_init(&errbuf, 4096);
 
-		buffer_init(&outbuf, 4096);
-		buffer_init(&errbuf, 4096);
+	/* initialize pre condition argument */
+	pre_args.result = result;
+	pre_args.extensions = extension_manager_new();
 
-		post_args.result = result;
-		post_args.extensions = extension_manager_new();
+	extension_manager_load_default(pre_args.extensions);
 
-		extension_manager_load_default(post_args.extensions);
+	/* read from pipes until child process terminates or an error occurs */
+	int maxfd = (errfds[0] > outfds[0] ? errfds[0] : outfds[0]) + 1;
 
-		/* read from pipes until child process terminates or an error occurs */
-		int maxfd = (errfds[0] > outfds[0] ? errfds[0] : outfds[0]) + 1;
+	while(status == PROCESS_STATUS_OK)
+	{
+		/* read data from pipes */
+		FD_ZERO(&rfds);
+		FD_SET(outfds[0], &rfds);
+		FD_SET(errfds[0], &rfds);
 
-		while(!finished)
+		ssize_t bytes;
+		ssize_t sum = 0;
+
+		do
 		{
-			/* read data from pipes */
-			FD_ZERO(&rfds);
-			FD_SET(outfds[0], &rfds);
-			FD_SET(errfds[0], &rfds);
+			sum = 0;
 
-			ssize_t bytes;
-			ssize_t sum = 0;
-			int rc;
-
-			do
+			if(select(maxfd, &rfds, NULL, NULL, NULL) > 0)
 			{
-				sum = 0;
-
-				if(select(maxfd, &rfds, NULL, NULL, NULL) > 0)
+				/* read from stdout & write bytes to related buffer */
+				if(FD_ISSET(outfds[0], &rfds))
 				{
-					if(FD_ISSET(outfds[0], &rfds))
+					while(status == PROCESS_STATUS_OK && (bytes = buffer_fill_from_fd(&outbuf, outfds[0], 512)) > 0)
 					{
-						while((bytes = buffer_fill_from_fd(&outbuf, outfds[0], 512)) > 0)
+						/* process received lines */
+						int count = _search_process_lines_from_buffer(&outbuf, &line, &llen, _search_evaluate_post_exprs, &pre_args, found_file, user_data);
+
+						if(count == ABORT_SEARCH)
 						{
-							int count = _search_process_lines(&outbuf, &line, &llen, _search_post_exprs, &post_args, found_file, user_data);
-
-							if(count == ABORT_SEARCH)
-							{
-								ret = -1;
-								finished = true;
-								break;
-							}
-
-							ret += count;
-
-							sum += bytes;
+							status = PROCESS_STATUS_ERROR;
 						}
-					}
-
-					if(FD_ISSET(errfds[0], &rfds))
-					{
-						while((bytes = buffer_fill_from_fd(&errbuf, errfds[0], 512)) > 0)
+						else
 						{
-							_search_process_lines(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
-							sum += bytes;
+							lc += count;
 						}
+
+						sum += bytes;
 					}
 				}
-			} while(sum && !finished);
 
-			if((rc = waitpid(pid, &status, WNOHANG)) == pid)
-			{
-				if(WIFEXITED(status))
+				/* read from stderr & write bytes to related buffer */
+				if(FD_ISSET(errfds[0], &rfds))
 				{
-					finished = true;
+					while(status == PROCESS_STATUS_OK && (bytes = buffer_fill_from_fd(&errbuf, errfds[0], 512)) > 0)
+					{
+						/* process received lines */
+						_search_process_lines_from_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
+						sum += bytes;
+					}
 				}
 			}
-			else if(rc == -1)
+		} while(status == PROCESS_STATUS_OK && sum);
+
+		/* check if child process is still running */
+		int child_status;
+		int rc;
+
+		if((rc = waitpid(pid, &child_status, WNOHANG)) == pid)
+		{
+			if(WIFEXITED(child_status))
 			{
-				perror("waitpid()");
-				finished = true;
+				status = PROCESS_STATUS_FINISHED;
 			}
 		}
-
-		/* flush buffers */
-		if(ret != -1)
+		else if(rc == -1)
 		{
-			ret += _search_flush_buffer(&outbuf, &line, &llen, _search_post_exprs, &post_args, found_file, user_data);
-			_search_flush_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
-		}
-
-		/* clean up */
-		buffer_free(&outbuf);
-		buffer_free(&errbuf);
-		free(line);
-		
-		if(post_args.extensions)
-		{
-			extension_manager_destroy(post_args.extensions);
+			perror("waitpid()");
+			status = PROCESS_STATUS_ERROR;
 		}
 	}
 
-	return ret;
+	/* flush buffers */
+	if(status == PROCESS_STATUS_OK)
+	{
+		int count = _search_flush_and_process_buffer(&outbuf, &line, &llen, _search_evaluate_post_exprs, &pre_args, found_file, user_data);
+
+		if(count != ABORT_SEARCH)
+		{
+			lc += count;
+		}
+
+		_search_flush_and_process_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
+	}
+
+	/* cleanup */
+	buffer_free(&outbuf);
+	buffer_free(&errbuf);
+	free(line);
+	
+	if(pre_args.extensions)
+	{
+		extension_manager_destroy(pre_args.extensions);
+	}
+
+	return lc;
 }
 
 int
@@ -436,7 +465,7 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 	int outfds[2]; // redirect stdout
 	int errfds[2]; // redirect stderr
 	int ret = -1;
-	
+
 	assert(path != NULL);
 	assert(expr != NULL);
 	assert(opts != NULL);
@@ -455,6 +484,8 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 
 		/* parse expression */
 		result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
+
+		assert(result != NULL);
 
 		if(result->success)
 		{
@@ -518,6 +549,8 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 	assert(opts != NULL);
 
 	result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
+
+	assert(result != NULL);
 
 	if(result->success)
 	{

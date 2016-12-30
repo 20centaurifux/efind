@@ -175,8 +175,8 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 
 	va_end(ap);
 
-	out:
-		return ret;
+out:
+	return ret;
 }
 
 bool
@@ -211,23 +211,21 @@ utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len
 void
 utils_strdup_printf(char **dst, const char *fmt, ...)
 {
-	char str[4096];
-	va_list ap;
-
-	if(!dst || !fmt || *dst)
+	if(dst && fmt && *dst)
 	{
-		return;
+		char str[4096];
+		va_list ap;
+
+		*dst = NULL;
+
+		va_start(ap, fmt);
+
+		if(vsnprintf(str, sizeof(str), fmt, ap) < 4096)
+		{
+			*dst = strdup(str);
+		}
+		
+		va_end(ap);
 	}
-
-	*dst = NULL;
-
-	va_start(ap, fmt);
-
-	if(vsnprintf(str, sizeof(str), fmt, ap) < 4096)
-	{
-		*dst = strdup(str);
-	}
-	
-	va_end(ap);
 }
 

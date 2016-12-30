@@ -31,9 +31,6 @@
 /*! Maximum expression length. */
 #define PARSER_MAX_EXPRESSION_LENGTH 512
 
-/*! Allocated string are store in a singly-linked list. */
-typedef SList StringFactory;
-
 /**
    @struct ParserExtra
    @brief Additional parser data used by flex.
@@ -82,6 +79,5 @@ ParserResult *parse_string(const char *str);
    Frees a ParserResult.
   */
 void parser_result_free(ParserResult *result);
-
 #endif
 

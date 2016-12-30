@@ -40,10 +40,10 @@ _dl_ext_backend_load(const char *filename)
 static void
 _dl_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 {
-	assert(handle != NULL);
-
 	void (*discover)(RegistrationCtx *ctx, RegisterCallback register_fn);
 	
+	assert(handle != NULL);
+
 	discover = dlsym(handle, "discover");
 
 	if(discover)
@@ -55,13 +55,13 @@ _dl_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 static int
 _dl_ext_backend_invoke(void *handle, const char *name, const char *filename, uint32_t argc, void **argv, int *result)
 {
+	int (*fn)(const char *filename, int argc, void **argv);
+	int success = -1;
+
 	assert(handle != NULL);
 	assert(name != NULL);
 	assert(filename != NULL);
 	assert(result != NULL);
-
-	int (*fn)(const char *filename, int argc, void **argv);
-	int success = -1;
 
 	fn = dlsym(handle, name);
 

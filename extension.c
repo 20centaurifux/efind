@@ -89,7 +89,7 @@ _extension_module_set_backend_class(ExtensionBackendClass *cls, ExtensionModuleT
 	return success;
 }
 
-ExtensionModule *
+static ExtensionModule *
 _extension_module_new(const char *filename, ExtensionModuleType type)
 {
 	ExtensionModule *module = NULL;
@@ -203,6 +203,11 @@ _extension_manager_import_module(ExtensionManager *manager, const char *filename
 		}
 	}
 
+	if(!success)
+	{
+		_extension_module_free(module);
+	}
+
 	return success;
 }
 
@@ -295,7 +300,7 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 				}
 				else
 				{
-					utils_strdup_printf(err, "Path to extension description file exceeds maximum allowed path length.");
+					utils_strdup_printf(err, "Path to extension file exceeds maximum allowed path length.");
 					success = false;
 				}
 			}
@@ -316,8 +321,10 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 int
 extension_manager_load_default(ExtensionManager *manager)
 {
-	const char *home = getenv("HOME");
+	const char *home;
 	int count = 0;
+
+	home = getenv("HOME");
 
 	if(home)
 	{
@@ -344,6 +351,7 @@ ExtensionCallbackStatus
 extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, CallbackArgType *types)
 {
 	ExtensionCallback *cb;
+	ExtensionCallbackStatus result = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 
 	assert(manager != NULL);
 
@@ -353,22 +361,25 @@ extension_manager_test_callback(ExtensionManager *manager, const char *name, uin
 		{
 			if(cb->argc != argc)
 			{
-				return EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE;
+				result = EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE;
 			}
-
-			for(uint32_t i = 0; i < argc; ++i)
+			else
 			{
-				if(types[i] != cb->types[i])
+				result = EXTENSION_CALLBACK_STATUS_OK;
+
+				for(uint32_t i = 0; i < argc; ++i)
 				{
-					return EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE;
+					if(types[i] != cb->types[i])
+					{
+						result = EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE;
+						break;
+					}
 				}
 			}
-
-			return EXTENSION_CALLBACK_STATUS_OK;
 		}
 	}
 
-	return EXTENSION_CALLBACK_STATUS_NOT_FOUND;
+	return result;
 }
 
 ExtensionCallbackStatus
@@ -386,7 +397,7 @@ extension_manager_invoke(ExtensionManager *manager, const char *name, const char
 	{
 		if(cb->argc == argc)
 		{
-			if(!module->backend.invoke(module->handle, name, filename, argc, argv, result))
+			if(module->backend.invoke(module->handle, name, filename, argc, argv, result) == 0)
 			{
 				status = EXTENSION_CALLBACK_STATUS_OK;
 			}

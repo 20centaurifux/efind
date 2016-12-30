@@ -42,14 +42,13 @@ typedef enum
 } EvalResult;
 
 /**
+   @param manager an ExtensionManager
    @param node node to evaluate
-   @param extensions an ExtensionManager
    @param filename name of the found file
-   @param stbuf status of the found file
    @return a boolean
 
    Evaluates an abstract syntax tree.
   */
-EvalResult evaluate(Node *node, ExtensionManager *manager, const char *filename);
+EvalResult evaluate(ExtensionManager *manager, Node *node, const char *filename);
 #endif
 

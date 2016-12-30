@@ -80,7 +80,7 @@ size_t utils_printf_loc(const Node *node, char *buf, size_t size, const char *fo
    @param max_len maximum buffer size
    @return TRUE on success
 
-   Joins a path with a filename. The buffer size has to be at least PATH_MAX bytes.
+   Joins a path with a filename.
  */
 bool utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len);
 
@@ -92,6 +92,5 @@ bool utils_path_join(const char *dir, const char *filename, char *dst, size_t ma
    The function fails if the string length exceeds the internal maximum buffer size (4096).
  */
 void utils_strdup_printf(char **dst, const char *fmt, ...);
-
 #endif
 
