@@ -131,6 +131,9 @@ _extension_module_free(ExtensionModule *module)
 		}
 
 		free(module->filename);
+		free(module->name);
+		free(module->version);
+		free(module->description);
 		free(module);
 	}
 }
@@ -178,6 +181,31 @@ _extension_manager_function_discovered(RegistrationCtx *ctx, const char *name, u
 	}
 }
 
+static void
+_extension_manager_extension_registered(RegistrationCtx *ctx, const char *name, const char *version, const char *description)
+{
+	ExtensionModule *module;
+
+	assert(ctx != NULL);
+
+	module = (ExtensionModule *)ctx;
+
+	if(name)
+	{
+		module->name = strdup(name);
+	}
+
+	if(version)
+	{
+		module->version = strdup(version);
+	}
+
+	if(description)
+	{
+		module->description = strdup(description);
+	}
+}
+
 static bool
 _extension_manager_import_module(ExtensionManager *manager, const char *filename, ExtensionModuleType type)
 {
@@ -192,7 +220,7 @@ _extension_manager_import_module(ExtensionManager *manager, const char *filename
 	if(module)
 	{
 		/* load module */
-		if((module->handle = module->backend.load(module->filename)))
+		if((module->handle = module->backend.load(module->filename, _extension_manager_extension_registered, (void *)module)))
 		{
 			assoc_array_set(manager->modules, strdup(module->filename), module, true);
 
@@ -409,6 +437,65 @@ extension_manager_invoke(ExtensionManager *manager, const char *name, const char
 	}
 
 	return status;
+}
+
+void
+extension_manager_export(ExtensionManager *manager, FILE *out)
+{
+	AssocArrayIter iter;
+
+	assert(manager != NULL);
+	assert(out != NULL);
+
+	assoc_array_iter_init(manager->modules, &iter);
+
+	while(assoc_array_iter_next(&iter))
+	{
+		ExtensionModule *module= (ExtensionModule *)assoc_array_iter_get_value(&iter);
+
+		fprintf(out, "%s\n", module->filename);
+
+		if(module->name && module->version)
+		{
+			fprintf(out, "\t%s, version %s\n\n", module->name, module->version);
+		}
+
+		if(module->description)
+		{
+			fprintf(out, "\t%s\n\n", module->description);
+		}
+
+		AssocArrayIter cb_iter;
+
+		assoc_array_iter_init(module->callbacks, &cb_iter);
+
+		while(assoc_array_iter_next(&cb_iter))
+		{
+			ExtensionCallback *cb = (ExtensionCallback *)assoc_array_iter_get_value(&cb_iter);
+			fprintf(out, "\t%s(", cb->name);
+
+			for(size_t i = 0; i < cb->argc; ++i)
+			{
+				const char *type = "integer";
+
+				if(cb->types[i] == CALLBACK_ARG_TYPE_STRING)
+				{
+					type = "string";
+				}
+
+				fprintf(stdout, "%s", type);
+
+				if(i < cb->argc - 1)
+				{
+					fprintf(stdout, ", ");
+				}
+			}
+
+			fprintf(out, ")\n");
+		}
+
+		fprintf(out, "\n");
+	}
 }
 
 ExtensionCallbackArgs *

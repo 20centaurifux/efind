@@ -25,6 +25,7 @@
 #ifndef __EXTENSION_H__
 #define __EXTENSION_H__
 
+#include <stdio.h>
 #include <datatypes.h>
 #include <linux/limits.h>
 
@@ -64,11 +65,13 @@ typedef struct _ExtensionBackendClass
 {
 	/**
 	   @param filename name of the extension module's file
+	   @param fn function called to register the extension
+	   @param ctx registration context
 	   @return backend handle
 
 	   Loads an extension module.
 	 */
-	void *(*load)(const char *filename);
+	void *(*load)(const char *filename, RegisterExtension fn, RegistrationCtx *ctx);
 
 	/**
 	   @param handle backend handle
@@ -108,6 +111,12 @@ typedef struct
 {
 	/*! Filename of the module. */
 	char *filename;
+	/*! Module name. */
+	char *name;
+	/*! Module version. */
+	char *version;
+	/*! Module description. */
+	char *description;
 	/*! Module type. */
 	ExtensionModuleType type;
 	/*! Backend functions. */
@@ -212,6 +221,14 @@ ExtensionCallbackStatus extension_manager_test_callback(ExtensionManager *manage
    Executes a callback.
  */
 ExtensionCallbackStatus extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void **argv, int *result);
+
+/**
+   @param manager ExtensionManager instance
+   @param out a stream
+
+   Lists registered extensions and writes them to the given stream.
+ */
+void extension_manager_export(ExtensionManager *manager, FILE *out);
 
 /**
    @param argc number of arguments

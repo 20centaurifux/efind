@@ -15,7 +15,7 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /*!
- * \file extension_interface.h
+ * \file extension-interface.h
  * \brief Interface for extension modules.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  * \version 0.1.0
@@ -29,6 +29,16 @@
 
 /*! Extension registration context. */
 typedef void * RegistrationCtx;
+
+/**
+   @param ctx registration context
+   @param name name of the extension
+   @param description brief description of the extension
+   @param version extension version information
+
+   Registers an extension in the plugin context.
+ */
+typedef void(*RegisterExtension)(RegistrationCtx *ctx, const char *name, const char *version, const char *description);
 
 /**
    @param ctx registration context

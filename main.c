@@ -40,6 +40,7 @@
 #include "search.h"
 #include "parser.h"
 #include "utils.h"
+#include "extension.h"
 
 /*! Major version. */
 #define VERSION_MAJOR 0
@@ -63,7 +64,9 @@ typedef enum
 	/*! Show help and quit. */
 	ACTION_PRINT_HELP,
 	/*! Show version and quit. */
-	ACTION_PRINT_VERSION
+	ACTION_PRINT_VERSION,
+	/*! Show extensions and quit. */
+	ACTION_LIST_EXTENSIONS
 } Action;
 
 /**
@@ -111,6 +114,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "maxdepth", required_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
+		{ "list-extensions", no_argument, 0, 0 },
 		{ 0, 0, 0, 0 }
 	};
 
@@ -195,6 +199,10 @@ _read_options(int argc, char *argv[], Options *opts)
 				if(!strcmp(long_options[index].name, "maxdepth"))
 				{
 					opts->max_depth = atoi(optarg);
+				}
+				else if(!strcmp(long_options[index].name, "list-extensions"))
+				{
+					action = ACTION_LIST_EXTENSIONS;
 				}
 
 				break;
@@ -336,6 +344,7 @@ _print_help(const char *name)
 	printf("  -L, --follow        follow symbolic links\n");
 	printf("  --mapdepth levels   maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
+	printf("  --list-extensions   show a list with installed extensions\n");
 	printf("  -v, --version       show version and exit\n");
 	printf("  -h, --help          display this help and exit\n");
 }
@@ -344,6 +353,34 @@ static void
 _print_version(const char *name)
 {
 	printf("%s, version %d.%d.%d\n", name, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+}
+
+static void
+_list_extensions(void)
+{
+	ExtensionManager *manager;
+
+	manager = extension_manager_new();
+
+	if(manager)
+	{
+		int count = extension_manager_load_default(manager);
+
+		if(count)
+		{
+			extension_manager_export(manager, stdout);
+		}
+		else
+		{
+			fprintf(stdout, "No extensions loaded.\n");
+		}
+
+		extension_manager_destroy(manager);
+	}
+	else
+	{
+		fprintf(stderr, "Couldn't load extensions.\n");
+	}
 }
 
 /**
@@ -422,6 +459,11 @@ main(int argc, char *argv[])
 
 		case ACTION_PRINT_VERSION:
 			_print_version(argv[0]);
+			result = EXIT_SUCCESS;
+			break;
+
+		case ACTION_LIST_EXTENSIONS:
+			_list_extensions();
 			result = EXIT_SUCCESS;
 			break;
 

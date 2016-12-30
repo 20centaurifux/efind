@@ -28,6 +28,16 @@
 #include <regex.h>
 #include "extension-interface.h"
 
+#define NAME        "taglib"
+#define VERSION     "0.1.0"
+#define DESCRIPTION "Read tags and properties from audio files."
+
+void
+registration(RegistrationCtx *ctx, RegisterExtension fn)
+{
+	fn(ctx, NAME, VERSION, DESCRIPTION);
+}
+
 void
 discover(RegistrationCtx *ctx, RegisterCallback fn)
 {

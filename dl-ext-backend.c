@@ -30,11 +30,27 @@
 #include "utils.h"
 
 static void *
-_dl_ext_backend_load(const char *filename)
+_dl_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx *ctx)
 {
+	void *handle;
+
 	assert(filename != NULL);
 
-	return dlopen(filename, RTLD_LAZY);
+	handle = dlopen(filename, RTLD_LAZY);
+
+	if(handle)
+	{
+		void (*registration)(RegistrationCtx *ctx, RegisterExtension register_fn);
+
+		registration = dlsym(handle, "registration");
+
+		if(registration)
+		{
+			registration(ctx, fn);
+		}
+	}
+
+	return handle;
 }
 
 static void
