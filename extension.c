@@ -593,7 +593,11 @@ extension_callback_args_set_string(ExtensionCallbackArgs *args, uint32_t offset,
 		free(args->argv[offset]);
 	}
 
-	args->argv[offset] = strdup(string);
+	if(string)
+	{
+		args->argv[offset] = strdup(string);
+	}
+
 	args->types[offset] = CALLBACK_ARG_TYPE_STRING;
 }
 
