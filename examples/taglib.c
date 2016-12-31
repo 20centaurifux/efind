@@ -24,13 +24,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <taglib/tag_c.h>
+#include <stdbool.h>
+#include <assert.h>
+#include <linux/limits.h>
 #include <regex.h>
+#include <taglib/tag_c.h>
+
 #include "extension-interface.h"
 
 #define NAME        "taglib"
 #define VERSION     "0.1.0"
 #define DESCRIPTION "Read tags and properties from audio files."
+
+#define MAX_TAG 512
+
+typedef struct
+{
+	char filename[PATH_MAX];
+	char artist[MAX_TAG];
+	char album[MAX_TAG];
+	char title[MAX_TAG];
+	char genre[MAX_TAG];
+	int length;
+	int bitrate;
+	int samplerate;
+	int channels;
+} AudioProperties;
 
 void
 registration(RegistrationCtx *ctx, RegisterExtension fn)
@@ -55,53 +74,79 @@ discover(RegistrationCtx *ctx, RegisterCallback fn)
 	fn(ctx, "audio_channels", 0);
 }
 
-static char *
-_read_tag(const char *filename, char *(*cb)(const TagLib_Tag *tag))
+static AudioProperties *
+_read_properties(const char *filename)
 {
-	TagLib_File *file;
-	char *result = NULL;
+	static AudioProperties cache = { .filename = "" };
+	AudioProperties *properties = NULL;
 
-	if((file = taglib_file_new(filename)))
+	assert(filename != NULL);
+
+	if(strcmp(filename, cache.filename))
 	{
-		TagLib_Tag *tag;
+		TagLib_File *file;
+	
+		memset(&cache, 0, sizeof(AudioProperties));
 
-		if((tag = taglib_file_tag(file)))
+		if((file = taglib_file_new(filename)))
 		{
-			char *ptr = cb(tag);
+			TagLib_Tag *tag;
+			bool success = false;
 
-			if(ptr)
+			if((tag = taglib_file_tag(file)))
 			{
-				result = strdup(ptr);
+				char *ptr = taglib_tag_artist(tag);
+
+				if(ptr)
+				{
+					strncpy(cache.artist, ptr, MAX_TAG);
+				}
+
+				if((ptr = taglib_tag_album(tag)))
+				{
+					strncpy(cache.album, ptr, MAX_TAG);
+				}
+
+				if((ptr = taglib_tag_title(tag)))
+				{
+					strncpy(cache.title, ptr, MAX_TAG);
+				}
+
+				if((ptr = taglib_tag_genre(tag)))
+				{
+					strncpy(cache.genre, ptr, MAX_TAG);
+				}
+
+				taglib_tag_free_strings();
+
+				const TagLib_AudioProperties *audio_properties;
+
+				if((audio_properties = taglib_file_audioproperties(file)))
+				{
+					cache.length = taglib_audioproperties_length(audio_properties);
+					cache.bitrate = taglib_audioproperties_bitrate(audio_properties);
+					cache.samplerate = taglib_audioproperties_samplerate(audio_properties);
+					cache.channels = taglib_audioproperties_channels(audio_properties);
+
+					success = true;
+				}
 			}
 
-			taglib_tag_free_strings();
+			if(success)
+			{
+				strncpy(cache.filename, filename, PATH_MAX);
+				properties = &cache;
+			}
+
+			taglib_file_free(file);
 		}
-
-		taglib_file_free(file);
 	}
-
-	return result;
-}
-
-static int
-_read_audio_property(const char *filename, int (*cb)(const TagLib_AudioProperties *prop))
-{
-	TagLib_File *file;
-	int result = 0;
-
-	if((file = taglib_file_new(filename)))
+	else
 	{
-		const TagLib_AudioProperties *props;
-
-		if((props = taglib_file_audioproperties(file)))
-		{
-			result = cb(props);
-		}
-
-		taglib_file_free(file);
+		properties = &cache;
 	}
 
-	return result;
+	return properties;
 }
 
 static char *
@@ -111,24 +156,31 @@ _regex_escape(const char *str)
 	char *ptr;
 	size_t len;
 
-	len = strlen(str);
-	dst = (char *)malloc(sizeof(char *) * len * 2 + 1);
-
-	if(dst)
+	if(str)
 	{
-		ptr = dst;
+		len = strlen(str);
+		dst = (char *)malloc(sizeof(char *) * len * 2 + 1);
 
-		for(size_t i = 0; i < len; ++i)
+		if(dst)
 		{
-			if(strchr(".^$*+?()[{\\|", str[i]))
+			ptr = dst;
+
+			for(size_t i = 0; i < len; ++i)
 			{
-				*ptr++ = '\\';
+				if(strchr(".^$*+?()[{\\|", str[i]))
+				{
+					*ptr++ = '\\';
+				}
+
+				*ptr++ = str[i];
 			}
 
-			*ptr++ = str[i];
+			*ptr = '\0';
 		}
-
-		*ptr = '\0';
+	}
+	else
+	{
+		dst = strdup("");
 	}
 
 	return dst;
@@ -151,7 +203,7 @@ _regexec(const char *tag, const char *pattern)
 }
 
 static int
-_equals(const char *tag, const char *query)
+_compare_tags(const char *tag, const char *query)
 {
 	char *escaped;
 	int ret = 0;
@@ -167,6 +219,7 @@ _equals(const char *tag, const char *query)
 			sprintf(pattern, "^%s$", escaped);
 
 			ret = _regexec(tag, pattern);
+
 			free(pattern);
 		}
 
@@ -177,121 +230,75 @@ _equals(const char *tag, const char *query)
 }
 
 static int
-_matches(const char *tag, const char *query)
+_match_tags(const char *tag, const char *query)
 {
 	char *escaped;
 	int ret = 0;
 
-	escaped = _regex_escape(query);
-	ret = _regexec(tag, escaped);
-	free(escaped);
-
-	return ret;
-}
-
-static int
-_read_and_compare_tag(const char *filename, const char *query, char *(cb)(const TagLib_Tag *tag))
-{
-	char *str;
-	int ret = 0;
-
-	str = _read_tag(filename, cb);
-
-	if(str)
+	if((escaped = _regex_escape(query)))
 	{
-		ret = _equals(str, query);
-		free(str);
+		ret = _regexec(tag, escaped);
+
+		free(escaped);
 	}
 
 	return ret;
 }
 
-static int
-_read_and_match_tag(const char *filename, const char *query, char *(cb)(const TagLib_Tag *tag))
-{
-	char *str;
-	int ret = 0;
-
-	str = _read_tag(filename, cb);
-
-	if(str)
-	{
-		ret = _matches(str, query);
-		free(str);
-	}
-
-	return ret;
+#define AUDIO_TAG_EQUALS(field) \
+int \
+field##_equals(const char *filename, int argc, void *argv[]) \
+{ \
+	AudioProperties *props; \
+\
+	if((props = _read_properties(filename))) \
+	{ \
+		return _compare_tags(props->field, (char *)*argv); \
+	} \
+\
+	return 0; \
 }
 
-int
-artist_equals(const char *filename, int argc, void *argv[])
-{
-	return _read_and_compare_tag(filename, (char *)argv[0], taglib_tag_artist);
+AUDIO_TAG_EQUALS(artist)
+AUDIO_TAG_EQUALS(album)
+AUDIO_TAG_EQUALS(title)
+AUDIO_TAG_EQUALS(genre)
+
+#define AUDIO_TAG_MATCHES(field) \
+int \
+field##_matches(const char *filename, int argc, void *argv[]) \
+{ \
+	AudioProperties *props; \
+\
+	if((props = _read_properties(filename))) \
+	{ \
+		return _match_tags(props->field, (char *)*argv); \
+	} \
+\
+	return 0; \
 }
 
-int
-album_equals(const char *filename, int argc, void *argv[])
-{
-	return _read_and_compare_tag(filename, (char *)argv[0], taglib_tag_album);
+AUDIO_TAG_MATCHES(artist)
+AUDIO_TAG_MATCHES(album)
+AUDIO_TAG_MATCHES(title)
+AUDIO_TAG_MATCHES(genre)
+
+#define GET_AUDIO_PROPERTY(field) \
+int \
+audio_##field(const char *filename, int argc, void *argv[]) \
+{ \
+	AudioProperties *props; \
+\
+	if((props = _read_properties(filename))) \
+	{ \
+		return props->field; \
+	} \
+\
+	return 0; \
 }
 
-int
-title_equals(const char *filename, int argc, void *argv[])
-{
-	return _read_and_compare_tag(filename, (char *)argv[0], taglib_tag_title);
-}
-
-int
-genre_equals(const char *filename, int argc, void *argv[])
-{
-	return _read_and_compare_tag(filename, (char *)argv[0], taglib_tag_genre);
-}
-
-int
-artist_matches(const char *filename, int argc, void *argv[])
-{
-	return _read_and_match_tag(filename, (char *)argv[0], taglib_tag_artist);
-}
-
-int
-album_matches(const char *filename, int argc, void *argv[])
-{
-	return _read_and_match_tag(filename, (char *)argv[0], taglib_tag_album);
-}
-
-int
-title_matches(const char *filename, int argc, void *argv[])
-{
-	return _read_and_match_tag(filename, (char *)argv[0], taglib_tag_title);
-}
-
-int
-genre_matches(const char *filename, int argc, void *argv[])
-{
-	return _read_and_match_tag(filename, (char *)argv[0], taglib_tag_genre);
-}
-
-int
-audio_length(const char *filename, int argc, void *argv[])
-{
-	return _read_audio_property(filename, taglib_audioproperties_length);
-}
-
-int
-audio_bitrate(const char *filename, int argc, void *argv[])
-{
-	return _read_audio_property(filename, taglib_audioproperties_bitrate);
-}
-
-int
-audio_samplerate(const char *filename, int argc, void *argv[])
-{
-	return _read_audio_property(filename, taglib_audioproperties_samplerate);
-}
-
-int
-audio_channels(const char *filename, int argc, void *argv[])
-{
-	return _read_audio_property(filename, taglib_audioproperties_channels);
-}
+GET_AUDIO_PROPERTY(length)
+GET_AUDIO_PROPERTY(bitrate)
+GET_AUDIO_PROPERTY(samplerate)
+GET_AUDIO_PROPERTY(channels)
 
