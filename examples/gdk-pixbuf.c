@@ -22,7 +22,6 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <linux/limits.h>
 #include <string.h>
-#include <stdbool.h>
 #include <assert.h>
 
 #include "extension-interface.h"
@@ -38,7 +37,7 @@ typedef struct
 	int height;
 	int has_alpha;
 	int bits_per_sample;
-	int n_channels;
+	int channels;
 } ImageProperties;
 
 void
@@ -60,99 +59,57 @@ discover(RegistrationCtx *ctx, RegisterCallback fn)
 static ImageProperties *
 _read_properties(const char *filename)
 {
-	static ImageProperties cached_properties = { .filename = "" };
+	static ImageProperties cache = { .filename = "" };
 	ImageProperties *properties = NULL;
 
 	assert(filename != NULL);
 
-	if(strcmp(filename, cached_properties.filename))
+	if(strcmp(filename, cache.filename))
 	{
 		GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
+
+		memset(&cache, 0, sizeof(ImageProperties));
 
 		if(pixbuf)
 		{
 			g_object_get(G_OBJECT(pixbuf),
-			             "width", &cached_properties.width,
-			             "height", &cached_properties.height,
-			             "has-alpha", &cached_properties.has_alpha,
-			             "bits-per-sample", &cached_properties.bits_per_sample,
-			             "n-channels", &cached_properties.n_channels,
+			             "width", &cache.width,
+			             "height", &cache.height,
+			             "has-alpha", &cache.has_alpha,
+			             "bits-per-sample", &cache.bits_per_sample,
+			             "n-channels", &cache.channels,
 			             NULL); 
 			g_object_unref(pixbuf);
 
-			properties = &cached_properties;
+			strncpy(cache.filename, filename, PATH_MAX);
+			properties = &cache;
 		}
 	}
 	else
 	{
-		properties = &cached_properties;
+		properties = &cache;
 	}
 
 	return properties;
 }
 
-int
-image_width(const char *filename, int argc, void *argv[])
-{
-	ImageProperties *props;
-
-	if((props = _read_properties(filename)))
-	{
-		return props->width;
-	}
-
-	return 0;
+#define GET_IMAGE_PROPERTY(field) \
+int \
+image_##field(const char *filename, int argc, void *argv[]) \
+{ \
+	ImageProperties *props; \
+\
+	if((props = _read_properties(filename))) \
+	{ \
+		return props->field; \
+	} \
+\
+	return 0; \
 }
 
-int
-image_height(const char *filename, int argc, void *argv[])
-{
-	ImageProperties *props;
-
-	if((props = _read_properties(filename)))
-	{
-		return props->height;
-	}
-
-	return 0;
-}
-
-int
-image_has_alpha(const char *filename, int argc, void *argv[])
-{
-	ImageProperties *props;
-
-	if((props = _read_properties(filename)))
-	{
-		return props->has_alpha;
-	}
-
-	return 0;
-}
-
-int
-image_bits_per_sample(const char *filename, int argc, void *argv[])
-{
-	ImageProperties *props;
-
-	if((props = _read_properties(filename)))
-	{
-		return props->bits_per_sample;
-	}
-
-	return 0;
-}
-
-int
-image_channels(const char *filename, int argc, void *argv[])
-{
-	ImageProperties *props;
-
-	if((props = _read_properties(filename)))
-	{
-		return props->n_channels;
-	}
-
-	return 0;
-}
+GET_IMAGE_PROPERTY(width)
+GET_IMAGE_PROPERTY(height)
+GET_IMAGE_PROPERTY(has_alpha)
+GET_IMAGE_PROPERTY(bits_per_sample)
+GET_IMAGE_PROPERTY(channels)
 
