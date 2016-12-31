@@ -20,6 +20,9 @@
  ***************************************************************************/
 
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <linux/limits.h>
+#include <string.h>
+#include <stdbool.h>
 #include <assert.h>
 
 #include "extension-interface.h"
@@ -27,6 +30,16 @@
 #define NAME        "GDK-PixBuf"
 #define VERSION     "0.1.0"
 #define DESCRIPTION "Read image data with GDK-PixBuf."
+
+typedef struct
+{
+	char filename[PATH_MAX];
+	int width;
+	int height;
+	int has_alpha;
+	int bits_per_sample;
+	int n_channels;
+} ImageProperties;
 
 void
 registration(RegistrationCtx *ctx, RegisterExtension fn)
@@ -44,53 +57,102 @@ discover(RegistrationCtx *ctx, RegisterCallback fn)
 	fn(ctx, "image_channels", 0);
 }
 
-static int
-_read_property(const char *filename, const char *prop)
+static ImageProperties *
+_read_properties(const char *filename)
 {
-	GdkPixbuf *pixbuf;
-	int ret = -1;
+	static ImageProperties cached_properties = { .filename = "" };
+	ImageProperties *properties = NULL;
 
 	assert(filename != NULL);
-	assert(prop != NULL);
 
-	pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
-
-	if(pixbuf)
+	if(strcmp(filename, cached_properties.filename))
 	{
-		g_object_get(G_OBJECT(pixbuf), prop, &ret, NULL);
-		g_object_unref(pixbuf);
+		GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
+
+		if(pixbuf)
+		{
+			g_object_get(G_OBJECT(pixbuf),
+			             "width", &cached_properties.width,
+			             "height", &cached_properties.height,
+			             "has-alpha", &cached_properties.has_alpha,
+			             "bits-per-sample", &cached_properties.bits_per_sample,
+			             "n-channels", &cached_properties.n_channels,
+			             NULL); 
+			g_object_unref(pixbuf);
+
+			properties = &cached_properties;
+		}
+	}
+	else
+	{
+		properties = &cached_properties;
 	}
 
-	return ret;
+	return properties;
 }
 
 int
 image_width(const char *filename, int argc, void *argv[])
 {
-	return _read_property(filename, "width");
+	ImageProperties *props;
+
+	if((props = _read_properties(filename)))
+	{
+		return props->width;
+	}
+
+	return 0;
 }
 
 int
 image_height(const char *filename, int argc, void *argv[])
 {
-	return _read_property(filename, "height");
+	ImageProperties *props;
+
+	if((props = _read_properties(filename)))
+	{
+		return props->height;
+	}
+
+	return 0;
 }
 
 int
 image_has_alpha(const char *filename, int argc, void *argv[])
 {
-	return _read_property(filename, "has-alpha");
+	ImageProperties *props;
+
+	if((props = _read_properties(filename)))
+	{
+		return props->has_alpha;
+	}
+
+	return 0;
 }
 
 int
 image_bits_per_sample(const char *filename, int argc, void *argv[])
 {
-	return _read_property(filename, "bits-per-sample");
+	ImageProperties *props;
+
+	if((props = _read_properties(filename)))
+	{
+		return props->bits_per_sample;
+	}
+
+	return 0;
 }
 
 int
 image_channels(const char *filename, int argc, void *argv[])
 {
-	return _read_property(filename, "n-channels");
+	ImageProperties *props;
+
+	if((props = _read_properties(filename)))
+	{
+		return props->n_channels;
+	}
+
+	return 0;
 }
 
