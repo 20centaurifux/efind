@@ -261,12 +261,12 @@ post_term:
     ;
 
 fn_name:
-    TOKEN_FN_NAME                               { $$ = yylval.svalue; }
+    TOKEN_FN_NAME                               { $$ = _parser_memorize_string(scanner, yylval.svalue); }
     ;
 
 fn_call:
-    fn_name TOKEN_LPAREN TOKEN_RPAREN           { $$ = ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), NULL); }
-    | fn_name TOKEN_LPAREN fn_args TOKEN_RPAREN { $$ = ast_func_node_new(ALLOC(scanner), &@1, _parser_memorize_string(scanner, (char *)$1), $3); }
+    fn_name TOKEN_LPAREN TOKEN_RPAREN           { $$ = ast_func_node_new(ALLOC(scanner), &@1, $1, NULL); }
+    | fn_name TOKEN_LPAREN fn_args TOKEN_RPAREN { $$ = ast_func_node_new(ALLOC(scanner), &@1, $1, $3); }
 
 
 fn_args:
