@@ -2,9 +2,65 @@
 
 ## Introduction
 
-**efind** (expression find) searches for files in a directory hierarchy.
+**efind** (extendable find) searches for files in a directory hierarchy.
+
 Basically it's a wrapper for [GNU find](https://www.gnu.org/software/findutils/)
-providing an easier and more intuitive expression syntax.
+providing an easier and more intuitive expression syntax. Additionally
+you can filter search results with custom functions.
+
+
+## Quick overview
+
+Let's assume you want to find all writable source and header files of a C project
+that were modified in a time frame less than two days. That's no problem with
+**efind's** self-explanatory expression syntax:
+
+```
+$ efind . '(name="*.h" or name="*.c") and type=file and writable and mtime < 2 days'
+```
+
+A similar GNU find expression looks more complicated:
+
+```
+$ find . \( -name "*.h" -o -name "*.c" \) -a -type f -a -writable -a -mtime -2
+```
+
+Besides the more user-friendly syntax, **efind** always tries to act in the way
+an average user would expect. A good counter-example is the way GNU find rounds
+up file sizes.
+
+The following expression finds *all* documents in the current folder with a file size less
+or equal to 1G because every file with *at least one byte* is rounded up:
+
+```
+$ find . -size 1G
+```
+
+**efind** converts file sizes to byte to avoid this confusing behaviour:
+
+```
+$ efind . "size=1G" --print
+$ find . -size 1073741824c
+```
+
+I created a [ticket](https://savannah.gnu.org/bugs/?46815) regarding this "feature" of
+GNU find.
+
+As mentioned, **efind** can be extended with custom functions. You want to filter
+the search result by audio tags and properties? No problem :)
+
+```
+$ efind ~/amazon_music 'iname="*.mp3" and artist_matches("the cure") and title_matches("street") and audio_length()>200'
+$ /home/sf/amazon_music/the cure/Bestival Live 2011/03 - Fascination Street (Bestival Live 2011).mp3
+```
+
+You want to filter images by height and width? Just type in
+
+```
+$ efind ~/tmp 'iname="*.JPG" and image_width()>=3840 and image_height()>=2400'
+$ /home/sf/tmp/xmas.jpg
+```
+
 
 ## Building efind
 
@@ -99,14 +155,6 @@ Additionally you can test these flags:
 | writable   | the user can write to the file          |
 | executable | the user is allowed to execute the file |
 
-## Expression example
-
-To find all writable source and header files of a C project that are greater than 100 bytes you could
-use the following expression:
-
-```
-(name="*.h" or name="*.c") and type=file and size>100 bytes and writable
-```
 
 ## Running efind
 
@@ -118,8 +166,8 @@ expression can be specified with the *--dir* and *--expr* options:
 $ efind --dir=/tmp --expr="size>1M and type=file"
 ```
 
-Kindly note that **efind** tries to handle the first two arguments as path
-and expression. It's valid to run **efind** the following way:
+**efind** tries to handle the first two arguments as path and expression. It's
+valid to run **efind** the following way:
 
 ```
 $ efind ~ "type=dir" --follow
@@ -129,33 +177,119 @@ If you want to show the translated arguments without running GNU find use the
 *--print* option. To quote special shell characters append *--quote*:
 
 ```
-$ efind ~ 'iname="*.py" and (mtime<30 days or size>=1M)' --print --quote
-$ find /home/john -iname "*.py" -a \( -mtime -30 -o \( -size 1M -o -size +1M \) \)
+$ efind ~/tmp/foo 'iname="*.py" and (mtime<30 days or size>=1M)' --print --quote
+$ find /home/sf/tmp/foo -iname "*.py" -a \( -mtime -30 -o \( -size 1M -o -size +1M \) \)
 ```
 
-The available options can be displayed with
+All available options can be displayed with
 
 ```
 $ efind --help
 ```
 
-## Differences from GNU find
 
-GNU find rounds up file sizes to the specified unit. This behaviour is quite stupid.
-Look at this example:
+## Extensions
+
+Extensions are custom functions that can be used to filter GNU find's result. A function can
+have optional arguments and returns always an integer. Non-zero values evaluate to true.
+
+Extensions can only be used *after* the find expression. 
+
+At the current stage **efind** can only be extendend with functions loaded from shared libraries.
+It's planned to support scripting languages like [Python](https://www.python.org/)
+or [GNU Guile](https://www.gnu.org/software/guile/) in the future.
+
+You find two example extensions in the "examples" folder. Install [taglib](http://taglib.org/)
+and [GdkPixbuf](https://wiki.gnome.org/Projects/GdkPixbuf) to build both extensions.
+
+On a Debian based distribution the following step is required:
 
 ```
-$ find . -size 1G
+$ apt-get install libtagc0-dev libgdk-pixbuf2.0-dev
 ```
 
-This will find *all* documents in the current folder with a file size less or equal
-to 1G because every file with at least one byte is rounded up.
-
-Therefore **efind** converts file sizes to byte to avoid this behaviour:
+Now you can build the extension modules:
 
 ```
-$ efind . "size=1G" --print
-$ find . -size 1073741824c
+$ cd examples
+$ make
 ```
 
-I created a [ticket](https://savannah.gnu.org/bugs/?46815) regarding this bug.
+Copy the generated *.so files to ~/.efind/extensions:
+
+```
+$ mkdir -p ~/.efind/extensions
+$ cp *.so ~/.efind/extensions
+```
+
+You can print a list with all available functions found in the installed extensions:
+
+```
+$ efind --list-extensions
+$ /home/sf/.efind/extensions/gdk-pixbuf.so
+$ 	GDK-PixBuf, version 0.1.0
+$ 
+$ 	Read image data with GDK-PixBuf.
+$ 
+$ 	image_bits_per_sample()
+$ 	image_channels()
+$ 	image_has_alpha()
+$ 	image_height()
+$ 	image_width()
+$ 
+$ /home/sf/.efind/extensions/taglib.so
+$ 	taglib, version 0.1.0
+$ 
+$ 	Read tags and properties from audio files.
+$ 
+$ 	album_equals(string)
+$ 	album_matches(string)
+$ 	artist_equals(string)
+$ 	artist_matches(string)
+$ 	audio_bitrate()
+$ 	audio_channels()
+$ 	audio_length()
+$ 	audio_samplerate()
+$ 	genre_equals(string)
+$ 	genre_matches(string)
+$ 	title_equals(string)
+$ 	title_matches(string)
+```
+
+To make extensions available for all users copy them to /etc/efind/extensions.
+
+
+## Writing own extensions
+
+To write your own extension create a C source file and include the "extension-interface.h" header.
+
+Your library has to provide two functions: registration() and discover().
+
+The registration() function will register name, version and description of your extension:
+
+```
+void
+registration(RegistrationCtx *ctx, RegisterExtension fn)
+{
+	fn(ctx, "my extension", "0.1.0", "my first extension");
+}
+```
+
+The discover() function is used to register exported functions and their signatures:
+
+```
+void
+discover(RegistrationCtx *ctx, RegisterCallback fn)
+{
+	fn(ctx, "add_numbers", 2, CALLBACK_ARG_TYPE_INTEGER, CALLBACK_ARG_TYPE_INTEGER);
+}
+
+int
+add_numbers(const char *filename, int argc, void *argv[])
+{
+	int *a = (int *)argv[0];
+	int *b = (int *)argv[1];
+
+	return *a + *b;
+}
+```
