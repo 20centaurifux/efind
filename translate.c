@@ -574,7 +574,11 @@ _append_string_arg(TranslationCtx *ctx, const char *propname, const char *val)
 	char str[PARSER_MAX_EXPRESSION_LENGTH];
 
 	assert(ctx != NULL);
-	assert(val != NULL);
+
+	if(!val)
+	{
+		val = "";
+	}
 
 	if(QUOTE_ARGS(ctx))
 	{
