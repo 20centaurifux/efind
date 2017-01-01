@@ -45,10 +45,10 @@ typedef enum
    @param flags translation flags
    @param argc number of translated find arguments
    @param argv vector to store translated find arguments
-   @param err location to store error message
+   @param err location to store error messages
    @return true on success
 
-   Translates an abstract syntax tree to 'find' arguments.
+   Translates an abstract syntax tree to GNU find arguments.
  */
 bool translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char **err);
 #endif

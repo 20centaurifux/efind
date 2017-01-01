@@ -45,9 +45,9 @@ typedef enum
    @param manager an ExtensionManager
    @param node node to evaluate
    @param filename name of the found file
-   @return a boolean
+   @return the evaluation result
 
-   Evaluates an abstract syntax tree.
+   Evaluates an abstract post-processing syntax tree.
   */
 EvalResult evaluate(ExtensionManager *manager, Node *node, const char *filename);
 #endif

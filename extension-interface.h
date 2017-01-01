@@ -36,7 +36,7 @@ typedef void * RegistrationCtx;
    @param description brief description of the extension
    @param version extension version information
 
-   Registers an extension in the plugin context.
+   Registers an extension in the specified context.
  */
 typedef void(*RegisterExtension)(RegistrationCtx *ctx, const char *name, const char *version, const char *description);
 
@@ -46,7 +46,7 @@ typedef void(*RegisterExtension)(RegistrationCtx *ctx, const char *name, const c
    @param argc number of optional function arguments
    @param ... data types of the optional arguments
 
-   Registers a function in the plugin context.
+   Registers a function in the specified context.
  */
 typedef void(*RegisterCallback)(RegistrationCtx *ctx, const char *name, uint32_t argc, ...);
 

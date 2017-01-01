@@ -38,7 +38,7 @@
 typedef struct _ExtensionBackendClass
 {
 	/**
-	   @param filename name of the extension module's file
+	   @param filename name of the extension module file
 	   @param fn function called to register the extension
 	   @param ctx registration context
 	   @return backend handle
@@ -49,7 +49,7 @@ typedef struct _ExtensionBackendClass
 
 	/**
 	   @param handle backend handle
-	   @param fn function called for each found callback function
+	   @param fn function to register the callbacks of the extension
 	   @param ctx registration context
 
 	   Discovers available functions.
@@ -67,7 +67,7 @@ typedef struct _ExtensionBackendClass
 
 	   Invokes a function.
 	 */
-	int (*invoke)(void *handle, const char *name, const char *filename, uint32_t argc, void **argv, int *result);
+	int (*invoke)(void *handle, const char *name, const char *filename, uint32_t argc, void *argv[], int *result);
 
 	/**
 	   @param handle backend handle
@@ -79,7 +79,7 @@ typedef struct _ExtensionBackendClass
 
 /**
    @struct ExtensionManager
-   @brief A list containing callbacks loaded from extension files.
+   @brief A list containing loaded extension files.
  */
 typedef struct
 {
@@ -130,18 +130,18 @@ ExtensionManager *extension_manager_new(void);
 void extension_manager_destroy(ExtensionManager *manager);
 
 /**
-   @param manager ExtensionManager instance
-   @param path path of the extension directory
+   @param manager an ExtensionManager
+   @param path path of the directory to load extensions from
    @param err destination to store error messages
    @return true on success
 
-   Loads extensions from the given directory.
+   Loads extensions from found in a directory.
  */
 bool extension_manager_load_directory(ExtensionManager *manager, const char *path, char **err);
 
 /**
-   @param manager ExtensionManager instance
-   @return number of read extension directories
+   @param manager an ExtensionManager
+   @return number of successfully read extension directories
 
    Tries to load extensions from ~/.efind/extensions and
    /etc/efind/extensions.
@@ -149,7 +149,7 @@ bool extension_manager_load_directory(ExtensionManager *manager, const char *pat
 int extension_manager_load_default(ExtensionManager *manager);
 
 /**
-   @param manager ExtensionManager instance
+   @param manager an ExtensionManager
    @param name name of the callback to test
    @param argc number of function arguments
    @param types argument data types
@@ -160,23 +160,23 @@ int extension_manager_load_default(ExtensionManager *manager);
 ExtensionCallbackStatus extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, CallbackArgType *types);
 
 /**
-   @param manager ExtensionManager instance
-   @param name name of the callback to execute
+   @param manager an ExtensionManager
+   @param name name of the callback to invoke
    @param filename name of the file to test
-   @param argc number of additional function arguments
-   @param argv additional function arguments
+   @param argc number of optional function arguments
+   @param argv optional function arguments
    @param result destination to store the result of the callback
    @return status code
 
    Executes a callback.
  */
-ExtensionCallbackStatus extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void **argv, int *result);
+ExtensionCallbackStatus extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void *argv[], int *result);
 
 /**
-   @param manager ExtensionManager instance
+   @param manager an ExtensionManager
    @param out a stream
 
-   Lists registered extensions and writes them to the given stream.
+   Lists registered extensions and writes them to the specified stream.
  */
 void extension_manager_export(ExtensionManager *manager, FILE *out);
 
@@ -190,7 +190,6 @@ ExtensionCallbackArgs *extension_callback_args_new(uint32_t argc);
 
 /**
    @param args ExtensionCallbackArgs instance to free
-   @return a new ExtensionCallbackArgs instance
 
    Frees an ExtensionCallbackArgs instance.
  */

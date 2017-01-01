@@ -437,7 +437,7 @@ extension_manager_test_callback(ExtensionManager *manager, const char *name, uin
 }
 
 ExtensionCallbackStatus
-extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void **argv, int *result)
+extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void *argv[], int *result)
 {
 	ExtensionCallbackStatus status = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 	ExtensionModule *module;

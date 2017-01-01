@@ -43,35 +43,35 @@ typedef struct
 
 /**
    @typedef Callback
-   @brief A callback function.
+   @brief A function called for each found file or error message.
  */
 typedef void (*Callback)(const char *str, void *user_data);
 
 /**
    @param path directory to search in
-   @param expr find expression
+   @param expr expression
    @param flags translation flags
    @param opts search options
    @param found_file function called for each found file
-   @param err_message function called for each failure
+   @param err_message function called for each failure message
    @param user_data user data
    @return number of found files
 
-   Translates expr to 'find' arguments, executes 'find' and filters the result with the specified
-   post-processing expression.
+   Translates an expression and executes GNU find. If specified the result is filtered
+   by a post-processing expression.
  */
 int search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data);
 
 /**
    @param out stream to write the translated expression to
-   @param path search directory
-   @param expr expression to parse
    @param err stream to write failure messages to
+   @param path directory to search in
+   @param expr expression to parse
    @param flags translation flags
    @param opts search options
    @return true on success
 
-   Converts an expression to 'find' arguments an writes the result to the specified stream.
+   Converts an expression to GNU find arguments an writes the result to the desired stream.
  */
 bool search_debug(FILE *out, FILE *err, const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts);
 #endif

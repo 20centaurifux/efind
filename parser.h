@@ -37,7 +37,7 @@
  */
 typedef struct
 {
-	/*! A buffer used to read string data. */
+	/*! Buffer used to read strings. */
 	Buffer buffer;
 	/*! Memory allocator for nodes. */
 	Allocator *alloc;
@@ -59,7 +59,7 @@ typedef struct
 	ParserExtra data;
 	/*! true if parsing was successfully. */
 	bool success;
-	/*! Root node of the abstract syntax tree. */
+	/*! Root node of the parsed abstract syntax tree. */
 	RootNode *root;
 	/*! Error message. */
 	char *err;

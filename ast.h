@@ -96,7 +96,7 @@ typedef enum
 
 /**
    @enum UnitType
-   @brief File type units.
+   @brief File size units.
  */
 typedef enum
 {
@@ -154,7 +154,7 @@ typedef enum
 
 /**
    @enum NodeType
-   @brief Tree node types.
+   @brief Node types of the abstract syntax tree.
  */
 typedef enum
 {
@@ -198,7 +198,7 @@ typedef struct
 	Node padding;
 	/*! Root node of the expression tree. */
 	Node *exprs;
-	/*! Root node of the post-processing hooks tree. */
+	/*! Root node of the post-processing expression tree. */
 	Node *post_exprs;
 } RootNode;
 
@@ -214,7 +214,7 @@ typedef struct
 
 /**
    @enum ValueType
-   @brief Type of data stored in a ValueType.
+   @brief Type of data stored in a ValueNode.
   */
 typedef enum
 {
@@ -312,9 +312,7 @@ typedef struct
 
 /**
    @struct ExpressionNode
-   @brief Expression nodes hold at least a single node. A second node and a related operator
-          can also be assigned.
- */
+   @brief Expression nodes combine two nodes with an operator. */
 typedef struct
 {
 	/*! Base type. */
@@ -361,7 +359,7 @@ PropertyId ast_str_to_property_id(const char *str);
    @param str string to convert
    @return an OperatorType
 
-   Converts a string to a OperatorType.
+   Converts a string to an OperatorType.
  */
 OperatorType ast_str_to_operator(const char *str);
 
@@ -369,7 +367,7 @@ OperatorType ast_str_to_operator(const char *str);
    @param str string to convert
    @return An UnitType.
 
-   Converts a string to a UnitType.
+   Converts a string to an UnitType.
  */
 UnitType ast_str_to_unit(const char *str);
 
@@ -394,7 +392,7 @@ FileFlag ast_str_to_flag(const char *str);
    @param locp location information
    @return a new Node
 
-   Creates a new TrueNode getting memory from an Allocator.
+   Creates a new TrueNode from an Allocator.
  */
 Node *ast_true_node_new(Allocator *alloc, const YYLTYPE *locp);
 
@@ -404,7 +402,8 @@ Node *ast_true_node_new(Allocator *alloc, const YYLTYPE *locp);
    @param value string to assign
    @return a new Node
 
-   Creates a new ValueNode with an assigned string getting memory from an Allocator.
+   Creates a new ValueNode with an assigned string from an Allocator. Only the pointer,
+   not the full string, is copied to the node.
  */
 Node *ast_value_node_new_str_nodup(Allocator *alloc, const YYLTYPE *locp, char *value);
 
@@ -414,7 +413,7 @@ Node *ast_value_node_new_str_nodup(Allocator *alloc, const YYLTYPE *locp, char *
    @param value a number to assign
    @return a new Node
 
-   Creates a new ValueNode with an assigned integer getting memory from an Allocator.
+   Creates a new ValueNode with an assigned integer from an Allocator.
  */
 Node *ast_value_node_new_int(Allocator *alloc, const YYLTYPE *locp, int value);
 
@@ -424,7 +423,7 @@ Node *ast_value_node_new_int(Allocator *alloc, const YYLTYPE *locp, int value);
    @param type file type
    @return a new Node
 
-   Creates a new ValueNode with an assigned file type getting memory from an Allocator.
+   Creates a new ValueNode with an assigned file type from an Allocator.
  */
 Node *ast_value_node_new_type(Allocator *alloc, const YYLTYPE *locp, FileType type);
 
@@ -434,7 +433,7 @@ Node *ast_value_node_new_type(Allocator *alloc, const YYLTYPE *locp, FileType ty
    @param flag file flag
    @return a new Node
 
-   Creates a new ValueNode with an assigned file flag getting memory from an Allocator.
+   Creates a new ValueNode with an assigned file flag from an Allocator.
  */
 Node *ast_value_node_new_flag(Allocator *alloc, const YYLTYPE *locp, FileFlag flag);
 
@@ -446,7 +445,7 @@ Node *ast_value_node_new_flag(Allocator *alloc, const YYLTYPE *locp, FileFlag fl
    @param b second integer to store
    @return a new Node
 
-   Creates a new ValueNode with an assigned integer pair getting memory from an Allocator.
+   Creates a new ValueNode with an assigned integer pair from an Allocator.
  */
 Node *ast_value_node_new_int_pair(Allocator *alloc, const YYLTYPE *locp, ValueType type, int a, int b);
 
@@ -458,7 +457,7 @@ Node *ast_value_node_new_int_pair(Allocator *alloc, const YYLTYPE *locp, ValueTy
    @param second another node
    @return a new Node
 
-   Creates a new CompareNode getting memory from an Allocator.
+   Creates a new CompareNode from an Allocator.
  */
 Node *ast_compare_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, CompareType cmp, Node *second);
 
@@ -470,7 +469,7 @@ Node *ast_compare_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, C
    @param value a ValueNode
    @return a new Node
 
-   Creates a new ConditionNode getting memory from an Allocator.
+   Creates a new ConditionNode from an Allocator.
  */
 Node *ast_cond_node_new(Allocator *alloc, const YYLTYPE *locp, PropertyId prop, CompareType cmp, ValueNode *value);
 
@@ -482,7 +481,7 @@ Node *ast_cond_node_new(Allocator *alloc, const YYLTYPE *locp, PropertyId prop, 
    @param second a second node
    @return a new Node
 
-   Creates a new ExpressionNode getting memory from an Allocator.
+   Creates a new ExpressionNode from an Allocator.
  */
 Node *ast_expr_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorType op, Node *second);
 
@@ -490,10 +489,10 @@ Node *ast_expr_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, Oper
    @param alloc an Allocator
    @param locp location information
    @param name functon name
-   @param args argument node
+   @param args first argument of the function
    @return a new Node
 
-   Creates a new FuncNode getting memory from an Allocator.
+   Creates a new FuncNode from an Allocator.
  */
 Node *ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args);
 
@@ -504,7 +503,7 @@ Node *ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node 
    @param post_exprs post expressions root node
    @return a new RootNode
 
-   Creates an empty RootNode.
+   Creates a RootNode from an Allocator.
  */
 RootNode *ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *post_exprs);
 #endif

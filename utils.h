@@ -40,7 +40,7 @@ void *utils_malloc(size_t size);
    @param size number of bytes to allocate
    @return pointer to the new memory block
 
-   Resizes a memory block.
+   Resizes a memory block and aborts on failure.
  */
 void *utils_realloc(void *ptr, size_t size);
 
@@ -56,7 +56,7 @@ size_t utils_next_pow2(size_t n);
    @param name executable to find
    @return a new allocated string or NULL
 
-   Searches for an executable testing all directories found in PATH
+   Searches for an executable testing all directories found in the PATH
    environment variable.
  */
 char * utils_whereis(const char *name);
@@ -78,7 +78,7 @@ size_t utils_printf_loc(const Node *node, char *buf, size_t size, const char *fo
    @param filename a filename
    @param dst location to write combined path to
    @param max_len maximum buffer size
-   @return TRUE on success
+   @return true on success
 
    Joins a path with a filename.
  */
