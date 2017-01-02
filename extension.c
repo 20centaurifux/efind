@@ -479,8 +479,12 @@ extension_manager_export(ExtensionManager *manager, FILE *out)
 	{
 		ExtensionModule *module= (ExtensionModule *)assoc_array_iter_get_value(&iter);
 
-		fprintf(out, "%s\n", module->filename);
+		assert(module != NULL);
+		assert(module->filename != NULL);
 
+		fputs(module->filename, out);
+		fputc('\n', out);
+			
 		if(module->name && module->version)
 		{
 			fprintf(out, "\t%s, version %s\n\n", module->name, module->version);
@@ -509,18 +513,18 @@ extension_manager_export(ExtensionManager *manager, FILE *out)
 					type = "string";
 				}
 
-				fprintf(stdout, "%s", type);
+				fputs(type, out);
 
 				if(i < cb->argc - 1)
 				{
-					fprintf(stdout, ", ");
+					fputs(", ", out);
 				}
 			}
 
-			fprintf(out, ")\n");
+			fputs(")\n", out);
 		}
 
-		fprintf(out, "\n");
+		fputc('\n', out);
 	}
 }
 
