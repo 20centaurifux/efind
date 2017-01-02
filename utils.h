@@ -77,7 +77,7 @@ char * utils_whereis(const char *name);
    @param size size of buffer
    @param format a format string
    @param ... optional arguments
-   @return length of the message written to buffer
+   @return length of the message written to buffer, -1 on failure
 
    Writes a message to a string and prepends location details.
  */

@@ -173,7 +173,7 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 	va_list ap;
 	const YYLTYPE *locp;
 	char tmp[512];
-	size_t ret;
+	size_t ret = -1;
 
 	assert(node != NULL);
 	assert(buf != NULL);
@@ -194,21 +194,21 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 		snprintf(tmp, sizeof(tmp), "line: %d-%d, ", locp->first_line, locp->last_line);
 	}
 
-	if((ret = utils_strlcat(buf, tmp, size)) > size)
+	if(utils_strlcat(buf, tmp, size) >= size)
 	{
 		goto out;
 	}
 
 	if(locp->first_column == locp->last_column)
 	{
-		snprintf(tmp, 32, "column: %d: ", locp->first_column);
+		snprintf(tmp, sizeof(tmp), "column: %d: ", locp->first_column);
 	}
 	else
 	{
-		snprintf(tmp, 32, "column: %d-%d: ", locp->first_column, locp->last_column);
+		snprintf(tmp, sizeof(tmp), "column: %d-%d: ", locp->first_column, locp->last_column);
 	}
 
-	if((ret = utils_strlcat(buf, tmp, size)) > size)
+	if(utils_strlcat(buf, tmp, size) >= size)
 	{
 		goto out;
 	}
@@ -217,7 +217,10 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 
 	if(vsnprintf(tmp, sizeof(tmp), format, ap) < sizeof(tmp))
 	{
-		ret = utils_strlcat(buf, tmp, size);
+		if((ret = utils_strlcat(buf, tmp, size)) >= size)
+		{
+			ret = -1;
+		}
 	}
 
 	va_end(ap);
