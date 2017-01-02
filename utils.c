@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <limits.h>
 
 #include "utils.h"
 
@@ -114,9 +115,9 @@ utils_whereis(const char *name)
 {
 	char *rest;
 	char *token;
-	char path[512];
-	int written;
+	char path[PATH_MAX];
 	struct stat sb;
+	char *exe = NULL;
 
 	assert(name != NULL);
 
@@ -128,7 +129,7 @@ utils_whereis(const char *name)
 		return NULL;
 	}
 
-	while((token = strtok_r(rest, ":", &rest)))
+	while(!exe && (token = strtok_r(rest, ":", &rest)))
 	{
 		/* build absolute path to executable file */
 		size_t len = strlen(token);
@@ -138,33 +139,24 @@ utils_whereis(const char *name)
 			continue;
 		}
 
-		if(token[len - 1] == '/')
-		{
-			written = snprintf(path, 512, "%s%s", token, name);
-		}
-		else
-		{
-			written = snprintf(path, 512, "%s/%s", token, name);
-		}
-
-		if(written >= 512)
-		{
-			fprintf(stderr, "%s: string truncation\n", __func__);
-		}
-		else
+		if(utils_path_join(token, name, path, PATH_MAX))
 		{
 			/* test if file does exist & can be executed by user */
 			if(!stat(path, &sb))
 			{
 				if((sb.st_mode & S_IFMT) == S_IFREG && (sb.st_mode & S_IXUSR || sb.st_mode & S_IXGRP))
 				{
-					return strdup(path);
+					exe = strdup(path);
 				}
 			}
 		}
+		else
+		{
+			fprintf(stderr, "%s: string truncation\n", __func__);
+		}
 	}
 
-	return NULL;
+	return exe;
 }
 
 size_t
