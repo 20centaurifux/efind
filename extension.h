@@ -27,7 +27,7 @@
 
 #include <stdio.h>
 #include <datatypes.h>
-#include <linux/limits.h>
+#include <limits.h>
 
 #include "extension-interface.h"
 
