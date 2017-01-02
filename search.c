@@ -505,6 +505,10 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 				ret = _search_parent_process(pid, outfds, errfds, result, found_file, err_message, user_data);
 			}
 		}
+		else if(result->err)
+		{
+			fprintf(stderr, "%s\n", result->err);
+		}
 
 		/* cleanup */
 		if(argv)

@@ -144,7 +144,7 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 
 	if(node)
 	{
-		char loc_msg[576];
+		char loc_msg[600];
 
 		utils_printf_loc(node, loc_msg, sizeof(loc_msg), msg);
 		ctx->err = strdup(loc_msg);
