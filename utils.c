@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <bsd/string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -60,6 +59,53 @@ utils_realloc(void *ptr, size_t size)
 	}
 
 	return ptr;
+}
+
+size_t
+utils_strlcat(char *dst, const char *src, size_t size)
+{
+	char *d = dst;
+	const char *s = src;
+	size_t dlen;
+	size_t n = size;
+	size_t ret = 0;
+
+	assert(dst != NULL);
+
+	if(src)
+	{
+		while(n-- != 0 && *d != '\0')
+		{
+			d++;
+		}
+		
+		dlen = d - dst;
+		n = size - dlen;
+
+		if(n)
+		{
+			while(*s != '\0')
+			{
+				if(n != 1)
+				{
+					*d++ = *s;
+					n--;
+				}
+
+				s++;
+			}
+
+			*d = '\0';
+
+			ret = dlen + (s - src);
+		}
+		else
+		{
+			ret = dlen + strlen(s);
+		}
+	}
+
+	return ret;
 }
 
 char *
@@ -147,7 +193,7 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 		snprintf(tmp, sizeof(tmp), "line: %d-%d, ", locp->first_line, locp->last_line);
 	}
 
-	if((ret = strlcat(buf, tmp, size)) > size)
+	if((ret = utils_strlcat(buf, tmp, size)) > size)
 	{
 		goto out;
 	}
@@ -161,7 +207,7 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 		snprintf(tmp, 32, "column: %d-%d: ", locp->first_column, locp->last_column);
 	}
 
-	if((ret = strlcat(buf, tmp, size)) > size)
+	if((ret = utils_strlcat(buf, tmp, size)) > size)
 	{
 		goto out;
 	}
@@ -170,7 +216,7 @@ utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, .
 
 	if(vsnprintf(tmp, sizeof(tmp), format, ap) < sizeof(tmp))
 	{
-		ret = strlcat(buf, tmp, size);
+		ret = utils_strlcat(buf, tmp, size);
 	}
 
 	va_end(ap);

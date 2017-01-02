@@ -45,6 +45,16 @@ void *utils_malloc(size_t size);
 void *utils_realloc(void *ptr, size_t size);
 
 /**
+   @param dst destination string
+   @param src string to append
+   @param size at most size - 1 bytes are copied
+   @return length of concatenated string, retval >= size when truncated
+
+   Appends a string to another.
+ */
+size_t utils_strlcat(char *dst, const char *src, size_t size);
+
+/**
    @param n a number
    @return a power of two
 

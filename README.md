@@ -69,9 +69,8 @@ Installation options can be customized in the Makefile.
 
 Please ensure that [GNU Bison](https://www.gnu.org/software/bison/) and
 [GNU Flex](https://www.gnu.org/software/flex/) is installed on your system before
-you build **efind**. You will also need [libdatatypes](https://github.com/20centaurifux/datatypes),
-[libbsd](https://libbsd.freedesktop.org/wiki/) and
-[libreadline](https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html).
+you build **efind**. You will also need [libdatatypes](https://github.com/20centaurifux/datatypes)
+and [libreadline](https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html).
 
 If you want to build **efind** on a Debian based distribution follow the steps found in the
 [README](https://github.com/20centaurifux/datatypes/blob/master/README.md) of the datatypes

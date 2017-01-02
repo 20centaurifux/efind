@@ -8,7 +8,7 @@ CTAGS=ctags
 
 CC=gcc
 CFLAGS=-Wall -std=gnu99 -O0 -g
-LIBS=-lbsd -ldatatypes-0.1.0 -ldl
+LIBS=-ldatatypes-0.1.0 -ldl
 INC=-I/usr/local/include/datatypes
 
 all:
