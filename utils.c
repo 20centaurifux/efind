@@ -66,7 +66,6 @@ utils_strlcat(char *dst, const char *src, size_t size)
 {
 	char *d = dst;
 	const char *s = src;
-	size_t dlen;
 	size_t n = size;
 	size_t ret = 0;
 
@@ -74,6 +73,8 @@ utils_strlcat(char *dst, const char *src, size_t size)
 
 	if(src)
 	{
+		size_t dlen;
+
 		while(n-- != 0 && *d != '\0')
 		{
 			d++;
