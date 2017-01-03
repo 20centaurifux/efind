@@ -19,7 +19,7 @@ that were modified in a time frame less than two days. That's no problem with
 $ efind . '(name="*.h" or name="*.c") and type=file and writable and mtime < 2 days'
 ```
 
-A similar GNU find expression looks more complicated:
+A similar GNU find expression is more complicated:
 
 ```
 $ find . \( -name "*.h" -o -name "*.c" \) -a -type f -a -writable -a -mtime -2
@@ -30,7 +30,7 @@ an average user would expect. A good counter-example is the way GNU find rounds
 up file sizes.
 
 The following expression finds *all* documents in the current folder with a file size less
-or equal to 1G because every file with *at least one byte* is rounded up:
+or equal than 1G because every file with *at least one byte* is rounded up:
 
 ```
 $ find . -size 1G
@@ -46,14 +46,14 @@ $ find . -size 1073741824c
 I created a [ticket](https://savannah.gnu.org/bugs/?46815) regarding this "feature" of
 GNU find.
 
-As mentioned, **efind** can be extended with custom functions. You want to filter
-the search result by audio tags and properties? No problem :)
+As mentioned, **efind** can be extended with custom functions. That makes it simple to
+filter the search result by audio tags and properties, for instance.
 
 ```
 $ efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>200'
 ```
 
-You want to filter images by height and width? Just type in
+Even image properties are no problem:
 
 ```
 $ efind ~/images 'iname="*.JPG" and image_width()>=3840 and image_height()>=2400'
@@ -71,7 +71,7 @@ you build **efind**. You will also need
 [libreadline](https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html).
 
 If you want to build **efind** on a Debian based distribution please run the
-following commands to prepare your system:
+following commands to prepare your system and checkout the code:
 
 ```
 $ sudo apt-get install build-essential git bison flex libreadline-dev
@@ -173,7 +173,7 @@ If you want to show the translated arguments without running GNU find use the
 
 ```
 $ efind ~/tmp/foo 'iname="*.py" and (mtime<30 days or size>=1M)' --print --quote
-$ find /home/sf/tmp/foo -iname "*.py" -a \( -mtime -30 -o \( -size 1M -o -size +1M \) \)
+$ find /home/sf/tmp/foo -iname "*.py" -a \( -mtime -30 -o \( -size 1048576c -o -size +1048576c \) \)
 ```
 
 All available options can be displayed with

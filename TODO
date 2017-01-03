@@ -1,5 +1,3 @@
-* convert file size to byte when using >= or <= operator (also update README!)
-
 * extension blacklist
 * GNU Guile support
 * Python support
