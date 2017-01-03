@@ -411,8 +411,6 @@ ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *post
 {
 	RootNode *node;
 
-	assert(exprs != NULL);
-
 	node = node_new(alloc, locp, RootNode, NODE_ROOT);
 
 	node->exprs = exprs;

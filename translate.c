@@ -787,18 +787,24 @@ translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char *
 	TranslationCtx ctx;
 	bool success;
 
-	assert(root != NULL);
 	assert(argc != NULL);
 	assert(argv != NULL);
 	assert(err != NULL);
 
-	_translation_ctx_init(&ctx, root, flags);
+	if(root)
+		{
+		_translation_ctx_init(&ctx, root, flags);
 
-	success = _translate(&ctx);
+		success = _translate(&ctx);
 
-	*argc = ctx.argc;
-	*argv = ctx.argv;
-	*err = ctx.err;
+		*argc = ctx.argc;
+		*argv = ctx.argv;
+		*err = ctx.err;
+	}
+	else
+	{
+		success = true;
+	}
 
 	return success;
 }

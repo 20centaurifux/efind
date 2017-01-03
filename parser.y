@@ -201,6 +201,7 @@ _parser_memorize_string(void *scanner, char *str)
 %%
 query:
     exprs                                       { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, NULL); }
+    | post_exprs                                { *root = ast_root_node_new(ALLOC(scanner), &@1, NULL, $1); }
     | exprs operator post_exprs                 { if($2 == OP_AND)
                                                   {
                                                     *root = ast_root_node_new(ALLOC(scanner), &@1, $1, $3);
