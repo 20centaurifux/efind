@@ -1,4 +1,8 @@
 * manpage
+* add libdatatypes as submodule
+* allow post processing only expressions (convert empty find expression to .)
+
+* extension blacklist
 * GNU Guile support
 * Python support
 * colors :)
