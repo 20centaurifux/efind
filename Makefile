@@ -21,9 +21,12 @@ all:
 install:
 	cp ./efind $(PREFIX)/bin/
 	chmod 555 $(PREFIX)/bin/efind
+	test -d "$(PREFIX)/share/man/man1" || mkdir -p "$(PREFIX)/share/man/man1"
+	cp ./man/efind.1 $(PREFIX)/share/man/man1/efind.1
 
 uninstall:
 	rm -f $(PREFIX)/bin/efind
+	rm -f $(PREFIX)/share/man/man1/efind.1
 
 doc:
 	$(DOXYGEN) ./doxygen_config
@@ -40,3 +43,4 @@ clean:
 	rm -f ./lexer.l.h ./lexer.l.c ./parser.y.h ./parser.y.c ./efind
 	rm -fr ./doc
 	rm -f ./tags
+	rm -r 

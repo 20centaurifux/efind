@@ -1,0 +1,178 @@
+.TH efind 1
+.SH NAME
+efind \- search for files in a directory hierarchy
+.SH SYNOPSIS
+\fBefind\fR [starting-point...] [expression] [-L]
+.SH DESCRIPTION
+\fBefind\fR searches for files in a directory hierarchy. Basically it's a
+wrapper for find(1) providing an easier and more intuitive expression syntax.
+In addition you can filter search results by custom functions.
+.SH OPTIONS
+.IP "\fB\-d, \-\-dir\fR=\fIDIR"
+Starting-point of the search.
+.IP "\fB\-e, \-\-expr\fR=\fIEXPR"
+Search expression.
+.IP "\fB\-L, \-\-follow"
+Follow symbolic links.
+.IP "\fB\-\-maxdepth\fR=\fIlevels"
+Maximum search depth.
+.IP "\fB\-p, \-\-print"
+Don't search files but print translated expression to stdout.
+.IP "\fB\-q, \-\-quote"
+Quote special shell characters when printing the expression.
+.IP "\fB\-\-list-extensions"
+Print a list with installed extensions.
+.IP "\fB\-v, \-\-version"
+Output version information and exit.
+.IP "\fB\-h, \-\-help"
+Display help and exit.
+.SH EXPRESSION SYNTAX
+A search expression consists of at least one comparison or file flag to test.
+Multiple expressions can be evaluated with conditional operators:
+.RS
+.IP "\fBand"
+If an expression returns logical false it returns that value and doesn't
+evaluate the next expression. Otherwise it returns the value of the last
+expression.
+.TP
+.IP "\fBor"
+If an expression returns logical true it returns that value and doesn't
+evaluate the next expression. Otherwise it returns the value of the last
+expression.
+.RE
+
+Expressions are evaluated from left to right. You can use parentheses to force
+precedence.
+
+\fBefind\fR supports the following operators to compare a file attribute to a
+value:
+.RS
+.IP "\fB="
+equals to
+.IP "\fB>"
+greater than
+.IP "\fB>="
+greater or equal
+.IP "\fB<"
+less than
+.IP "\fB<="
+less or equal
+.RE
+
+A value must be of one of the data types listed below:
+.RS
+.IP "\fBstring"
+Quoted sequence of characters.
+.IP "\fBnumber"
+A natural number.
+.IP "\fBtime interval"
+Time interval (number) with one of the following suffixes:
+.RS
+.IP \[bu]
+`minute', `minutes'
+.IP \[bu]
+`hour', `hours'
+.IP \[bu]
+`day', `days'
+.RE
+.IP "\fBfile size"
+Units of space (number) with one of the following suffixes:
+.RS
+.IP \[bu]
+`bytes', `byte', `b'
+.IP \[bu]
+`kilobyte', `kilobytes', `kb', `k'
+.IP \[bu]
+`megabyte', `megabytes', `mb', `M'
+.IP \[bu]
+`gigabyte', `gigabytes', `G, `gb'
+.RE
+.IP "\fBfile type"
+Supported file types are
+.RS
+.IP \[bu]
+`file'
+.IP \[bu]
+`directory'
+.IP \[bu]
+`block'
+.IP \[bu]
+`character'
+.IP \[bu]
+`pipe'
+.IP \[bu]
+`link'
+.IP \[bu]
+`socket'
+.RE
+.RE
+
+You can search the following file attributes:
+.RS
+.IP "\fBname\fR string"
+case sensitive filename pattern
+.IP "\fBiname\fR string"
+case insensitive filename pattern
+.IP "\fBatime\fR time-interval"
+last access time
+.IP "\fBctime\fR time-interval"
+last file status change
+.IP "\fBmtime\fR time-interval"
+last modification time
+.IP "\fBsize\fR file-size"
+file size
+.IP "\fBgroup\fR string"
+name of the group owning the file
+.IP "\fBgid\fR number"
+id of the group owning the file
+.IP "\fBuser\fR string"
+name of the user owning the file
+.IP "\fBuid\fR number"
+id of the user owning the file
+.IP "\fBtype\fR file-type"
+type of the file
+.RE
+
+Additionally you can test these flags:
+
+.RS
+.IP "\fBreadable"
+the file can be read by the user
+.IP "\fBwritable"
+the user can write to the file
+.IP "\fBexecutable"
+the user is allowed to execute the file
+.RE
+.SH EXTENSIONS
+find's result can be filtered by custom functions loaded from extension files. 
+A function may have optional arguments and returns always an integer. Non-zero
+return values evaluate to true.
+.SH EXIT STATUS
+.B \fBefind\fR exits with status 0 if all files are processed successfully.
+.SH EXAMPLES
+To find all writable source and header files of a C project that were modified
+in a time frame less than two days you could use the following expression:
+.P
+.B efind . '(name="*.h" or name="*.c") and type=file and writable and mtime<2 days'
+
+Use the
+.B \-\-print
+and
+.B \-\-quote
+options to print the translated expression without running find:
+
+.B efind . 'size>1G and name="*.iso"' --print --quote
+
+If not specified \fBefind\fR reads the expression from stdin:
+
+.B echo 'mtime>=10 days' | efind . --print
+
+With the taglib extension you can filter the search result by audio tags
+and properties:
+
+.B efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>300
+.SH FILES
+.IP "\fB~/.efind/extensions"
+local extensions files
+.IP "\fB~/.efind/extensions"
+global extensions files
