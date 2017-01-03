@@ -26,7 +26,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <regex.h>
 #include <taglib/tag_c.h>
 
