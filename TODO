@@ -1,6 +1,4 @@
-* manpage
-* add libdatatypes as submodule
-* allow post processing only expressions (convert empty find expression to .)
+* convert file size to byte when using >= or <= operator (also update README!)
 
 * extension blacklist
 * GNU Guile support
