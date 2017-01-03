@@ -9,24 +9,24 @@ CTAGS=ctags
 
 CC=gcc
 CFLAGS=-Wall -std=gnu99 -O0 -g
-LIBS=-ldl -L./datatypes -static -ldatatypes-0.1.0
+LIBS=-ldl -L./datatypes ./datatypes/libdatatypes-0.1.0.a
 INC=-I./datatypes
 
 all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c -o ./efind $(CFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c -o ./efind $(CFLAGS) $(LIBS)
 
 install:
 	cp ./efind $(PREFIX)/bin/
 	chmod 555 $(PREFIX)/bin/efind
-	test -d "$(PREFIX)/share/man/man1" || mkdir -p "$(PREFIX)/share/man/man1"
-	cp ./man/efind.1 $(PREFIX)/share/man/man1/efind.1
+	test -d "$(PREFIX)/man/man1" || mkdir -p "$(PREFIX)/man/man1"
+	cp ./man/efind.1 $(PREFIX)/man/man1/efind.1
 
 uninstall:
 	rm -f $(PREFIX)/bin/efind
-	rm -f $(PREFIX)/share/man/man1/efind.1
+	rm -f $(PREFIX)/man/man1/efind.1
 
 doc:
 	$(DOXYGEN) ./doxygen_config
@@ -43,4 +43,3 @@ clean:
 	rm -f ./lexer.l.h ./lexer.l.c ./parser.y.h ./parser.y.c ./efind
 	rm -fr ./doc
 	rm -f ./tags
-	rm -r 
