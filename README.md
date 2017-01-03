@@ -5,8 +5,8 @@
 **efind** (extendable find) searches for files in a directory hierarchy.
 
 Basically it's a wrapper for [GNU find](https://www.gnu.org/software/findutils/)
-providing an easier and more intuitive expression syntax. Additionally
-you can filter search results with custom functions.
+providing an easier and more intuitive expression syntax. In addition
+you can filter search results by custom functions.
 
 
 ## Quick overview
@@ -50,15 +50,13 @@ As mentioned, **efind** can be extended with custom functions. You want to filte
 the search result by audio tags and properties? No problem :)
 
 ```
-$ efind ~/amazon_music 'iname="*.mp3" and artist_matches("the cure") and title_matches("street") and audio_length()>200'
-$ /home/sf/amazon_music/the cure/Bestival Live 2011/03 - Fascination Street (Bestival Live 2011).mp3
+$ efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>200'
 ```
 
 You want to filter images by height and width? Just type in
 
 ```
-$ efind ~/tmp 'iname="*.JPG" and image_width()>=3840 and image_height()>=2400'
-$ /home/sf/tmp/xmas.jpg
+$ efind ~/images 'iname="*.JPG" and image_width()>=3840 and image_height()>=2400'
 ```
 
 
@@ -69,24 +67,22 @@ Installation options can be customized in the Makefile.
 
 Please ensure that [GNU Bison](https://www.gnu.org/software/bison/) and
 [GNU Flex](https://www.gnu.org/software/flex/) is installed on your system before
-you build **efind**. You will also need [libdatatypes](https://github.com/20centaurifux/datatypes)
-and [libreadline](https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html).
+you build **efind**. You will also need
+[libreadline](https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html).
 
-If you want to build **efind** on a Debian based distribution follow the steps found in the
-[README](https://github.com/20centaurifux/datatypes/blob/master/README.md) of the datatypes
-library. Then type in these additional commands to prepare your system and checkout the code:
+If you want to build **efind** on a Debian based distribution please run the
+following commands to prepare your system:
 
 ```
-$ apt-get install libbsd-dev bison flex libreadline-dev
-$ git clone https://github.com/20centaurifux/efind.git
+$ sudo apt-get install build-essential git bison flex libreadline-dev
+$ git clone --recursive https://github.com/20centaurifux/efind.git
 ```
 
 Now you can build and install the application:
 
 ```
 $ cd efind
-$ make
-$ sudo make install
+$ make && sudo make install
 ```
 
 If you want to generate the source code documentation type in
