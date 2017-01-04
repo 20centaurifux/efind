@@ -1,4 +1,4 @@
-PREFIX=/usr/local
+PREFIX=/usr
 
 MAKE=make
 FLEX=flex
@@ -19,14 +19,15 @@ all:
 	$(CC) $(CFLAGS) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c -o ./efind $(CFLAGS) $(LIBS)
 
 install:
-	cp ./efind $(PREFIX)/bin/
-	chmod 555 $(PREFIX)/bin/efind
-	test -d "$(PREFIX)/man/man1" || mkdir -p "$(PREFIX)/man/man1"
-	cp ./man/efind.1 $(PREFIX)/man/man1/efind.1
+	test -d "$(DESTDIR)$(PREFIX)/bin" || mkdir -p "$(DESTDIR)$(PREFIX)/bin"
+	cp ./efind $(DESTDIR)$(PREFIX)/bin/
+	chmod 555 $(DESTDIR)$(PREFIX)/bin/efind
+	test -d "$(DESTDIR)$(PREFIX)/man/man1" || mkdir -p "$(DESTDIR)$(PREFIX)/man/man1"
+	cp ./man/efind.1 $(DESTDIR)$(PREFIX)/man/man1/efind.1
 
 uninstall:
-	rm -f $(PREFIX)/bin/efind
-	rm -f $(PREFIX)/man/man1/efind.1
+	rm -f $(DESTDIR)$(PREFIX)/bin/efind
+	rm -f $(DESTDIR)$(PREFIX)/man/man1/efind.1
 
 doc:
 	$(DOXYGEN) ./doxygen_config
