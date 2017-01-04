@@ -23,12 +23,16 @@ install:
 	test -d "$(DESTDIR)$(PREFIX)/bin" || mkdir -p "$(DESTDIR)$(PREFIX)/bin"
 	cp ./efind $(DESTDIR)$(PREFIX)/bin/
 	chmod 555 $(DESTDIR)$(PREFIX)/bin/efind
-	test -d "$(DESTDIR)$(PREFIX)/man/man1" || mkdir -p "$(DESTDIR)$(PREFIX)/man/man1"
-	cp ./man/efind.1 $(DESTDIR)$(PREFIX)/man/man1/efind.1
+	test -d "$(DESTDIR)$(PREFIX)/share/man/man1" || mkdir -p "$(DESTDIR)$(PREFIX)/share/man/man1"
+	cp ./man/efind.1 $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/efind
-	rm -f $(DESTDIR)$(PREFIX)/man/man1/efind.1
+	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
+
+deb:
+	tar cfJ ../efind_0.1.orig.tar.xz ../efind
+	dpkg-buildpackage -us -uc
 
 doc:
 	$(DOXYGEN) ./doxygen_config
