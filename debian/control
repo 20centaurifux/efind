@@ -1,0 +1,20 @@
+Source: efind
+Section: utils
+Priority: optional
+Maintainer: Sebastian Fedrau <sebastian.fedrau@gmail.com>
+Build-Depends: debhelper (>=9),
+	flex,
+	bison,
+	libreadline-dev
+Standards-Version: 3.9.6
+Homepage: https://github.com/20centaurifux/efind
+Vcs-Git: https://github.com/20centaurifux/efind.git
+
+Package: efind
+Architecture: any
+Depends: findutils (>= 4.4.2), libc6
+Description: Wrapper for GNU find with easier expression syntax.
+ efind (extendable find) searches for files in a directory hierarchy.
+ Basically it's a wrapper for GNU find providing an easier and more
+ intuitive expression syntax. In addition you can filter search results
+ by custom functions.
