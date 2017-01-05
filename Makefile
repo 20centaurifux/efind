@@ -10,7 +10,7 @@ CTAGS=ctags
 CC=gcc
 CFLAGS=-Wall -std=gnu99 -O0 -g
 LDFLAGS=-L./datatypes
-LIBS=-ldl ./datatypes/libdatatypes-0.1.0.a
+LIBS=-ldl ./datatypes/libdatatypes-0.1.1.a
 INC=-I./datatypes
 
 all:
