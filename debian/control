@@ -12,7 +12,7 @@ Vcs-Git: https://github.com/20centaurifux/efind.git
 
 Package: efind
 Architecture: any
-Depends: findutils (>= 4.4.2), libc6
+Depends: findutils (>= 4.4.2), ${shlibs:Depends}
 Description: Wrapper for GNU find with easier expression syntax.
  efind (extendable find) searches for files in a directory hierarchy.
  Basically it's a wrapper for GNU find providing an easier and more
