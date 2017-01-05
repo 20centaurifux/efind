@@ -12,6 +12,8 @@ CFLAGS=-Wall -std=gnu99 -O0 -g
 LIBS=-ldl -L./datatypes ./datatypes/libdatatypes-0.1.0.a
 INC=-I./datatypes
 
+VERSION=0.1.0
+
 all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
@@ -29,9 +31,11 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/efind
 	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
 
-deb:
-	tar cfJ ../efind_0.1.orig.tar.xz ../efind
-	dpkg-buildpackage -us -uc
+tarball:
+	cd .. && \
+	rm -f ./efind-$(VERSION) && \
+	cp -r ./efind ./efind-$(VERSION) && \
+	tar cfJ ./efind-$(VERSION).tar.xz ./efind-$(VERSION) --remove-files
 
 doc:
 	$(DOXYGEN) ./doxygen_config
