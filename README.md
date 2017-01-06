@@ -5,8 +5,8 @@
 **efind** (extendable find) searches for files in a directory hierarchy.
 
 Basically it's a wrapper for [GNU find](https://www.gnu.org/software/findutils/)
-providing an easier and more intuitive expression syntax. In addition
-you can filter search results by custom functions.
+providing an easier and more intuitive expression syntax, but you can also filter
+search results by custom functions.
 
 
 ## Quick overview
@@ -78,20 +78,12 @@ $ sudo apt-get install build-essential git bison flex libreadline-dev
 $ git clone --recursive https://github.com/20centaurifux/efind.git
 ```
 
-Now you can build and install the application:
+Now build and install the application:
 
 ```
 $ cd efind
 $ make && sudo make install
 ```
-
-If you want to generate the source code documentation type in
-
-```
-$ make doc
-```
-
-This step requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/).
 
 
 ## Expression syntax
@@ -104,7 +96,7 @@ expressions can be evaluated by using conditional operators:
 | and      | If an expression returns logical false it returns that value and doesn't evaluate the next expression. Otherwise it returns the value of the last expression. |
 | or       | If an expression returns logical true it returns that value and doesn't evaluate the next expression. Otherwise it returns the value of the last expression.  |
 
-Expressions are evaluated from left to right. You can use parentheses to force precedence.
+Expressions are evaluated from left to right. Use parentheses to force precedence.
 
 The following operators can be used to compare a file attribute to a value:
 
@@ -126,7 +118,7 @@ A value must be of one of the data types described below:
 | file size     | Units of space (number) with suffix. Supported suffixes are "byte(s)", "kilobyte(s)", "megabyte(s)" and "gigabyte(s)". |
 | file type     | "file", "directory", "block", "character", "pipe", "link" or "socket".                                                 |
 
-You can search the following file attributes:
+The following file attributes are searchable:
 
 | Attribute | Description                       | Type            | Example     |
 | :-------- | :-------------------------------- | :-------------- | :---------- |
@@ -173,7 +165,6 @@ If you want to show the translated arguments without running GNU find use the
 
 ```
 $ efind ~/tmp/foo 'iname="*.py" and (mtime<30 days or size>=1M)' --print --quote
-$ find /home/sf/tmp/foo -iname "*.py" -a \( -mtime -30 -o \( -size 1048576c -o -size +1048576c \) \)
 ```
 
 All available options can be displayed with
@@ -182,11 +173,17 @@ All available options can be displayed with
 $ efind --help
 ```
 
+**efind** is also shipped with a manpage:
+
+```
+$ man efind
+```
+
 
 ## Extensions
 
-Extensions are custom functions that can be used to filter GNU find's result. A function can
-have optional arguments and returns always an integer. Non-zero values evaluate to true.
+Extensions are custom functions used to filter find results. A function can habe optional
+arguments and returns always an integer. Non-zero values evaluate to true.
 
 Extensions can only be used *after* the find expression. 
 
@@ -194,64 +191,14 @@ At the current stage **efind** can only be extendend with functions loaded from 
 It's planned to support scripting languages like [Python](https://www.python.org/)
 or [GNU Guile](https://www.gnu.org/software/guile/) in the future.
 
-You find two example extensions in the "examples" folder. Install [taglib](http://taglib.org/)
-and [GdkPixbuf](https://wiki.gnome.org/Projects/GdkPixbuf) to build both extensions.
-
-On a Debian based distribution the following step is required:
-
-```
-$ apt-get install libtagc0-dev libgdk-pixbuf2.0-dev
-```
-
-Now you can build the extension modules:
-
-```
-$ cd examples
-$ make
-```
-
-Copy the generated *.so files to ~/.efind/extensions:
-
-```
-$ mkdir -p ~/.efind/extensions
-$ cp *.so ~/.efind/extensions
-```
-
 You can print a list with all available functions found in the installed extensions:
 
 ```
 $ efind --list-extensions
-$ /home/sf/.efind/extensions/gdk-pixbuf.so
-$ 	GDK-PixBuf, version 0.1.0
-$ 
-$ 	Read image data with GDK-PixBuf.
-$ 
-$ 	image_bits_per_sample()
-$ 	image_channels()
-$ 	image_has_alpha()
-$ 	image_height()
-$ 	image_width()
-$ 
-$ /home/sf/.efind/extensions/taglib.so
-$ 	taglib, version 0.1.0
-$ 
-$ 	Read tags and properties from audio files.
-$ 
-$ 	album_equals(string)
-$ 	album_matches(string)
-$ 	artist_equals(string)
-$ 	artist_matches(string)
-$ 	audio_bitrate()
-$ 	audio_channels()
-$ 	audio_length()
-$ 	audio_samplerate()
-$ 	genre_equals(string)
-$ 	genre_matches(string)
-$ 	title_equals(string)
-$ 	title_matches(string)
 ```
 
-To make extensions available for all users copy them to /etc/efind/extensions.
+To make extensions available for all users copy them to /etc/efind/extensions. Users can install
+extensions locally in ~/.efind/extensions.
 
 
 ## Writing own extensions
