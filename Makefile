@@ -27,6 +27,7 @@ install:
 	chmod 555 $(DESTDIR)$(PREFIX)/bin/efind
 	test -d "$(DESTDIR)$(PREFIX)/share/man/man1" || mkdir -p "$(DESTDIR)$(PREFIX)/share/man/man1"
 	cp ./man/efind.1 $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
+	gzip $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/efind
@@ -34,7 +35,7 @@ uninstall:
 
 tarball:
 	cd .. && \
-	rm -f ./efind-$(VERSION) && \
+	rm -rf ./efind-$(VERSION) && \
 	cp -r ./efind ./efind-$(VERSION) && \
 	find ./efind-$(VERSION) -name ".git*" | xargs rm -r && \
 	tar cfJ ./efind-$(VERSION).tar.xz ./efind-$(VERSION) --remove-files 
