@@ -10,9 +10,9 @@ efind: efind (an extendable wrapper for GNU find)
 efind:
 efind: efind (extendable find) searches for files in a directory hierarchy.
 efind:
-efind: Basically it's a wrapper for GNU find providing an easier and more
-efind: intuitive expression syntax. In addition you can filter search
-efind: results by custom functions.
+efind: efind is a wrapper for GNU find providing an easier and more
+efind: intuitive expression syntax. It can be extended by custom
+efind: functions to filter search results.
 efind: 
 efind: Homepage: https.//github.com/20centaurifux/efind
 efind:

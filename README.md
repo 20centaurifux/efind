@@ -5,15 +5,15 @@
 **efind** (extendable find) searches for files in a directory hierarchy.
 
 Basically it's a wrapper for [GNU find](https://www.gnu.org/software/findutils/)
-providing an easier and more intuitive expression syntax, but you can also filter
-search results by custom functions.
+providing an easier and more intuitive expression syntax. It can be extended
+by custom functions to filter search results.
 
 
 ## Quick overview
 
 Let's assume you want to find all writable source and header files of a C project
-that were modified in a time frame less than two days. That's no problem with
-**efind's** self-explanatory expression syntax:
+that were modified less than two days ago. That's no problem with **efind's**
+self-explanatory expression syntax:
 
 ```
 $ efind . '(name="*.h" or name="*.c") and type=file and writable and mtime < 2 days'
@@ -70,7 +70,7 @@ Please ensure that [GNU Bison](https://www.gnu.org/software/bison/) and
 you build **efind**. You will also need
 [libreadline](https://cnswww.cns.cwru.edu/php/chet/readline/rltop.html).
 
-If you want to build **efind** on a Debian based distribution please run the
+If you want to build **efind** on a Debian based distribution run the
 following commands to prepare your system and checkout the code:
 
 ```

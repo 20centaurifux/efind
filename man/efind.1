@@ -6,7 +6,7 @@ efind \- search for files in a directory hierarchy
 .SH DESCRIPTION
 \fBefind\fR searches for files in a directory hierarchy. Basically it's a
 wrapper for find(1) providing an easier and more intuitive expression syntax.
-In addition you can filter search results by custom functions.
+It can be extended by custom functions to filter search results.
 .SH OPTIONS
 .IP "\fB\-d, \-\-dir\fR=\fIDIR"
 Starting-point of the search.
@@ -41,7 +41,7 @@ evaluate the next expression. Otherwise it returns the value of the last
 expression.
 .RE
 
-Expressions are evaluated from left to right. You can use parentheses to force
+Expressions are evaluated from left to right. Use parentheses to force
 precedence.
 
 \fBefind\fR supports the following operators to compare a file attribute to a
@@ -144,14 +144,14 @@ the user can write to the file
 the user is allowed to execute the file
 .RE
 .SH EXTENSIONS
-find's result can be filtered by custom functions loaded from extension files. 
+find results can be filtered by custom functions loaded from extension files. 
 A function may have optional arguments and returns always an integer. Non-zero
 return values evaluate to true.
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.
 .SH EXAMPLES
 To find all writable source and header files of a C project that were modified
-in a time frame less than two days you could use the following expression:
+less than two days ago you could use the following expression:
 .P
 .B efind . '(name="*.h" or name="*.c") and type=file and writable and mtime<2 days'
 
@@ -173,6 +173,6 @@ and properties:
 .B efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>300'
 .SH FILES
 .IP "\fB~/.efind/extensions"
-local extensions files
+local extension files
 .IP "\fB~/.efind/extensions"
-global extensions files
+global extension files
