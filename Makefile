@@ -36,7 +36,8 @@ tarball:
 	cd .. && \
 	rm -f ./efind-$(VERSION) && \
 	cp -r ./efind ./efind-$(VERSION) && \
-	tar cfJ ./efind-$(VERSION).tar.xz ./efind-$(VERSION) --remove-files
+	find ./efind-$(VERSION) -name ".git*" | xargs rm -r && \
+	tar cfJ ./efind-$(VERSION).tar.xz ./efind-$(VERSION) --remove-files 
 
 doc:
 	$(DOXYGEN) ./doxygen_config
