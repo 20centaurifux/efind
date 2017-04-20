@@ -30,7 +30,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <readline/readline.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>

@@ -7,7 +7,7 @@ License: GPLv3+
 URL: https://github.com/20centaurifux/efind
 Source0: efind-0.1.0.tar.xz
 
-BuildRequires: bison flex readline-devel
+BuildRequires: bison flex
 Requires: findutils
 
 %description
