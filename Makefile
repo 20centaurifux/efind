@@ -31,7 +31,7 @@ install:
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/efind
-	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
+	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/efind.1.gz
 
 tarball:
 	cd .. && \
