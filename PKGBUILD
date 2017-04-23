@@ -9,7 +9,7 @@ url="https://github.com/20centaurifux/efind"
 license=('GPL3')
 groups=()
 depends=('findutils>=4.2.0')
-makedepends=()
+makedepends=('gcc' 'bison' 'flex' 'make')
 checkdepends=()
 optdepends=()
 provides=()
