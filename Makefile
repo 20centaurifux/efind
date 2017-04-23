@@ -27,7 +27,7 @@ install:
 	chmod 555 $(DESTDIR)$(PREFIX)/bin/efind
 	test -d "$(DESTDIR)$(PREFIX)/share/man/man1" || mkdir -p "$(DESTDIR)$(PREFIX)/share/man/man1"
 	cp ./man/efind.1 $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
-	gzip $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
+	gzip $(DESTDIR)$(PREFIX)/share/man/man1/efind.1 -f
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/efind
