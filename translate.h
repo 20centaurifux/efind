@@ -18,7 +18,6 @@
    @file translate.h
    @brief Translate abstract syntax tree to find arguments.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #ifndef TRANSLATE_H
 #define TRANSLATE_H

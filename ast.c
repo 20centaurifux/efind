@@ -18,7 +18,6 @@
    @file ast.c
    @brief Abstract syntax tree construction.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #include <string.h>
 #include <stdio.h>

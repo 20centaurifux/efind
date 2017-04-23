@@ -18,7 +18,6 @@
    @file parser.h
    @brief Expression parser.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #ifndef PARSER_EXTRA_H
 #define PARSER_EXTRA_H

@@ -18,7 +18,6 @@
    @file eval.h
    @brief Evalutes a post processing expression.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 
 #ifndef __EVAL_H__

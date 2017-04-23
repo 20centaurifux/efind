@@ -18,7 +18,6 @@
    @file main.c
    @brief Version details.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #ifndef VERSION_H
 #define VERSION_H

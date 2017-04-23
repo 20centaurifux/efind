@@ -18,8 +18,6 @@
  * \file extension-interface.h
  * \brief Interface for extension modules.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
- * \version 0.1.0
- * \date 29. December 2016
  */
 
 #ifndef __EXTENSION_INTERFACE_H__

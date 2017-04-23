@@ -18,7 +18,6 @@
    @file eval.c
    @brief Evalutes a post processing expression.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #include <stdio.h>
 #include <assert.h>

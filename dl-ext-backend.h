@@ -18,8 +18,6 @@
  * \file dl-ext-backend.h
  * \brief Plugable post-processing hooks backend using libdl.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
- * \version 0.1.0
- * \date 23. December 2016
  */
 
 #ifndef __DL_EXT_BACKEND_H__

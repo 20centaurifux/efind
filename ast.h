@@ -18,7 +18,6 @@
    @file ast.h
    @brief Abstract syntax tree construction.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #ifndef AST_H
 #define AST_H

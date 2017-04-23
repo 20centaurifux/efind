@@ -18,7 +18,6 @@
    @file search.h
    @brief A find-wrapper.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #ifndef SEARCH_H
 #define SEARCH_H

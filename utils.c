@@ -18,7 +18,6 @@
    @file utils.c
    @brief Utility functions.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #include <stdio.h>
 #include <stdlib.h>

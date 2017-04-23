@@ -18,8 +18,6 @@
  * \file extension.h
  * \brief Plugable post-processing hooks.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
- * \version 0.1.0
- * \date 22. December 2016
  */
 
 #ifndef __EXTENSION_H__

@@ -18,7 +18,6 @@
    @file translate.c
    @brief Translate abstract syntax tree to find arguments.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-   @version 0.1.0
 */
 #include <stdbool.h>
 #include <stdio.h>
