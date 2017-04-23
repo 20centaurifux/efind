@@ -40,13 +40,7 @@
 #include "parser.h"
 #include "utils.h"
 #include "extension.h"
-
-/*! Major version. */
-#define VERSION_MAJOR 0
-/*! Minor version. */
-#define VERSION_MINOR 1
-/*! Patch level. */
-#define VERSION_PATCH 0
+#include "version.h"
 
 /**
    @enum Action
@@ -351,7 +345,11 @@ _print_help(const char *name)
 static void
 _print_version(const char *name)
 {
-	printf("%s, version %d.%d.%d\n", name, VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+	printf("%s %d.%d.%d (%s)\nWebsite: %s\n(C) %s %s <%s>\nThis program is released under the terms of the %s (%s)\n",
+	       name, EFIND_VERSION_MAJOR, EFIND_VERSION_MINOR, EFIND_VERSION_PATCH, EFIND_VERSION_CODE_NAME,
+	       EFIND_WEBSITE,
+	       EFIND_COPYRIGHT_DATE, EFIND_AUTHOR_NAME, EFIND_AUTHOR_EMAIL,
+	       EFIND_LICENSE_NAME, EFIND_LICENSE_URL);
 }
 
 static void
