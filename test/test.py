@@ -21,8 +21,10 @@ def test_search(argv, expected):
 
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 	result = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
+	proc.wait()
 
 	assert(set(result) == set(expected))
+	assert(proc.returncode == 0)
 
 def id(arg):
     proc = subprocess.Popen(["id", arg], stdout=subprocess.PIPE)
