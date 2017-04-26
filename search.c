@@ -394,7 +394,14 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 						}
 						else
 						{
-							lc += count;
+							if(INT32_MAX - count >= lc)
+							{
+								lc += count;
+							}
+							else
+							{
+								fprintf(stderr, "Warning: integer overflow in function %s", __func__);
+							}
 						}
 
 						sum += bytes;
@@ -439,7 +446,14 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 
 		if(count != ABORT_SEARCH)
 		{
-			lc += count;
+			if(INT32_MAX - count >= lc)
+			{
+				lc += count;
+			}
+			else
+			{
+				fprintf(stderr, "Warning: integer overflow in function %s", __func__);
+			}
 		}
 
 		_search_flush_and_process_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
