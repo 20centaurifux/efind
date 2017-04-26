@@ -8,7 +8,7 @@ CPPCHECK=cppcheck
 CTAGS=ctags
 
 CC=gcc
-CFLAGS=-Wall -std=gnu99 -O0 -g
+CFLAGS=-Wall -std=gnu99 -O2
 LDFLAGS=-L./datatypes
 LIBS=-ldl ./datatypes/libdatatypes-0.1.1.a
 INC=-I./datatypes
