@@ -59,7 +59,8 @@ INVALID_SEARCH_ARGS = [['ctime>5bytes and writable'],
                        ['type=socket or ('],
                        ['name or readable'],
                        [random_string()],
-                       [random_string(512)],
+                       ['gid=%s' % (random_string())],
+                       ['iname="%s' % (random_string(64))],
                        ['type=socket and iname="%s"' % (random_string(1024))],
                        ['size>=%s' % (random_string(2048))]]
 
