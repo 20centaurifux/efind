@@ -420,7 +420,7 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 
 		if((rc = waitpid(pid, &child_status, WNOHANG)) == pid)
 		{
-			if(WIFEXITED(child_status))
+			if(WIFEXITED(child_status) && status == PROCESS_STATUS_OK)
 			{
 				status = PROCESS_STATUS_FINISHED;
 			}
@@ -443,6 +443,10 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 		}
 
 		_search_flush_and_process_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
+	}
+	else if(status == PROCESS_STATUS_ERROR)
+	{
+		lc = -1;
 	}
 
 	/* cleanup */
