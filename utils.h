@@ -15,10 +15,10 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file utils.h
-   @brief Utility functions.
-   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
+ * @file utils.h
+ * @brief Utility functions.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+ */
 #include <stdlib.h>
 
 #ifndef UTILS_H

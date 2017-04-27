@@ -14,14 +14,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
     General Public License v3 for more details.
  ***************************************************************************/
-/*!
- * \file extension-interface.h
- * \brief Interface for extension modules.
- * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+/**
+ * @file extension-interface.h
+ * @brief Interface for extension modules.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
-#ifndef __EXTENSION_INTERFACE_H__
-#define __EXTENSION_INTERFACE_H__
+#ifndef EXTENSION_INTERFACE_H
+#define EXTENSION_INTERFACE_H
 
 #include <stdint.h>
 

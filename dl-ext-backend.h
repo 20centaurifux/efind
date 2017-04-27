@@ -14,14 +14,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
     General Public License v3 for more details.
  ***************************************************************************/
-/*!
- * \file dl-ext-backend.h
- * \brief Plugable post-processing hooks backend using libdl.
- * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+/**
+ * @file dl-ext-backend.h
+ * @brief Plugable post-processing hooks backend using libdl.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
-#ifndef __DL_EXT_BACKEND_H__
-#define __DL_EXT_BACKEND_H__
+#ifndef DL_EXT_BACKEND_H
+#define DL_EXT_BACKEND_H
 
 #include "extension.h"
 

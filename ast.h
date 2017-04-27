@@ -15,10 +15,10 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file ast.h
-   @brief Abstract syntax tree construction.
-   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
+ * @file ast.h
+ * @brief Abstract syntax tree construction.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+ */
 #ifndef AST_H
 #define AST_H
 

@@ -15,10 +15,10 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file search.h
-   @brief A find-wrapper.
-   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
+ * @file search.h
+ * @brief A find-wrapper.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+ */
 #ifndef SEARCH_H
 #define SEARCH_H
 

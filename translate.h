@@ -15,10 +15,10 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file translate.h
-   @brief Translate abstract syntax tree to find arguments.
-   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
+ * @file translate.h
+ * @brief Translate abstract syntax tree to find arguments.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+ */
 #ifndef TRANSLATE_H
 #define TRANSLATE_H
 

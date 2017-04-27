@@ -15,10 +15,10 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file main.c
-   @brief Version details.
-   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
+ * @file version.h
+ * @brief Version details.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+ */
 #ifndef VERSION_H
 #define VERSION_H
 

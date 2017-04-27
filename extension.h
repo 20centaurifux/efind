@@ -14,14 +14,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
     General Public License v3 for more details.
  ***************************************************************************/
-/*!
- * \file extension.h
- * \brief Plugable post-processing hooks.
- * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+/**
+ * @file extension.h
+ * @brief Plugable post-processing hooks.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
-#ifndef __EXTENSION_H__
-#define __EXTENSION_H__
+#ifndef EXTENSION_H
+#define EXTENSION_H
 
 #include <stdio.h>
 #include <datatypes.h>

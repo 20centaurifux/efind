@@ -15,13 +15,12 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file eval.h
-   @brief Evalutes a post processing expression.
-   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
-
-#ifndef __EVAL_H__
-#define __EVAL_H__
+ * @file eval.h
+ * @brief Evalutes a post processing expression.
+ * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+ */
+#ifndef EVAL_H
+#define EVAL_H
 
 #include "ast.h"
 #include "extension.h"
