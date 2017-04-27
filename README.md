@@ -15,15 +15,11 @@ Let's assume you want to find all writable source and header files of a C projec
 that were modified less than two days ago. That's no problem with **efind's**
 self-explanatory expression syntax:
 
-```
-$ efind . '(name="*.h" or name="*.c") and type=file and writable and mtime < 2 days'
-```
+    $ efind . '(name="*.h" or name="*.c") and type=file and writable and mtime < 2 days'
 
 A similar GNU find expression is more complicated:
 
-```
-$ find . \( -name "*.h" -o -name "*.c" \) -a -type f -a -writable -a -mtime -2
-```
+    $ find . \( -name "*.h" -o -name "*.c" \) -a -type f -a -writable -a -mtime -2
 
 Besides the more user-friendly syntax, **efind** always tries to act in the way
 an average user would expect. A good counter-example is the way GNU find rounds
@@ -32,16 +28,12 @@ up file sizes.
 The following expression finds *all* documents in the current folder with a file size less
 or equal than 1G because every file with *at least one byte* is rounded up:
 
-```
-$ find . -size 1G
-```
+    $ find . -size 1G
 
 **efind** converts file sizes to byte to avoid this confusing behaviour:
 
-```
-$ efind . "size=1G" --print
-$ find . -size 1073741824c
-```
+    $ efind . "size=1G" --print
+    $ find . -size 1073741824c
 
 I created a [ticket](https://savannah.gnu.org/bugs/?46815) regarding this "feature" of
 GNU find.
@@ -49,15 +41,11 @@ GNU find.
 As mentioned, **efind** can be extended with custom functions. That makes it simple to
 filter the search result by audio tags and properties, for instance.
 
-```
-$ efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>200'
-```
+    $ efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>200'
 
 Even image properties are no problem:
 
-```
-$ efind ~/images 'iname="*.JPG" and image_width()>=3840 and image_height()>=2400'
-```
+    $ efind ~/images 'iname="*.JPG" and image_width()>=3840 and image_height()>=2400'
 
 
 ## Building efind
@@ -72,17 +60,13 @@ you build **efind**.
 If you want to build **efind** on a Debian based distribution run the
 following commands to prepare your system and checkout the code:
 
-```
-$ sudo apt-get install build-essential git bison flex
-$ git clone --recursive https://github.com/20centaurifux/efind.git
-```
+    $ sudo apt-get install build-essential git bison flex
+    $ git clone --recursive https://github.com/20centaurifux/efind.git
 
 Now build and install the application:
 
-```
-$ cd efind
-$ make && sudo make install
-```
+    $ cd efind
+    $ make && sudo make install
 
 
 ## Expression syntax
@@ -148,35 +132,25 @@ Running **efind** without any argument the search expression is read from *stdin
 and files are searched in the user's home directory. A different directory and
 expression can be specified with the *--dir* and *--expr* options:
 
-```
-$ efind --dir=/tmp --expr="size>1M and type=file"
-```
+    $ efind --dir=/tmp --expr="size>1M and type=file"
 
 **efind** tries to handle the first two arguments as path and expression. It's
 valid to run **efind** the following way:
 
-```
-$ efind ~ "type=dir" --follow
-```
+    $ efind ~ "type=dir" --follow
 
 If you want to show the translated arguments without running GNU find use the
 *--print* option. To quote special shell characters append *--quote*:
 
-```
-$ efind ~/tmp/foo 'iname="*.py" and (mtime<30 days or size>=1M)' --print --quote
-```
+    $ efind ~/tmp/foo 'iname="*.py" and (mtime<30 days or size>=1M)' --print --quote
 
 All available options can be displayed with
 
-```
-$ efind --help
-```
+    $ efind --help
 
 **efind** is also shipped with a manpage:
 
-```
-$ man efind
-```
+    $ man efind
 
 
 ## Extensions
@@ -192,9 +166,7 @@ or [GNU Guile](https://www.gnu.org/software/guile/) in the future.
 
 You can print a list with all available functions found in the installed extensions:
 
-```
-$ efind --list-extensions
-```
+    $ efind --list-extensions
 
 To make extensions available for all users copy them to /etc/efind/extensions. Users can install
 extensions locally in ~/.efind/extensions.
@@ -208,29 +180,25 @@ Your library has to provide two functions: registration() and discover().
 
 The registration() function will register name, version and description of your extension:
 
-```
-void
-registration(RegistrationCtx *ctx, RegisterExtension fn)
-{
-	fn(ctx, "my extension", "0.1.0", "my first extension");
-}
-```
+    void
+    registration(RegistrationCtx *ctx, RegisterExtension fn)
+    {
+        fn(ctx, "my extension", "0.1.0", "my first extension");
+    }
 
 The discover() function is used to register exported functions and their signatures:
 
-```
-void
-discover(RegistrationCtx *ctx, RegisterCallback fn)
-{
-	fn(ctx, "add_numbers", 2, CALLBACK_ARG_TYPE_INTEGER, CALLBACK_ARG_TYPE_INTEGER);
-}
+    void
+    discover(RegistrationCtx *ctx, RegisterCallback fn)
+    {
+        fn(ctx, "add_numbers", 2, CALLBACK_ARG_TYPE_INTEGER, CALLBACK_ARG_TYPE_INTEGER);
+    }
 
-int
-add_numbers(const char *filename, int argc, void *argv[])
-{
-	int *a = (int *)argv[0];
-	int *b = (int *)argv[1];
+    int
+    add_numbers(const char *filename, int argc, void *argv[])
+    {
+        int *a = (int *)argv[0];
+        int *b = (int *)argv[1];
 
-	return *a + *b;
-}
-```
+        return *a + *b;
+    }
