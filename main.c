@@ -334,7 +334,7 @@ _print_help(const char *name)
 	printf("  -q, --quote         quote special characters in translated expression\n");
 	printf("  -d, --dir           root directory\n");
 	printf("  -L, --follow        follow symbolic links\n");
-	printf("  --mapdepth levels   maximum search depth\n");
+	printf("  --maxdepth levels   maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list with installed extensions\n");
 	printf("  -v, --version       show version and exit\n");
