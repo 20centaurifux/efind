@@ -130,7 +130,7 @@ Additionally you can test these flags:
 
 Running **efind** without any argument the search expression is read from *stdin*
 and files are searched in the user's home directory. A different directory and
-expression can be specified with the *--dir* and *--expr* options:
+expression can be specified with the --dir and --expr options:
 
     $ efind --dir=/tmp --expr="size>1M and type=file"
 
@@ -140,7 +140,7 @@ valid to run **efind** the following way:
     $ efind ~ "type=dir" --follow
 
 If you want to show the translated arguments without running GNU find use the
-*--print* option. To quote special shell characters append *--quote*:
+--print option. To quote special shell characters append --quote:
 
     $ efind ~/tmp/foo 'iname="*.py" and (mtime<30 days or size>=1M)' --print --quote
 
@@ -155,10 +155,10 @@ All available options can be displayed with
 
 ## Extensions
 
-Extensions are custom functions used to filter find results. A function can habe optional
+Extensions are custom functions used to filter find results. A function can have optional
 arguments and returns always an integer. Non-zero values evaluate to true.
 
-Extensions can only be used *after* the find expression. 
+You're only allowed to use extensions *after* the find expression. 
 
 At the current stage **efind** can only be extendend with functions loaded from shared libraries.
 It's planned to support scripting languages like [Python](https://www.python.org/)
