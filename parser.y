@@ -123,13 +123,13 @@ parse_string(const char *str)
 	if(!str)
 	{
 		result->err = strdup("Expression cannot be empty.");
-		return false;
+		return result;
 	}
 
 	if(strlen(str) > PARSER_MAX_EXPRESSION_LENGTH)
 	{
 		result->err = strdup("Expression length exceeds maximum.");
-		return false;
+		return result;
 	}
 
 	/* setup scanner */
