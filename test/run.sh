@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #  efind test suite.
 #
@@ -13,7 +13,7 @@
 
 PYTHON=/usr/bin/python2
 
-function generate_test_files()
+generate_test_files()
 {
 	echo "Generating test files."
 
@@ -53,14 +53,14 @@ function generate_test_files()
 	touch -d "now - 5 days" -a ./test-data/02/5kb.2
 }
 
-function run_test()
+run_test()
 {
 	# run Python script:
 	echo "Running test suite."
         $PYTHON ./test.py
 }
 
-function cleanup()
+cleanup()
 {
 	# delete generated test files:
 	echo "Deleting test files."
