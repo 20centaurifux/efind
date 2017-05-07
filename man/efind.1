@@ -147,6 +147,15 @@ the user is allowed to execute the file
 find results can be filtered by custom functions loaded from extension files. 
 A function may have optional arguments and returns always an integer. Non-zero
 return values evaluate to true.
+
+Users can specifiy wildcard patterns in a personal blacklist (~/.efind/blacklist)
+to prevent extensions from being loaded. To disable globally installed extensions,
+for instance, add the following line to your blacklist:
+.P
+.B /etc/efind/extensions/*
+
+Lines starting with an hash ('#') are ignored.
+
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.
 .SH EXAMPLES
@@ -176,3 +185,5 @@ and properties:
 local extension files
 .IP "\fB/etc/efind/extensions"
 global extension files
+.IP "\fB~/.efind/blacklist"
+wildcard patterns to prevent extensions from being loaded
