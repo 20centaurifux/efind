@@ -29,6 +29,7 @@
 
 #include "extension.h"
 #include "dl-ext-backend.h"
+#include "blacklist.h"
 #include "utils.h"
 
 /*! @cond INTERNAL */
@@ -321,9 +322,13 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 {
 	bool success = false;
 	DIR *pdir;
+	Blacklist *blacklist;
 
 	assert(manager != NULL);
 	assert(path != NULL);
+
+	blacklist = blacklist_new();
+	blacklist_load_default(blacklist);
 
 	/* try to open extension folder */
 	if((pdir = opendir(path)))
@@ -344,10 +349,13 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 				if(utils_path_join(path, entry->d_name, filename, PATH_MAX))
 				{
-					if(!_extension_manager_import_module(manager, filename, EXTENSION_MODULE_TYPE_SHARED_LIB))
+					if(!blacklist_matches(blacklist, filename))
 					{
-						utils_strdup_printf(err, "Couldn't load extension \"%s\".", filename);
-						success = false;
+						if(!_extension_manager_import_module(manager, filename, EXTENSION_MODULE_TYPE_SHARED_LIB))
+						{
+							utils_strdup_printf(err, "Couldn't load extension \"%s\".", filename);
+							success = false;
+						}
 					}
 				}
 				else
@@ -366,6 +374,8 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 	{
 		utils_strdup_printf(err, "Couldn't open directory \"%s\".", path);
 	}
+
+	blacklist_destroy(blacklist);
 
 	return success;
 }
