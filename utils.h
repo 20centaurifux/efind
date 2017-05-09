@@ -54,6 +54,14 @@ void *utils_realloc(void *ptr, size_t size);
 size_t utils_strlcat(char *dst, const char *src, size_t size);
 
 /**
+   @param str string to trim
+   @return length of the trimmed string
+
+   Removes whitespace from beginning and end of a string.
+ */
+size_t utils_trim(char *str);
+
+/**
    @param n a number
    @return a power of two
 

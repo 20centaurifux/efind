@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <ctype.h>
 
 #include "utils.h"
 
@@ -107,6 +108,43 @@ utils_strlcat(char *dst, const char *src, size_t size)
 	}
 
 	return ret;
+}
+
+size_t
+utils_trim(char *str)
+{
+	if(!str)
+	{
+		return 0;
+	}
+
+	size_t start = 0, end = strlen(str);
+
+	if(!end)
+	{
+		return 0;
+	}
+
+	while(str[start] && isspace(str[start]))
+	{
+		start++;
+	}
+
+	while(end > start && isspace(str[end - 1]))
+	{
+		end--;
+	}
+
+	size_t len = end - start;
+
+	if(len)
+	{
+		memmove(str, str + start, len);
+	}
+
+	str[len] = '\0';
+
+	return len;
 }
 
 char *
