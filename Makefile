@@ -8,10 +8,10 @@ CPPCHECK=cppcheck
 CTAGS=ctags
 
 CC=gcc
-CFLAGS=-Wall -std=gnu99 -O2
+CFLAGS=-Wall -std=gnu99 -O0 -g
 LDFLAGS=-L./datatypes
-LIBS=-ldl ./datatypes/libdatatypes-0.1.2.a
-INC=-I./datatypes
+LIBS=-ldl ./datatypes/libdatatypes-0.1.2.a -lpython2.7 -lavcall
+INC=-I./datatypes -I/usr/include/python2.7
 
 VERSION=0.1.0
 
@@ -19,7 +19,7 @@ all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) $(CFLAGS) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INC) ./main.c ./parser.y.c ./lexer.l.c ./utils.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
 
 install:
 	test -d "$(DESTDIR)$(PREFIX)/bin" || mkdir -p "$(DESTDIR)$(PREFIX)/bin"
