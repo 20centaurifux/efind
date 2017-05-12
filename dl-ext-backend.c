@@ -14,12 +14,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
     General Public License v3 for more details.
  ***************************************************************************/
-/*!
+/**
  * \file dl-ext-backend.c
  * \brief Plugable post-processing hooks backend using libdl.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #include <dlfcn.h>
 #include <assert.h>
 
