@@ -14,12 +14,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
     General Public License v3 for more details.
  ***************************************************************************/
-/*!
- * \file dl-ext-backend.c
+/**
+ * \file py-ext-backend.c
  * \brief Plugable post-processing hooks backend using libpython.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #include <Python.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -32,13 +31,45 @@
 #include "extension-interface.h"
 #include "utils.h"
 
-static uint32_t ref_count = 0;
-
 typedef struct
 {
 	PyObject *module;
 	AssocArray signatures;
 } PyHandle;
+
+static void
+_py_set_python_path(void)
+{
+	const char *homedir;
+
+	homedir = getenv("HOME");
+
+	if(homedir && *homedir)
+	{
+		size_t len = 42 + strlen(homedir);
+		char *path = utils_malloc(sizeof(char *) * len);
+
+		sprintf(path, "/etc/efind/extensions:%s/.efind/extensions", homedir);
+		PySys_SetPath(path);
+
+		free(path);
+	}
+	else
+	{
+		PySys_SetPath("/etc/efind/extensions");
+	}
+}
+
+static void
+_py_initialize(void)
+{
+	if(!Py_IsInitialized())
+	{
+		Py_Initialize();
+		_py_set_python_path();
+		atexit(Py_Finalize);
+	}
+}
 
 static void
 _py_handle_destroy(PyHandle *handle)
@@ -69,29 +100,6 @@ _py_handle_new(PyObject *module)
 	return handle;
 }
 
-static void
-_py_set_python_path(void)
-{
-	const char *homedir;
-
-	homedir = getenv("HOME");
-
-	if(homedir && *homedir)
-	{
-		size_t len = 42 + strlen(homedir);
-		char *path = utils_malloc(sizeof(char *) * len);
-
-		sprintf(path, "/etc/efind/extensions:%s/.efind/extensions", homedir);
-		PySys_SetPath(path);
-
-		free(path);
-	}
-	else
-	{
-		PySys_SetPath("/etc/efind/extensions");
-	}
-}
-
 static char *
 _py_get_module_name(const char *filename)
 {
@@ -120,31 +128,6 @@ _py_get_module_name(const char *filename)
 	}
 
 	return name;
-}
-
-static void
-_py_ref(void)
-{
-	if(!ref_count)
-	{
-		/* first call => initialize Python interpreter */
-		Py_Initialize();
-		_py_set_python_path();
-	}
-
-	++ref_count;
-}
-
-static void
-_py_unref(void)
-{
-	--ref_count;
-
-	if(!ref_count)
-	{
-		/* no references left => free resources allocated by Python interpreter */
-		Py_Finalize();
-	}
 }
 
 static void
@@ -208,7 +191,7 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 	}
 
 	/* initialize Python interpreter (if necessary) */
-	_py_ref();
+	_py_initialize();
 
 	/* try to import specified module */
 	PyObject *name = PyString_FromString(mod_name);
@@ -242,7 +225,6 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 	{
 		/* Oops, something went wrong... */
 		Py_DECREF(module);
-		_py_unref();
 	}
 
 	return handle;
@@ -453,7 +435,6 @@ _py_ext_backend_unload(void *handle)
 	assert(handle != NULL);
 
 	_py_handle_destroy(handle);
-	_py_unref();
 }
 
 void
