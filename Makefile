@@ -7,11 +7,16 @@ DOXYGEN=doxygen
 CPPCHECK=cppcheck
 CTAGS=ctags
 
+PYTHON_CFLAGS=-DWITH_PYTHON
+PYTHON_LIBS=-lpython2.7 -lavcall
+PYTHON_LDFLAGS=
+PYTHON_INC=-I /usr/include/python2.7
+
 CC=gcc
-CFLAGS=-Wall -std=gnu99 -O0 -g
-LDFLAGS=-L./datatypes
-LIBS=-ldl ./datatypes/libdatatypes-0.1.2.a -lpython2.7 -lavcall
-INC=-I./datatypes -I/usr/include/python2.7
+CFLAGS=-Wall -std=gnu99 -O2 $(PYTHON_CFLAGS)
+LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS)
+LIBS=-ldl ./datatypes/libdatatypes-0.1.2.a $(PYTHON_LIBS)
+INC=-I./datatypes $(PYTHON_INC)
 
 VERSION=0.1.0
 

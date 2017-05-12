@@ -19,6 +19,8 @@
  * \brief Plugable post-processing hooks backend using libpython.
  * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
+#ifdef WITH_PYTHON
+
 #include <Python.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -447,4 +449,5 @@ py_extension_backend_get_class(ExtensionBackendClass *cls)
 	cls->invoke = _py_ext_backend_invoke;
 	cls->unload = _py_ext_backend_unload;
 }
+#endif
 

@@ -63,10 +63,12 @@ _extension_map_file_extension(const char *filename)
 			{
 				mod_type = EXTENSION_MODULE_TYPE_SHARED_LIB;
 			}
+			#ifdef WITH_PYTHON
 			else if(!strcmp(filename + len - 3, ".py"))
 			{
 				mod_type = EXTENSION_MODULE_TYPE_PYTHON;
 			}
+			#endif
 		}
 	}
 
@@ -135,9 +137,11 @@ _extension_module_set_backend_class(ExtensionBackendClass *cls, ExtensionModuleT
 			dl_extension_backend_get_class(cls);
 			break;
 
+		#ifdef WITH_PYTHON
 		case EXTENSION_MODULE_TYPE_PYTHON:
 			py_extension_backend_get_class(cls);
 			break;
+		#endif
 
 		default:
 			success = false;
