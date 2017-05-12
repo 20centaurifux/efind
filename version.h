@@ -27,7 +27,7 @@
 /*! Minor version. */
 #define EFIND_VERSION_MINOR     1
 /*! Patch level. */
-#define EFIND_VERSION_PATCH     0
+#define EFIND_VERSION_PATCH     1
 /*! Code name. */
 #define EFIND_VERSION_CODE_NAME "Belzoni"
 /*! Project website. */
