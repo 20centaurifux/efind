@@ -1,6 +1,7 @@
-* extension blacklist
 * not operator
 * GNU Guile support
 * Python support
-* colors :)
+* colors
 * cache 'find' results (if desired)
+* sort result
+* group results

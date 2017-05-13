@@ -1,5 +1,12 @@
+efind (0.1-2) unstable; urgency=low
+
+  * blacklist support
+  * don't import modules twice
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sat, 13 May 2017 15:48:30 +0100
+
 efind (0.1-1) unstable; urgency=low
 
-  * Initial release
+  * initial release
 
- -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Wed, 04 Jan 2017 16:08:41 +0100
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sat, 06 May 2017 14:33:39 +0100

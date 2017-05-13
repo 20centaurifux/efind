@@ -1,11 +1,11 @@
 Name: efind
-Version: 0.1.0
+Version: 0.1.1
 Release:        1%{?dist}
 Summary: An extendable wrapper for GNU find.
 
 License: GPLv3+
-URL: https://github.com/20centaurifux/efind
-Source0: efind-0.1.0.tar.xz
+URL: http://efind.dixieflatline.de
+Source0: efind-0.1.1.tar.xz
 
 BuildRequires: bison flex
 Requires: findutils

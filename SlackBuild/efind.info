@@ -1,6 +1,6 @@
 PRGNAM="efind"
-VERSION="0.1.0"
-HOMEPAGE="https://github.com/20centaurifux/efind"
+VERSION="0.1.1"
+HOMEPAGE="http://efind.dixieflatline.de"
 DOWNLOAD=""
 MD5SUM=""
 DOWNLOAD_x86_64=""
