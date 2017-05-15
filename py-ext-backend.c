@@ -235,7 +235,7 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 	if(!handle)
 	{
 		/* Oops, something went wrong... */
-		Py_DECREF(module);
+		Py_XDECREF(module);
 	}
 
 	return handle;
