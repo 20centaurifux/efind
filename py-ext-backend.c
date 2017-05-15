@@ -256,7 +256,14 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 	if(name && PyString_Check(name))
 	{
 		/* get signature & register function */
-		PyObject *sig = PyObject_GetAttrString(callable, "__signature__");
+		PyObject *sig = NULL;
+		uint32_t argc = 0;
+		int *signature = NULL;
+
+		if(PyObject_HasAttrString(callable, "__signature__"))
+		{
+			sig = PyObject_GetAttrString(callable, "__signature__");
+		}
 
 		if(sig && PySequence_Check(sig))
 		{
@@ -266,8 +273,8 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 
 			if(len && len <= UINT32_MAX)
 			{
-				uint32_t argc = (uint32_t)len;
-				int *signature = (int *)utils_malloc(sizeof(int) * len);
+				argc = (uint32_t)len;
+				signature = (int *)utils_malloc(sizeof(int) * len);
 
 				for(Py_ssize_t i = 0; success && i < PySequence_Length(sig); ++i)
 				{
@@ -295,41 +302,42 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 
 					Py_DECREF(arg);
 				}
-
-				if(success)
-				{
-					const char *fn_name = PyString_AsString(name);
-
-					/* call register function */
-					av_alist alist;
-
-					av_start_void(alist, fn);
-					av_ptr(alist, RegistrationCtx*, ctx);
-					av_ptr(alist, const char*, fn_name);
-					av_int(alist, argc);
-
-					for(uint32_t i = 0; i < argc; ++i)
-					{
-						av_int(alist, signature[i]);
-					}
-
-					av_call(alist);
-
-					/* store signature */
-					assoc_array_set(&handle->signatures, strdup(fn_name), signature, false);
-				}
-				else
-				{
-					free(signature);
-				}
 			}
 		}
-		else 
+		else
 		{
-			success = (sig == Py_None);
+
+			success = !sig || sig == Py_None;
 		}
 
 		Py_XDECREF(sig);
+
+		/* call registration function */
+		if(success)
+		{
+			const char *fn_name = PyString_AsString(name);
+
+			av_alist alist;
+
+			av_start_void(alist, fn);
+			av_ptr(alist, RegistrationCtx*, ctx);
+			av_ptr(alist, const char*, fn_name);
+			av_int(alist, argc);
+
+			for(uint32_t i = 0; i < argc; ++i)
+			{
+				av_int(alist, signature[i]);
+			}
+
+			av_call(alist);
+
+			/* store signature */
+			assoc_array_set(&handle->signatures, strdup(fn_name), signature, false);
+		}
+		else
+		{
+			free(signature);
+		}
 	}
 
 	Py_XDECREF(name);
