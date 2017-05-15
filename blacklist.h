@@ -25,7 +25,7 @@
 #include <datatypes.h>
 
 /**
-   @struct Blacklist
+   @typedef Blacklist
    @brief Blacklisted files.
  */
 typedef List Blacklist;
@@ -42,7 +42,7 @@ Blacklist *blacklist_new(void);
 
    Frees a Blacklist.
  */
-void blacklist_destroy(Blacklist *list);
+void blacklist_destroy(Blacklist *blacklist);
 
 /**
    @param blacklist Blacklist
@@ -55,6 +55,7 @@ size_t blacklist_glob(Blacklist *blacklist, const char *pattern);
 
 /**
    @param blacklist a Blacklist
+   @param filename filename to test
    @return true if specified filename matches a blacklisted path
 
    Tests if a filename matches a blacklisted path.
