@@ -42,24 +42,33 @@ typedef struct
 static void
 _py_set_python_path(void)
 {
-	const char *homedir;
+	PyObject *sys = PyImport_ImportModule("sys");
 
-	homedir = getenv("HOME");
-
-	if(homedir && *homedir)
+	if(sys && PyModule_Check(sys))
 	{
-		size_t len = 42 + strlen(homedir);
-		char *path = utils_malloc(sizeof(char *) * len);
+		PyObject *path = PyObject_GetAttrString(sys, "path");
 
-		sprintf(path, "/etc/efind/extensions:%s/.efind/extensions", homedir);
-		PySys_SetPath(path);
+		if(path && PyList_Check(path))
+		{
+			PyList_Append(path, PyString_FromString("/etc/efind/extensions"));
 
-		free(path);
+			const char *homedir = getenv("HOME");
+
+			if(homedir && *homedir)
+			{
+				size_t len = strlen(homedir) + 20;
+				char *localpath = (char *)utils_malloc(sizeof(char) * len);
+
+				sprintf(localpath, "%s/.efind/extensions", homedir);
+				PyList_Append(path, PyString_FromString(localpath));
+				free(localpath);
+			}
+		}
+
+		Py_XDECREF(path);
 	}
-	else
-	{
-		PySys_SetPath("/etc/efind/extensions");
-	}
+
+	Py_XDECREF(sys);
 }
 
 static void
