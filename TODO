@@ -2,7 +2,6 @@
 * GNU Guile support
 * Python support
 * Lua support
-* colors
 * cache 'find' results (if desired)
 * sort result
 * group results

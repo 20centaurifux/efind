@@ -13,7 +13,7 @@ LDFLAGS=-L./datatypes
 LIBS=-ldl ./datatypes/libdatatypes-0.1.2.a
 INC=-I./datatypes
 
-VERSION=0.1.0
+VERSION=0.1.1
 
 all:
 	$(MAKE) -C ./datatypes
