@@ -56,12 +56,16 @@ _py_set_python_path(void)
 
 			if(homedir && *homedir)
 			{
-				size_t len = strlen(homedir) + 20;
-				char *localpath = (char *)utils_malloc(sizeof(char) * len);
+				size_t len = strlen(homedir);
 
-				sprintf(localpath, "%s/.efind/extensions", homedir);
-				PyList_Append(path, PyString_FromString(localpath));
-				free(localpath);
+				if(SIZE_MAX - 20 > len)
+				{
+					char *localpath = (char *)utils_malloc(sizeof(char) * (len + 20));
+
+					sprintf(localpath, "%s/.efind/extensions", homedir);
+					PyList_Append(path, PyString_FromString(localpath));
+					free(localpath);
+				}
 			}
 		}
 
@@ -132,7 +136,6 @@ _py_get_module_name(const char *filename)
 			}
 			else
 			{
-				free(name);
 				name = NULL;
 			}
 		}
@@ -145,6 +148,7 @@ static void
 _py_free_extension_details(char **details, int count)
 {
 	assert(details != NULL);
+	assert(count >= 0 && count <= 3);
 
 	for(int i = 0; i < count; i++)
 	{
@@ -160,6 +164,7 @@ _py_get_extension_details(PyObject *module, char *details[3])
 	size_t i;
 
 	assert(module != NULL);
+	assert(details != NULL);
 
 	for(i = 0; success && i < sizeof(keys) / sizeof(char *); i++)
 	{
@@ -192,6 +197,7 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 	PyHandle *handle = NULL;
 
 	assert(filename != NULL);
+	assert(fn != NULL);
 
 	/* get module name from filename */
 	mod_name = _py_get_module_name(filename);
@@ -223,6 +229,11 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 				/* create handle */
 				handle = _py_handle_new(module);
 			}
+			else
+			{
+				/* Ooops, something went wrong */
+				Py_DECREF(module);
+			}
 		}
 		else
 		{
@@ -230,12 +241,6 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 		}
 
 		Py_DECREF(name);
-	}
-
-	if(!handle)
-	{
-		/* Oops, something went wrong... */
-		Py_XDECREF(module);
 	}
 
 	return handle;
@@ -246,6 +251,7 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 {
 	bool success = false;
 
+	assert(handle != NULL);
 	assert(callable != NULL);
 	assert(PyCallable_Check(callable));
 	assert(fn != NULL);
@@ -348,12 +354,14 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 static void
 _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 {
-	assert(handle != NULL);
-	assert(((PyHandle *)handle)->module != NULL);
-	assert(PyModule_Check(((PyHandle *)handle)->module));
+	PyHandle *py_handle = (PyHandle *)handle;
+
+	assert(py_handle != NULL);
+	assert(py_handle->module != NULL);
+	assert(PyModule_Check(py_handle->module));
 	assert(fn != NULL);
 
-	PyObject *exports = PyObject_GetAttrString((PyObject *)((PyHandle *)handle)->module, "EXTENSION_EXPORT");
+	PyObject *exports = PyObject_GetAttrString((PyObject *)py_handle->module, "EXTENSION_EXPORT");
 
 	if(exports && PySequence_Check(exports))
 	{
@@ -379,21 +387,22 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 static int
 _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uint32_t argc, void **argv, int *result)
 {
+	PyHandle *py_handle = (PyHandle *)handle;
 	int ret = -1;
 
-	assert(handle != NULL);
-	assert(((PyHandle *)handle)->module != NULL);
-	assert(PyModule_Check(((PyHandle *)handle)->module));
+	assert(py_handle != NULL);
+	assert(py_handle->module != NULL);
+	assert(PyModule_Check(py_handle->module));
 	assert(name != NULL);
 	assert(filename != NULL);
 
 	/* find callable */
-	PyObject *callable = PyObject_GetAttrString((PyObject *)((PyHandle *)handle)->module, name);
+	PyObject *callable = PyObject_GetAttrString(py_handle->module, name);
 
 	if(callable && PyCallable_Check(callable))
 	{
 		/* get function signature */
-		int *sig = assoc_array_lookup(&((PyHandle *)handle)->signatures, name);
+		int *sig = assoc_array_lookup(&py_handle->signatures, name);
 
 		/* build argument list */
 		PyObject *tuple = PyTuple_New(argc + 1);
