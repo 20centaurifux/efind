@@ -395,8 +395,6 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 		/* get function signature */
 		int *sig = assoc_array_lookup(&((PyHandle *)handle)->signatures, name);
 
-		assert(sig != NULL);
-
 		/* build argument list */
 		PyObject *tuple = PyTuple_New(argc + 1);
 
