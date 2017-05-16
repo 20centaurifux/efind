@@ -14,12 +14,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
     General Public License v3 for more details.
  ***************************************************************************/
-/*!
- * \file extension.c
- * \brief Plugable post-processing hooks.
- * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+/**
+   @file extension.c
+   @brief Plugable post-processing hooks.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #include <string.h>
 #include <assert.h>
 #include <dirent.h>
@@ -118,6 +117,8 @@ static ExtensionModule *
 _extension_module_new(const char *filename, ExtensionModuleType type)
 {
 	ExtensionModule *module = NULL;
+
+	assert(filename != NULL);
 
 	if(filename && type != EXTENSION_MODULE_TYPE_UNDEFINED)
 	{
@@ -386,6 +387,8 @@ extension_manager_load_default(ExtensionManager *manager)
 	const char *home;
 	int count = 0;
 
+	assert(manager != NULL);
+
 	home = getenv("HOME");
 
 	if(home)
@@ -416,8 +419,9 @@ extension_manager_test_callback(ExtensionManager *manager, const char *name, uin
 	ExtensionCallbackStatus result = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 
 	assert(manager != NULL);
+	assert(name != NULL);
 
-	if(name != NULL)
+	if(name)
 	{
 		if(_extension_manager_find_callback(manager, name, &cb))
 		{

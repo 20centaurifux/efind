@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * @file extension-interface.h
- * @brief Interface for extension modules.
- * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file extension-interface.h
+   @brief Interface for extension modules.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef EXTENSION_INTERFACE_H
 #define EXTENSION_INTERFACE_H

@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * @file extension.h
- * @brief Plugable post-processing hooks.
- * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file extension.h
+   @brief Plugable post-processing hooks.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef EXTENSION_H
 #define EXTENSION_H

@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * @file blacklist.h
- * @brief List containing blacklisted files.
- * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file blacklist.h
+   @brief List containing blacklisted files.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef BLACKLIST_H
 #define BLACKLIST_H

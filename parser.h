@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * @file parser.h
- * @brief Expression parser.
- * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file parser.h
+   @brief Expression parser.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef PARSER_EXTRA_H
 #define PARSER_EXTRA_H

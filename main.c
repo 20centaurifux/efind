@@ -18,7 +18,7 @@
    @file main.c
    @brief efind application code.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
+ */
 /*! @cond INTERNAL */
 #define _GNU_SOURCE
 /*! @endcond */

@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * @file dl-ext-backend.h
- * @brief Plugable post-processing hooks backend using libdl.
- * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file dl-ext-backend.h
+   @brief Plugable post-processing hooks backend using libdl.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef DL_EXT_BACKEND_H
 #define DL_EXT_BACKEND_H

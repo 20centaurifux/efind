@@ -18,7 +18,7 @@
    @file ast.c
    @brief Abstract syntax tree construction.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
+ */
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -42,7 +42,7 @@ ast_str_to_interval(const char *str)
 
 	if(str)
 	{
-		switch(str[0])
+		switch(*str)
 		{
 			case 'm':
 				interval = TIME_MINUTES;
@@ -142,7 +142,7 @@ ast_str_to_unit(const char *str)
 
 	if(str)
 	{
-		switch(str[0])
+		switch(*str)
 		{
 			case 'b':
 				unit = UNIT_BYTES;
@@ -177,7 +177,7 @@ ast_str_to_type(const char *str)
 
 	if(str)
 	{
-		switch(str[0])
+		switch(*str)
 		{
 			case 'f':
 				type = FILE_REGULAR;
@@ -222,7 +222,7 @@ ast_str_to_flag(const char *str)
 
 	if(str)
 	{
-		switch(str[0])
+		switch(*str)
 		{
 			case 'r':
 				flag = FILE_FLAG_READABLE;
@@ -237,7 +237,7 @@ ast_str_to_flag(const char *str)
 				break;
 
 			default:
-				fprintf(stderr, "Invalid str name: \"%s\"", str);
+				fprintf(stderr, "Invalid str name: \"%s\"\n", str);
 		}
 	}
 

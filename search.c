@@ -18,8 +18,7 @@
    @file search.c
    @brief A find-wrapper.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
-
+ */
 /*! @cond INTERNAL */
 #define _GNU_SOURCE
 /*! @endcond */
@@ -132,7 +131,10 @@ _search_process_lines_from_buffer(Buffer *buf, char **line, size_t *llen, PreCon
 	{
 		if(_search_process_line(*line, pre, pre_data, cb, user_data))
 		{
-			++count;
+			if(count < INT32_MAX)
+			{
+				++count;
+			}
 		}
 		else
 		{
@@ -161,7 +163,10 @@ _search_flush_and_process_buffer(Buffer *buf, char **line, size_t *llen, PreCond
 		{
 			if(_search_process_line(*line, pre, pre_data, cb, user_data))
 			{
-				++count;
+				if(count < INT32_MAX)
+				{
+					++count;
+				}
 			}
 		}
 	}
@@ -418,11 +423,14 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 							}
 							else
 							{
-								fprintf(stderr, "Warning: integer overflow in function %s", __func__);
+								fprintf(stderr, "Warning: integer overflow in function %s\n", __func__);
 							}
 						}
 
-						sum += bytes;
+						if(SSIZE_MAX - sum >= bytes)
+						{
+							sum += bytes;
+						}
 					}
 				}
 
@@ -433,7 +441,11 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 					{
 						/* process received lines */
 						_search_process_lines_from_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
-						sum += bytes;
+
+						if(SSIZE_MAX - sum >= bytes)
+						{
+							sum += bytes;
+						}
 					}
 				}
 			}
@@ -470,7 +482,7 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 			}
 			else
 			{
-				fprintf(stderr, "Warning: integer overflow in function %s", __func__);
+				fprintf(stderr, "Warning: integer overflow in function %s\n", __func__);
 			}
 		}
 

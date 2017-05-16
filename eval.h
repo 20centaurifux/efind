@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * @file eval.h
- * @brief Evalutes a post processing expression.
- * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file eval.h
+   @brief Evalutes a post processing expression.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef EVAL_H
 #define EVAL_H
@@ -28,7 +28,7 @@
 /**
    @enum EvalResult
    @brief Evaluation result.
-  */
+ */
 typedef enum
 {
 	/*!* Expression evaluates to true. */
@@ -46,7 +46,7 @@ typedef enum
    @return the evaluation result
 
    Evaluates an abstract post-processing syntax tree.
-  */
+ */
 EvalResult evaluate(ExtensionManager *manager, Node *node, const char *filename);
 #endif
 

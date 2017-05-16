@@ -18,7 +18,7 @@
    @file translate.c
    @brief Translate abstract syntax tree to find arguments.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
-*/
+ */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -513,7 +513,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 			success = false;
 	}
 
-	for(int i = 0; success && i < loops; i++)
+	for(int i = 0; success && i < loops; ++i)
 	{
 		if(bytes > max_val)
 		{

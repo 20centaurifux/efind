@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * @file blacklist.c
- * @brief List containing blacklisted files.
- * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file blacklist.c
+   @brief List containing blacklisted files.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #define _GNU_SOURCE
 
@@ -27,9 +27,9 @@
 #include <stdio.h>
 #include <glob.h>
 #include <string.h>
-#include <stdio.h>
 #include <assert.h>
 #include <limits.h>
+#include <stdint.h>
 
 Blacklist *
 blacklist_new(void)
@@ -58,7 +58,7 @@ blacklist_glob(Blacklist *blacklist, const char *pattern)
 
 	if(!rc)
 	{
-		for(size_t i = 0; i < g.gl_pathc; i++)
+		for(size_t i = 0; i < g.gl_pathc; ++i)
 		{
 			if(!list_contains(blacklist, g.gl_pathv[i]))
 			{
@@ -104,7 +104,16 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 
 			if(len && *pattern != '#')
 			{
-				count += blacklist_glob(blacklist, pattern);
+				size_t pathc = blacklist_glob(blacklist, pattern);
+
+				if(SIZE_MAX - count >= pathc)
+				{
+					count += pathc;
+				}
+				else
+				{
+					count = SIZE_MAX;
+				}
 			}
 
 			result = getline(&pattern, &bytes, fp);
