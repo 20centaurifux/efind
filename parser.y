@@ -164,16 +164,6 @@ void parser_result_free(ParserResult *result)
 }
 
 #define ALLOC(scanner) ((ParserExtra *)yyget_extra(scanner))->alloc
-
-static char *
-_parser_memorize_string(void *scanner, char *str)
-{
-	ParserExtra *extra = ((ParserExtra *)yyget_extra(scanner));
-
-	slist_append(&extra->strings, str);
-
-	return str;
-}
 %}
 
 %token TOKEN_LPAREN
@@ -241,7 +231,7 @@ value:
     number                                      { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, $1); }
     | number interval                           { $$ = ast_value_node_new_int_pair(ALLOC(scanner), &@1, VALUE_TIME, $1, $2); }
     | number unit                               { $$ = ast_value_node_new_int_pair(ALLOC(scanner), &@1, VALUE_SIZE, $1, $2); }
-    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
+    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, yylval.svalue); }
     | TOKEN_TYPE                                { $$ = ast_value_node_new_type(ALLOC(scanner), &@1, yylval.ivalue); }
     ;
 
@@ -262,7 +252,7 @@ post_term:
     ;
 
 fn_name:
-    TOKEN_FN_NAME                               { $$ = _parser_memorize_string(scanner, yylval.svalue); }
+    TOKEN_FN_NAME                               { $$ = yylval.svalue; }
     ;
 
 fn_call:
@@ -277,7 +267,7 @@ fn_args:
 
 fn_arg:
     number                                      { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, yylval.ivalue); }
-    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, _parser_memorize_string(scanner, yylval.svalue)); }
+    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, yylval.svalue); }
     | fn_call                                   { $$ = $1; }
     ;
 

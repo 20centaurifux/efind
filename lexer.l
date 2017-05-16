@@ -34,6 +34,14 @@ _write_to_buffer(YYLTYPE *locp, void *scanner, Buffer *buf, const char *str)
 
 	return success;
 }
+
+static char *
+_memorize_string(SList *pool, char *str)
+{
+	slist_append(pool, str);
+
+	return str;
+}
 %}
 
 NUMBER			[-]?[0-9]+
@@ -67,7 +75,7 @@ COMMA			","
 {INTERVAL}		{ yylval->ivalue = ast_str_to_interval(yytext); return TOKEN_INTERVAL; }
 {UNIT}			{ yylval->ivalue = ast_str_to_unit(yytext); return TOKEN_UNIT; }
 {TYPE}			{ yylval->ivalue = ast_str_to_type(yytext); return TOKEN_TYPE; }
-{FN_NAME}		{ yylval->svalue = strdup(yytext); return TOKEN_FN_NAME; }
+{FN_NAME}		{ yylval->svalue = _memorize_string(&yyextra->strings, strdup(yytext)); return TOKEN_FN_NAME; }
 {COMMA}			{ return TOKEN_COMMA; }
 \"                      { BEGIN STRING; buffer_clear(&(yyextra->buffer)); }
 .			{ return 1; }
@@ -75,7 +83,7 @@ COMMA			","
 <STRING>\" {
 	if(buffer_is_valid(&(yyextra->buffer)))
 	{
-		yylval->svalue = buffer_to_string(&(yyextra->buffer)); BEGIN INITIAL; return TOKEN_STRING;
+		yylval->svalue = _memorize_string(&yyextra->strings, buffer_to_string(&(yyextra->buffer))); BEGIN INITIAL; return TOKEN_STRING;
 	}
 	else
 	{
