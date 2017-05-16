@@ -91,6 +91,8 @@ typedef struct
 	int32_t max_depth;
 	/*! Dereference symbolic links. */
 	bool follow;
+	/*! Regular expression type. */
+	char *regex_type;
 } Options;
 
 static Action
@@ -104,6 +106,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "print", no_argument, 0, 'p' },
 		{ "follow", no_argument, 0, 'L' },
 		{ "maxdepth", required_argument, 0, 0 },
+		{ "regex-type", required_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
 		{ "list-extensions", no_argument, 0, 0 },
@@ -196,6 +199,10 @@ _read_options(int argc, char *argv[], Options *opts)
 				{
 					action = ACTION_LIST_EXTENSIONS;
 				}
+				else if(!strcmp(long_options[index].name, "regex-type"))
+				{
+					opts->regex_type = strdup(optarg);
+				}
 
 				break;
 
@@ -276,8 +283,15 @@ _build_search_options(const Options *opts, SearchOptions *sopts)
 	assert(opts != NULL);
 	assert(sopts != NULL);
 
+	memset(sopts, 0, sizeof(SearchOptions));
+
 	sopts->max_depth = opts->max_depth;
 	sopts->follow = opts->follow;
+
+	if(opts->regex_type)
+	{
+		sopts->regex_type = strdup(opts->regex_type);
+	}
 }
 
 static void
@@ -302,24 +316,32 @@ static bool
 _exec_find(const Options *opts)
 {
 	SearchOptions sopts;
+	int result;
 
 	assert(opts != NULL);
 
 	_build_search_options(opts, &sopts);
 
-	return search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, NULL) >= 0;
+	result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, NULL) >= 0;
+	search_options_free(&sopts);
+
+	return result;
 }
 
 static bool
 _print_expr(const Options *opts)
 {
 	SearchOptions sopts;
+	int result;
 
 	assert(opts != NULL);
 
 	_build_search_options(opts, &sopts);
 
-	return search_debug(stdout, stderr, opts->dir, opts->expr, _get_translation_flags(opts), &sopts);
+	result = search_debug(stdout, stderr, opts->dir, opts->expr, _get_translation_flags(opts), &sopts);
+	search_options_free(&sopts);
+
+	return result;
 }
 
 static void
@@ -334,6 +356,7 @@ _print_help(const char *name)
 	printf("  -q, --quote         quote special characters in translated expression\n");
 	printf("  -d, --dir           root directory\n");
 	printf("  -L, --follow        follow symbolic links\n");
+	printf("  --regex-type        regular expression type (see manpage)\n");
 	printf("  --maxdepth levels   maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list with installed extensions\n");
@@ -477,6 +500,11 @@ main(int argc, char *argv[])
 		if(opts.dir)
 		{
 			free(opts.dir);
+		}
+
+		if(opts.regex_type)
+		{
+			free(opts.regex_type);
 		}
 
 	return result;

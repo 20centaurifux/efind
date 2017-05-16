@@ -38,7 +38,16 @@ typedef struct
 	int32_t max_depth;
 	/*! Dereference symbolic links. */
 	bool follow;
+	/*! Regular expression type. */
+	char *regex_type;
 } SearchOptions;
+
+/**
+   @param opts SearchOptions to free
+
+   Frees resources allocated by the SearchOptions structure.
+ */
+void search_options_free(SearchOptions *opts);
 
 /**
    @typedef Callback

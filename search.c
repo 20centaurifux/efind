@@ -53,6 +53,17 @@ typedef struct
 #define ABORT_SEARCH -1
 /*! @endcond */
 
+void
+search_options_free(SearchOptions *opts)
+{
+	assert(opts != NULL);
+
+	if(opts->regex_type)
+	{
+		free(opts->regex_type);
+	}
+}
+
 static EvalResult
 _search_evaluate_post_exprs(const char *filename, void *user_data)
 {
@@ -193,7 +204,7 @@ _search_merge_options(size_t *argc, char ***argv, const char *path, const Search
 	assert(opts != NULL);
 
 	/* initialize argument vector */
-	maxsize = (*argc) + 6; /* "find" + path + *argv + options + NULL */
+	maxsize = (*argc) + 8; /* "find" + path + *argv + options + NULL */
 
 	nargv = (char **)utils_malloc(sizeof(char *) * maxsize);
 	memset(nargv, 0, sizeof(char *) * maxsize);
@@ -209,6 +220,13 @@ _search_merge_options(size_t *argc, char ***argv, const char *path, const Search
 
 	/* copy search path */
 	nargv[index++] = strdup(path);
+
+	/* regex type */
+	if(opts && opts->regex_type)
+	{
+		nargv[index++] = strdup("-regextype");
+		nargv[index++] = strdup(opts->regex_type);
+	}
 
 	/* copy translated find arguments */
 	for(size_t i = 0; i < *argc; ++i)
