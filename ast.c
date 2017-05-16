@@ -57,7 +57,7 @@ ast_str_to_interval(const char *str)
 				break;
 
 			default:
-				fprintf(stderr, "Invalid time interval string: \"%s\"", str);
+				fprintf(stderr, "Invalid time interval string: \"%s\"\n", str);
 		}
 	}
 		
@@ -123,7 +123,7 @@ ast_str_to_property_id(const char *str)
 	}
 	else
 	{
-		fprintf(stderr, "Invalid str name: \"%s\"", str);
+		fprintf(stderr, "Invalid str name: \"%s\"\n", str);
 	}
 
 	return id;
@@ -163,7 +163,7 @@ ast_str_to_unit(const char *str)
 				break;
 
 			default:
-				fprintf(stderr, "Invalid unit string: \"%s\"", str);
+				fprintf(stderr, "Invalid unit string: \"%s\"\n", str);
 		}
 	}
 
@@ -208,7 +208,7 @@ ast_str_to_type(const char *str)
 				break;
 
 			default:
-				fprintf(stderr, "Invalid file string: \"%s\"", str);
+				fprintf(stderr, "Invalid file string: \"%s\"\n", str);
 		}
 	}
 
