@@ -82,7 +82,7 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 
 			if(new_size < ctx->msize)
 			{
-				fprintf(stderr, "overflow in ctx->msize calculation");
+				fprintf(stderr, "overflow in ctx->msize calculation\n");
 
 				return false;
 			}
@@ -174,6 +174,14 @@ _property_to_str(PropertyId id)
 			name = "iname";
 			break;
 
+		case PROP_REGEX:
+			name = "regex";
+			break;
+
+		case PROP_IREGEX:
+			name = "iregex";
+			break;
+
 		case PROP_ATIME:
 			name = "atime";
 			break;
@@ -211,7 +219,7 @@ _property_to_str(PropertyId id)
 			break;
 
 		default:
-			fprintf(stderr, "%s:: critical error => invalid property id: %d", __func__, id);
+			fprintf(stderr, "%s:: critical error => invalid property id: %d\n", __func__, id);
 	}
 
 	return name;
@@ -231,6 +239,14 @@ _property_to_arg(PropertyId id, int arg)
 
 		case PROP_INAME:
 			name = "-iname";
+			break;
+
+		case PROP_REGEX:
+			name = "-regex";
+			break;
+
+		case PROP_IREGEX:
+			name = "-iregex";
 			break;
 
 		case PROP_ATIME:
@@ -310,8 +326,8 @@ _flag_to_arg(FileFlag id)
 static bool
 _property_supports_number(PropertyId prop)
 {
-	return prop == PROP_ATIME || prop == PROP_CTIME || prop == PROP_MTIME ||
-		       prop == PROP_SIZE || prop == PROP_GROUP_ID || prop == PROP_USER_ID;
+	return prop == PROP_ATIME || prop == PROP_CTIME || prop == PROP_MTIME
+	               || prop == PROP_SIZE || prop == PROP_GROUP_ID || prop == PROP_USER_ID;
 }
 
 static bool
@@ -323,7 +339,8 @@ _property_supports_time(PropertyId prop)
 static bool
 _property_supports_string(PropertyId prop)
 {
-	return prop == PROP_NAME || prop == PROP_INAME || prop == PROP_GROUP || prop == PROP_USER;
+	return prop == PROP_NAME || prop == PROP_INAME || prop == PROP_REGEX || prop == PROP_IREGEX
+	               || prop == PROP_GROUP || prop == PROP_USER;
 }
 
 static bool

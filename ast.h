@@ -37,6 +37,10 @@ typedef enum
 	PROP_NAME,
 	/*! Filename (case insensitive). */
 	PROP_INAME,
+	/*! A regular expression. */
+	PROP_REGEX,
+	/*! A regular expression (case insensitive). */
+	PROP_IREGEX,
 	/*! Last access time. */
 	PROP_ATIME,
 	/*! Creation time. */
