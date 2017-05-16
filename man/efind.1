@@ -1,21 +1,25 @@
-.TH efind 1
+.TH EFIND 1
 .SH NAME
 efind \- search for files in a directory hierarchy
 .SH SYNOPSIS
-\fBefind\fR [starting-point...] [expression] [-L]
+\fBefind\fR [starting-point...] [expression] [options]
 .SH DESCRIPTION
 \fBefind\fR searches for files in a directory hierarchy. Basically it's a
 wrapper for find(1) providing an easier and more intuitive expression syntax.
 It can be extended by custom functions to filter search results.
 .SH OPTIONS
-.IP "\fB\-d, \-\-dir\fR=\fIDIR"
+.IP "\fB\-d, \-\-dir\fR=\fIdir"
 Starting-point of the search.
-.IP "\fB\-e, \-\-expr\fR=\fIEXPR"
+.IP "\fB\-e, \-\-expr\fR=\fIexpr"
 Search expression.
 .IP "\fB\-L, \-\-follow"
 Follow symbolic links.
 .IP "\fB\-\-maxdepth\fR=\fIlevels"
 Maximum search depth.
+.IP "\fB\-\-regex-type\fR=\fItype"
+Changes the understood regular expression syntax. Currently-implemented types
+are emacs (this is the default), posix-awk, posix-basic, posix-egrep and
+posix-extended.
 .IP "\fB\-p, \-\-print"
 Don't search files but print translated expression to stdout.
 .IP "\fB\-q, \-\-quote"
@@ -113,6 +117,10 @@ You can search the following file attributes:
 case sensitive filename pattern
 .IP "\fBiname\fR string"
 case insensitive filename pattern
+.IP "\fBregex\fR string"
+case sensitive regular expression
+.IP "\fBiregex\fR string"
+case insensitive regular expression
 .IP "\fBatime\fR time-interval"
 last access time
 .IP "\fBctime\fR time-interval"
