@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * \file py-ext-backend.c
- * \brief Plugable post-processing hooks backend using libpython.
- * \author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file py-ext-backend.c
+   @brief Plugable post-processing hooks backend using libpython2.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifdef WITH_PYTHON
 
@@ -39,6 +39,7 @@ typedef struct
 	AssocArray signatures;
 } PyHandle;
 
+/* add extension paths to sys.path */
 static void
 _py_set_python_path(void)
 {
@@ -58,7 +59,7 @@ _py_set_python_path(void)
 			{
 				size_t len = strlen(homedir);
 
-				if(SIZE_MAX - 20 > len)
+				if(SIZE_MAX - 20 >= len)
 				{
 					char *localpath = (char *)utils_malloc(sizeof(char) * (len + 20));
 
@@ -124,7 +125,7 @@ _py_get_module_name(const char *filename)
 
 	if(filename)
 	{
-		name = basename(filename);
+		name = strdup(basename(filename));
 
 		if(name)
 		{
@@ -136,6 +137,7 @@ _py_get_module_name(const char *filename)
 			}
 			else
 			{
+				free(name);
 				name = NULL;
 			}
 		}
@@ -166,7 +168,7 @@ _py_get_extension_details(PyObject *module, char *details[3])
 	assert(module != NULL);
 	assert(details != NULL);
 
-	for(i = 0; success && i < sizeof(keys) / sizeof(char *); i++)
+	for(i = 0; success && i < sizeof(keys) / sizeof(char *); ++i)
 	{
 		success = false;
 
@@ -243,6 +245,8 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 		Py_DECREF(name);
 	}
 
+	free(mod_name);
+
 	return handle;
 }
 
@@ -261,6 +265,10 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 
 	if(name && PyString_Check(name))
 	{
+		const char *fn_name = PyString_AsString(name);
+
+		assert(fn_name != NULL);
+
 		/* get signature & register function */
 		PyObject *sig = NULL;
 		uint32_t argc = 0;
@@ -298,11 +306,13 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 						}
 						else
 						{
+							fprintf(stderr, "%s: signature of function \"%s\" contains an unsupported type.\n", __func__, fn_name);
 							success = false;
 						}
 					}
 					else
 					{
+						fprintf(stderr, "%s: signature of function \"%s\" is invalid, PyType_Check() failed.\n", __func__, fn_name);
 						success = false;
 					}
 
@@ -321,8 +331,6 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 		/* call registration function */
 		if(success)
 		{
-			const char *fn_name = PyString_AsString(name);
-
 			av_alist alist;
 
 			av_start_void(alist, fn);
@@ -473,5 +481,5 @@ py_extension_backend_get_class(ExtensionBackendClass *cls)
 	cls->invoke = _py_ext_backend_invoke;
 	cls->unload = _py_ext_backend_unload;
 }
-#endif
+#endif // WITH_PYTHON
 

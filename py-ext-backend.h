@@ -15,9 +15,9 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
- * @file py-ext-backend.h
- * @brief Plugable post-processing hooks backend using libpython.
- * @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
+   @file py-ext-backend.h
+   @brief Plugable post-processing hooks backend using libpython2.
+   @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifdef WITH_PYTHON
 #ifndef PY_EXT_BACKEND_H
@@ -31,6 +31,7 @@
    Extension backend functions for libpython.
  */
 void py_extension_backend_get_class(ExtensionBackendClass *cls);
+
 #endif // PY_EXT_BACKEND_H
 #endif // WITH_PYTHON
 
