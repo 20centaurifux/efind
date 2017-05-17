@@ -28,6 +28,7 @@
 
 #include "extension.h"
 #include "dl-ext-backend.h"
+#include "py-ext-backend.h"
 #include "blacklist.h"
 #include "utils.h"
 
@@ -42,8 +43,37 @@ typedef struct
 typedef enum
 {
 	EXTENSION_MODULE_TYPE_UNDEFINED,
-	EXTENSION_MODULE_TYPE_SHARED_LIB
+	EXTENSION_MODULE_TYPE_SHARED_LIB,
+	EXTENSION_MODULE_TYPE_PYTHON
 } ExtensionModuleType;
+
+static ExtensionModuleType
+_extension_map_file_extension(const char *filename)
+{
+	ExtensionModuleType mod_type = EXTENSION_MODULE_TYPE_UNDEFINED;
+
+	if(filename)
+	{
+		size_t len = strlen(filename);
+
+		if(len > 3)
+		{
+			if(!strcmp(filename + len - 3, ".so"))
+			{
+				mod_type = EXTENSION_MODULE_TYPE_SHARED_LIB;
+			}
+			#ifdef WITH_PYTHON
+			else if(!strcmp(filename + len - 3, ".py"))
+			{
+				mod_type = EXTENSION_MODULE_TYPE_PYTHON;
+			}
+			#endif
+		}
+	}
+
+	return mod_type;
+}
+
 typedef struct
 {
 	char *filename;                /* filename of the module */
@@ -105,6 +135,12 @@ _extension_module_set_backend_class(ExtensionBackendClass *cls, ExtensionModuleT
 		case EXTENSION_MODULE_TYPE_SHARED_LIB:
 			dl_extension_backend_get_class(cls);
 			break;
+
+		#ifdef WITH_PYTHON
+		case EXTENSION_MODULE_TYPE_PYTHON:
+			py_extension_backend_get_class(cls);
+			break;
+		#endif
 
 		default:
 			success = false;
@@ -342,9 +378,9 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 		while(success && entry)
 		{
-			size_t len = strlen(entry->d_name);
+ 			ExtensionModuleType mod_type = _extension_map_file_extension(entry->d_name);
 
-			if(len >= 3 && !strcmp(entry->d_name + len - 3, ".so"))
+			if(mod_type != EXTENSION_MODULE_TYPE_UNDEFINED)
 			{
 				char filename[PATH_MAX];
 
@@ -352,7 +388,7 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 				{
 					if(!blacklist_matches(blacklist, filename))
 					{
-						if(!_extension_manager_import_module(manager, filename, EXTENSION_MODULE_TYPE_SHARED_LIB))
+						if(!_extension_manager_import_module(manager, filename, mod_type))
 						{
 							utils_strdup_printf(err, "Couldn't load extension \"%s\".", filename);
 							success = false;
