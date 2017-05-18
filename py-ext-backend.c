@@ -427,7 +427,14 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 			}
 			else if(sig[i] == CALLBACK_ARG_TYPE_STRING)
 			{
-				arg = PyString_FromString(argv[i]);
+				if(argv[i])
+				{
+					arg = PyString_FromString(argv[i]);
+				}
+				else
+				{
+					arg = Py_None;
+				}
 			}
 
 			PyTuple_SetItem(tuple, i + 1, arg);
