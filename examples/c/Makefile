@@ -1,5 +1,5 @@
 all:
-	gcc -I../../ -Wall -O2 -fPIC -nostartfiles -shared ./example.c -o ./example.so
+	gcc -I../../ -Wall -O2 -fPIC -nostartfiles -shared ./c-example.c -o ./c-example.so
 
 clean:
-	rm -f ./example.so
+	rm -f ./c-example.so
