@@ -93,6 +93,8 @@ typedef struct
 	bool follow;
 	/*! Regular expression type. */
 	char *regex_type;
+	/*! Print format on stdout. */
+	char *println;
 } Options;
 
 static Action
@@ -107,9 +109,10 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "follow", no_argument, 0, 'L' },
 		{ "maxdepth", required_argument, 0, 0 },
 		{ "regex-type", required_argument, 0, 0 },
+		{ "println", required_argument, 0, 0 },
+		{ "list-extensions", no_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
-		{ "list-extensions", no_argument, 0, 0 },
 		{ 0, 0, 0, 0 }
 	};
 
@@ -203,6 +206,10 @@ _read_options(int argc, char *argv[], Options *opts)
 				{
 					opts->regex_type = strdup(optarg);
 				}
+				else if(!strcmp(long_options[index].name, "println"))
+				{
+					opts->println = strdup(optarg);
+				}
 
 				break;
 
@@ -292,6 +299,14 @@ _build_search_options(const Options *opts, SearchOptions *sopts)
 	{
 		sopts->regex_type = strdup(opts->regex_type);
 	}
+
+	if(opts->println)
+	{
+		size_t len = strlen(opts->println) + 3;
+
+		sopts->printf = (char *)utils_malloc(len * sizeof(char *));
+		sprintf(sopts->printf, "%s\\n", opts->println);
+	}
 }
 
 static void
@@ -356,7 +371,8 @@ _print_help(const char *name)
 	printf("  -q, --quote         quote special characters in translated expression\n");
 	printf("  -d, --dir           root directory\n");
 	printf("  -L, --follow        follow symbolic links\n");
-	printf("  --regex-type        regular expression type (see manpage)\n");
+	printf("  --regex-type        regular expression type; see manpage\n");
+	printf("  --printf format     print format on standard output; see find(1)\n");
 	printf("  --maxdepth levels   maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list with installed extensions\n");
@@ -505,6 +521,11 @@ main(int argc, char *argv[])
 		if(opts.regex_type)
 		{
 			free(opts.regex_type);
+		}
+
+		if(opts.println)
+		{
+			free(opts.println);
 		}
 
 	return result;

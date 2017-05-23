@@ -61,6 +61,11 @@ search_options_free(SearchOptions *opts)
 	{
 		free(opts->regex_type);
 	}
+
+	if(opts->printf)
+	{
+		free(opts->printf);
+	}
 }
 
 static EvalResult
@@ -209,7 +214,7 @@ _search_merge_options(size_t *argc, char ***argv, const char *path, const Search
 	assert(opts != NULL);
 
 	/* initialize argument vector */
-	maxsize = (*argc) + 8; /* "find" + path + *argv + options + NULL */
+	maxsize = (*argc) + 10; /* "find" + path + *argv + options + NULL */
 
 	nargv = (char **)utils_malloc(sizeof(char *) * maxsize);
 	memset(nargv, 0, sizeof(char *) * maxsize);
@@ -248,6 +253,13 @@ _search_merge_options(size_t *argc, char ***argv, const char *path, const Search
 
 		nargv[index++] = strdup("-maxdepth");
 		nargv[index++] = strdup(buffer);
+	}
+
+	/* printf */
+	if(opts && opts->printf)
+	{
+		nargv[index++] = strdup("-printf");
+		nargv[index++] = strdup(opts->printf);
 	}
 
 	*argc = index;
