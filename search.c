@@ -603,6 +603,7 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 	size_t argc;
 	char **argv;
 	ParserResult *result;
+	bool quote = false;
 	bool success = false;
 
 	assert(out != NULL);
@@ -617,10 +618,36 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 
 	if(result->success)
 	{
-		for(size_t i = 0; i < argc; ++i)
+		if(*argv)
 		{
-			fprintf(out, "%s ", argv[i]);
-			free(argv[i]);
+			fputs(*argv, out);
+			free(*argv);
+
+			for(size_t i = 1; i < argc; ++i)
+			{
+				fputc(' ', out);
+
+				if(quote)
+				{
+					fprintf(out, "\"%s\"", argv[i]);
+				}
+				else
+				{
+					fprintf(out, "%s", argv[i]);
+				}
+
+				quote = false;
+
+				if(flags & TRANSLATION_FLAG_QUOTE)
+				{
+					if(!strcmp(argv[i], "-printf") || !strcmp(argv[i], "-regextype"))
+					{
+						quote = true;
+					}
+				}
+
+				free(argv[i]);
+			}
 		}
 
 		fprintf(out, "\n");
