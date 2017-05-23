@@ -371,7 +371,7 @@ _print_help(const char *name)
 	printf("  -q, --quote         quote special characters in translated expression\n");
 	printf("  -d, --dir           root directory\n");
 	printf("  -L, --follow        follow symbolic links\n");
-	printf("  --regex-type        regular expression type; see manpage\n");
+	printf("  --regex-type type   set regular expression type; see manpage\n");
 	printf("  --printf format     print format on standard output; see find(1)\n");
 	printf("  --maxdepth levels   maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
