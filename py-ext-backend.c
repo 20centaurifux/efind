@@ -433,7 +433,7 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 				}
 				else
 				{
-					arg = Py_None;
+					arg = PyString_FromString("");
 				}
 			}
 
