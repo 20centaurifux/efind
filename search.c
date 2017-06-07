@@ -591,7 +591,6 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 	size_t argc;
 	char **argv;
 	ParserResult *result;
-	bool quote = false;
 	bool success = false;
 
 	assert(out != NULL);
@@ -608,6 +607,8 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 	{
 		if(*argv)
 		{
+			bool quote = false;
+
 			fputs(*argv, out);
 			free(*argv);
 
@@ -628,7 +629,7 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 
 				if(flags & TRANSLATION_FLAG_QUOTE)
 				{
-					if(!strcmp(argv[i], "-printf") || !strcmp(argv[i], "-regextype"))
+					if(!strcmp(argv[i], "-regextype"))
 					{
 						quote = true;
 					}

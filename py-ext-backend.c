@@ -195,7 +195,6 @@ static void *
 _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx *ctx)
 {
 	char *mod_name;
-	PyObject *module = NULL;
 	PyHandle *handle = NULL;
 
 	assert(filename != NULL);
@@ -217,6 +216,8 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 
 	if(name)
 	{
+		PyObject *module = NULL;
+
 		if((module = PyImport_Import(name)))
 		{
 			/* module imported successfully => get details */

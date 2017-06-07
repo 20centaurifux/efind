@@ -36,13 +36,12 @@ static char *
 _file_info_get_dirname_r(const char *filename)
 {
 	char *dirname = NULL;
-	char *offset;
 
 	dirname = strdup(filename);
 
 	if(dirname)
 	{
-		offset = strrchr(dirname, '/');
+		char *offset = strrchr(dirname, '/');
 
 		if(offset)
 		{

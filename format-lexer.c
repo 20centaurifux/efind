@@ -325,7 +325,7 @@ _format_lexer_step(FormatLexerResult *result)
 
 		default:
 			fprintf(stderr, "%s: Invalid state: %ld\n", __func__, (intptr_t)state);
-			result = false;
+			success = false;
 	}
 
 	if(!success)
