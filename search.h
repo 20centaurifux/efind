@@ -40,8 +40,6 @@ typedef struct
 	bool follow;
 	/*! Regular expression type. */
 	char *regex_type;
-	/*! Print format on stdout. */
-	char *printf;
 } SearchOptions;
 
 /**

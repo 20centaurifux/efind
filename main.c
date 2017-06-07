@@ -38,6 +38,7 @@
 #include "search.h"
 #include "parser.h"
 #include "utils.h"
+#include "format.h"
 #include "extension.h"
 #include "version.h"
 
@@ -94,8 +95,20 @@ typedef struct
 	/*! Regular expression type. */
 	char *regex_type;
 	/*! Print format on stdout. */
-	char *println;
+	char *printf;
 } Options;
+
+/**
+   @struct PrintArg
+   @brief Additional print arguments.
+ */
+typedef struct
+{
+	/*! Starting point of the search. */
+	const char *dir;
+	/*! Optional parsed format string. */
+	FormatParserResult *fmt;
+} PrintArg;
 
 static Action
 _read_options(int argc, char *argv[], Options *opts)
@@ -109,7 +122,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "follow", no_argument, 0, 'L' },
 		{ "maxdepth", required_argument, 0, 0 },
 		{ "regex-type", required_argument, 0, 0 },
-		{ "println", required_argument, 0, 0 },
+		{ "printf", required_argument, 0, 0 },
 		{ "list-extensions", no_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
@@ -206,9 +219,9 @@ _read_options(int argc, char *argv[], Options *opts)
 				{
 					opts->regex_type = strdup(optarg);
 				}
-				else if(!strcmp(long_options[index].name, "println"))
+				else if(!strcmp(long_options[index].name, "printf"))
 				{
-					opts->println = strdup(optarg);
+					opts->printf = strdup(optarg);
 				}
 
 				break;
@@ -299,22 +312,26 @@ _build_search_options(const Options *opts, SearchOptions *sopts)
 	{
 		sopts->regex_type = strdup(opts->regex_type);
 	}
-
-	if(opts->println)
-	{
-		size_t len = strlen(opts->println) + 3;
-
-		sopts->printf = (char *)utils_malloc(len * sizeof(char *));
-		sprintf(sopts->printf, "%s\\n", opts->println);
-	}
 }
 
 static void
 _file_cb(const char *path, void *user_data)
 {
+	PrintArg *arg = (PrintArg *)user_data;
+
 	if(path)
 	{
-		printf("%s\n", path);
+		if(arg->fmt)
+		{
+			assert(arg->dir != NULL);
+			assert(arg->fmt->success == true);
+
+			format_write(arg->fmt, arg->dir, path, stdout);
+		}
+		else
+		{
+			printf("%s\n", path);
+		}
 	}
 }
 
@@ -330,15 +347,39 @@ _error_cb(const char *msg, void *user_data)
 static bool
 _exec_find(const Options *opts)
 {
+	FormatParserResult *fmt = NULL;
 	SearchOptions sopts;
-	int result;
+	int result = -1;
 
 	assert(opts != NULL);
 
-	_build_search_options(opts, &sopts);
+	if(opts->printf)
+	{
+		fmt = format_parse(opts->printf);
+	}
 
-	result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, NULL) >= 0;
-	search_options_free(&sopts);
+	if(!fmt || fmt->success)
+	{
+		PrintArg arg;
+
+		arg.dir = opts->dir;
+		arg.fmt = fmt;
+
+		_build_search_options(opts, &sopts);
+
+		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, &arg) >= 0;
+
+		search_options_free(&sopts);
+	}
+	else
+	{
+		fprintf(stderr, "Couldn't parse format string: \"%s\"\n", opts->printf);
+	}
+
+	if(fmt)
+	{
+		format_parser_result_free(fmt);
+	}
 
 	return result;
 }
@@ -523,9 +564,9 @@ main(int argc, char *argv[])
 			free(opts.regex_type);
 		}
 
-		if(opts.println)
+		if(opts.printf)
 		{
-			free(opts.println);
+			free(opts.printf);
 		}
 
 	return result;
