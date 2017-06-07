@@ -140,7 +140,7 @@ _format_write_date(time_t time, ssize_t width, int flags, const char *format, FI
 			/* build date string */
 			if(strftime(buffer, sizeof(buffer), time_format, tm))
 			{
-				fputs(buffer, out);
+				_format_write_string(buffer, width, flags, out);
 			}
 			else
 			{
