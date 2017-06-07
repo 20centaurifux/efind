@@ -577,8 +577,6 @@ _format_parse(FormatParserCtx *ctx, FormatLexerResult *lexer)
 	{
 		_format_parser_pop(ctx);
 		success = true;
-
-		assert(stack_count(&ctx->state) == 1);
 	}
 
 	return success;
