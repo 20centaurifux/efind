@@ -15,7 +15,7 @@ PYTHON_INC=-I /usr/include/python2.7
 CC=gcc
 CFLAGS=-Wall -std=gnu99 -O2 $(PYTHON_CFLAGS)
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS)
-LIBS=-ldl ./datatypes/libdatatypes-0.1.2.a $(PYTHON_LIBS)
+LIBS=-ldl ./datatypes/libdatatypes-0.1.3.a $(PYTHON_LIBS)
 INC=-I./datatypes $(PYTHON_INC)
 
 VERSION=0.1.1
