@@ -23,7 +23,6 @@
 #include <assert.h>
 
 #include "format.h"
-#include "fileinfo.h"
 
 static void
 _format_write_string(const char *text, ssize_t width, int flags, FILE *out)
@@ -161,9 +160,9 @@ _format_write_date(time_t time, ssize_t width, int flags, const char *format, FI
 }
 
 void
-format_write(const FormatParserResult *result, const char *arg, const char *filename, FILE *out)
+format_write(const FormatParserResult *result, FileInfo *info, const char *arg, const char *filename, FILE *out)
 {
-	FileInfo info;
+	FileInfo *pinfo;
 
 	assert(result != NULL);
 	assert(result->success == true);
@@ -171,9 +170,21 @@ format_write(const FormatParserResult *result, const char *arg, const char *file
 	assert(filename != NULL);
 	assert(out != NULL);
 
-	file_info_init(&info);
+	if(info)
+	{
+		pinfo = info;
+	}
+	else
+	{
+		pinfo = (FileInfo *)alloca(sizeof(FileInfo));
 
-	if(file_info_get(&info, arg, filename))
+		if(pinfo)
+		{
+			file_info_init(pinfo);
+		}
+	}
+
+	if(pinfo && file_info_get(pinfo, arg, filename))
 	{
 		SListItem *iter = slist_head(result->nodes);
 
@@ -189,7 +200,7 @@ format_write(const FormatParserResult *result, const char *arg, const char *file
 			{
 				FileAttr attr;
 
-				if(file_info_get_attr(&info, &attr, ((FormatAttrNode*)node)->attr))
+				if(file_info_get_attr(pinfo, &attr, ((FormatAttrNode*)node)->attr))
 				{
 					if(attr.flags & FILE_ATTR_FLAG_STRING)
 					{
@@ -227,8 +238,11 @@ format_write(const FormatParserResult *result, const char *arg, const char *file
 
 			iter = slist_item_next(iter);
 		}
+	}
 
-		file_info_clear(&info);
+	if(!info && pinfo)
+	{
+		file_info_clear(pinfo);
 	}
 }
 

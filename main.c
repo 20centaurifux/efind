@@ -108,6 +108,8 @@ typedef struct
 	const char *dir;
 	/*! Optional parsed format string. */
 	FormatParserResult *fmt;
+	/*! FileInfo instance used to receive file attributes when printing. */
+	FileInfo info;
 } PrintArg;
 
 static Action
@@ -326,7 +328,7 @@ _file_cb(const char *path, void *user_data)
 			assert(arg->dir != NULL);
 			assert(arg->fmt->success == true);
 
-			format_write(arg->fmt, arg->dir, path, stdout);
+			format_write(arg->fmt, &arg->info, arg->dir, path, stdout);
 		}
 		else
 		{
@@ -365,11 +367,14 @@ _exec_find(const Options *opts)
 		arg.dir = opts->dir;
 		arg.fmt = fmt;
 
+		file_info_init(&arg.info);
+
 		_build_search_options(opts, &sopts);
 
 		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, &arg) >= 0;
 
 		search_options_free(&sopts);
+		file_info_clear(&arg.info);
 	}
 	else
 	{
