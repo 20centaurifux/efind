@@ -24,8 +24,20 @@
 
 #include <sys/types.h>
 
+/**
+   @param gid a group id
+   @return a newly-allocated string
+
+   Maps a group id to the corresponding group name.
+ */
 char *linux_map_gid(gid_t gid);
 
+/**
+   @param uid a user id
+   @return a newly-allocated string
+
+   Maps a user id to the corresponding user name.
+ */
 char *linux_map_uid(uid_t uid);
 
 #endif

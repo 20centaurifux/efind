@@ -27,6 +27,7 @@
 #include "format-parser.h"
 #include "utils.h"
 
+/*! @cond INTERNAL */
 typedef enum
 {
 	FORMAT_PARSER_STATE_NONE,
@@ -56,6 +57,7 @@ typedef struct
 	Allocator *alloc;
 	SList *nodes;
 } FormatParserCtx;
+/*! @endcond */
 
 static void
 _format_parser_ctx_init(FormatParserCtx *ctx)

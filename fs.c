@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file fs.c
-   @brief File-system related functions.
+   @brief Filesystem related functions.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <stdio.h>
@@ -28,6 +28,7 @@
 #include "fs.h"
 #include "utils.h"
 
+/*! Name of unknown filesystems. */
 const char *FS_UNKNOWN = "Unknown";
 
 static int
@@ -39,7 +40,8 @@ _fs_map_compare_entries(const void *a, const void *b)
 	return strcmp((*((MountPoint **)b))->path, (*((MountPoint **)a))->path);
 }
 
-FSMap *fs_map_load(void)
+FSMap *
+fs_map_load(void)
 {
 	FSMap *map = NULL;
 	FILE *fp;

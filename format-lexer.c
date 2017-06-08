@@ -26,6 +26,7 @@
 #include "format-lexer.h"
 #include "utils.h"
 
+/*! @cond INTERNAL */
 typedef enum
 {
 	FORMAT_LEXER_STATE_STRING,
@@ -34,6 +35,14 @@ typedef enum
 	FORMAT_LEXER_STATE_DATE_ATTR,
 	FORMAT_LEXER_STATE_ESCAPE_SEQ
 } FormatLexerState;
+
+typedef enum
+{
+	FORMAT_LEXER_RESULT_CONTINUE,
+	FORMAT_LEXER_RESULT_ABORT,
+	FORMAT_LEXER_RESULT_FINISHED
+} FormatLexerStepResult;
+/*! @endcond */
 
 static bool
 _format_lexer_init(FormatLexerResult *result, const char *format)
@@ -47,8 +56,6 @@ _format_lexer_init(FormatLexerResult *result, const char *format)
 
 	if(format && strlen(format) <= FORMAT_TEXT_BUFFER_MAX)
 	{
-		result->ctx.tail = result->ctx.buffer;
-
 		if(sizeof(FormatToken) > item_size)
 		{
 			item_size = sizeof(FormatToken);
@@ -70,12 +77,14 @@ _format_lexer_init(FormatLexerResult *result, const char *format)
 	return success;
 }
 
+/*! @cond INTERNAL */
 #define ATTRIBUTES      "bfgGhiklmMnpsSuUyYpPHFD"
 #define DATE_ATTRIBUTES "aAcCtT"
 #define TIME_FIELDS     "HIklMprST+XZ"
 #define DATE_FIELDS     "aAbBcdDhjmUwWxyY"
 #define FLAGS           "-0# +"
 #define ESCAPE_CHAR     "abfnrtv0\\"
+/*! @endcond */
 
 static void
 _format_lexer_pop(FormatLexerResult *result)
@@ -275,13 +284,6 @@ _format_lexer_step_date_attr(FormatLexerResult *result)
 		_format_lexer_pop(result);
 	}
 }
-
-typedef enum
-{
-	FORMAT_LEXER_RESULT_CONTINUE,
-	FORMAT_LEXER_RESULT_ABORT,
-	FORMAT_LEXER_RESULT_FINISHED
-} FormatLexerStepResult;
 
 static FormatLexerStepResult
 _format_lexer_step(FormatLexerResult *result)
