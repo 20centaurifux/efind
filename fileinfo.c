@@ -110,6 +110,24 @@ _file_info_permissions(mode_t mode)
 	return bits;
 }
 
+static const char *
+_file_info_remove_cli(const char *cli, const char *path)
+{
+	size_t len;
+
+	assert(cli != NULL);
+	assert(path != NULL);
+
+	len = strlen(cli);
+
+	if(cli[len - 1] != '/')
+	{
+		++len;
+	}
+
+	return path + len;
+}
+
 void
 file_info_init(FileInfo *info)
 {
@@ -170,7 +188,7 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 
 		case 'P': /* File's name without the name of the command line argument under which it was found. */
 			attr->flags = FILE_ATTR_FLAG_STRING;
-			attr->value.str = (char *)info->path + strlen(info->cli) + 1;
+			attr->value.str = (char *)_file_info_remove_cli(info->cli, info->path);
 			break;
 
 		case 'p': /* File's name. */
