@@ -159,10 +159,11 @@ _format_write_date(time_t time, ssize_t width, int flags, const char *format, FI
 	}
 }
 
-void
+bool
 format_write(const FormatParserResult *result, FileInfo *info, const char *arg, const char *filename, FILE *out)
 {
 	FileInfo *pinfo;
+	bool success = false;
 
 	assert(result != NULL);
 	assert(result->success == true);
@@ -187,8 +188,9 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 	if(pinfo && file_info_get(pinfo, arg, filename))
 	{
 		SListItem *iter = slist_head(result->nodes);
+		success = true;
 
-		while(iter)
+		while(success && iter)
 		{
 			FormatNodeBase *node = (FormatNodeBase *)slist_item_get_data(iter);
 
@@ -223,8 +225,8 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 					}
 					else
 					{
-						/* TODO */
-						abort();
+						fprintf(stderr, "%s: couldn't read attribute type: %#x\n", __func__, attr.flags);
+						success = false;
 					}
 
 					file_attr_free(&attr);
@@ -232,8 +234,8 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 			}
 			else
 			{
-				/* TODO */
-				abort();
+				fprintf(stderr, "%s: invalid node type: %d\n", __func__, node->type_id);
+				success = false;
 			}
 
 			iter = slist_item_next(iter);
@@ -244,5 +246,7 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 	{
 		file_info_clear(pinfo);
 	}
+
+	return success;
 }
 

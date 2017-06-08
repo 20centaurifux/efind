@@ -31,10 +31,11 @@
    @param arg command line arguments under which the file was found
    @param filename found file
    @param out stream to write output to
+   @return true on success
 
    Print file attributes according to the specified format.
  */
-void format_write(const FormatParserResult *result, FileInfo *info, const char *arg, const char *filename, FILE *out);
+bool format_write(const FormatParserResult *result, FileInfo *info, const char *arg, const char *filename, FILE *out);
 
 #endif
 

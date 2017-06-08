@@ -79,7 +79,7 @@ _format_lexer_init(FormatLexerResult *result, const char *format)
 
 /*! @cond INTERNAL */
 #define ATTRIBUTES      "bfgGhiklmMnpsSuUyYpPHFD"
-#define DATE_ATTRIBUTES "aAcCtT"
+#define DATE_ATTRIBUTES "ACT"
 #define TIME_FIELDS     "HIklMprST+XZ"
 #define DATE_FIELDS     "aAbBcdDhjmUwWxyY"
 #define FLAGS           "-0# +"

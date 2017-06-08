@@ -418,7 +418,7 @@ _print_help(const char *name)
 	printf("  -d, --dir           root directory\n");
 	printf("  -L, --follow        follow symbolic links\n");
 	printf("  --regex-type type   set regular expression type; see manpage\n");
-	printf("  --printf format     print format on standard output; see find(1)\n");
+	printf("  --printf format     print format on standard output; see manpage\n");
 	printf("  --maxdepth levels   maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list with installed extensions\n");
