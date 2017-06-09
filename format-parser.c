@@ -50,6 +50,7 @@ typedef struct
 	Stack state;
 	int32_t flags;
 	ssize_t width;
+	ssize_t precision;
 	char buffer[FORMAT_TEXT_BUFFER_MAX];
 	char *tail;
 	char format[FORMAT_FMT_BUFFER_MAX];
@@ -101,11 +102,12 @@ _format_parser_ctx_free(FormatParserCtx *ctx)
 }
 
 static void
-_format_node_init(FormatNodeBase *node, NodeType type_id, int32_t flags, ssize_t width)
+_format_node_init(FormatNodeBase *node, NodeType type_id, int32_t flags, ssize_t width, ssize_t precision)
 {
 	node->type_id = type_id;
 	node->flags = flags;
 	node->width = width;
+	node->precision = precision;
 }
 
 static FormatNodeBase *
@@ -117,7 +119,7 @@ _format_text_node_new(FormatParserCtx *ctx)
 
 	node = (FormatTextNode *)utils_malloc(sizeof(FormatTextNode));
 
-	_format_node_init((FormatNodeBase *)node, FORMAT_NODE_TEXT, ctx->flags, ctx->width);
+	_format_node_init((FormatNodeBase *)node, FORMAT_NODE_TEXT, ctx->flags, ctx->width, ctx->precision);
 
 	strcpy(node->text, ctx->buffer);
 
@@ -133,7 +135,7 @@ _format_attribute_node_new(FormatParserCtx *ctx)
 
 	node = (FormatAttrNode *)utils_malloc(sizeof(FormatAttrNode));
 
-	_format_node_init((FormatNodeBase *)node, FORMAT_NODE_ATTR, ctx->flags, ctx->width);
+	_format_node_init((FormatNodeBase *)node, FORMAT_NODE_ATTR, ctx->flags, ctx->width, ctx->precision);
 
 	node->attr = ctx->attr;
 
@@ -148,6 +150,7 @@ _format_parser_reset_cache(FormatParserCtx *ctx)
 	assert(ctx != NULL);
 
 	ctx->width = -1;
+	ctx->precision = -1;
 	ctx->flags = 0;
 	memset(ctx->buffer, 0, FORMAT_TEXT_BUFFER_MAX);
 	ctx->tail = ctx->buffer;
@@ -220,7 +223,19 @@ _format_parser_begin_width(FormatParserCtx *ctx, FormatToken *token)
 	if(token->len < 128)
 	{
 		strncpy(str, token->text, token->len);
-		ctx->width = atoi(str);
+
+		char *offset = strchr(str, '.');
+
+		if(offset)
+		{
+			ctx->precision = atoi(offset + 1);
+			*offset = '\0';
+			ctx->width = atoi(str);
+		}
+		else
+		{
+			ctx->width = atoi(str);
+		}
 	}
 
 	return FORMAT_PARSER_STEP_RESULT_NEXT;

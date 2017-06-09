@@ -26,7 +26,7 @@
 #include "format.h"
 
 static bool
-_format_build_fmt_string(char *fmt, size_t len, ssize_t width, int flags, char conversion)
+_format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision, int flags, char conversion)
 {
 	char *offset = fmt;
 
@@ -74,9 +74,21 @@ _format_build_fmt_string(char *fmt, size_t len, ssize_t width, int flags, char c
 	{
 		int required = (int)log10(width) + 1;
 
+		if(precision > 0)
+		{
+			required += (int)log10(precision) + 2;
+		}
+
 		TEST_FMT_BUFFER(required);
 
-		sprintf(offset, "%ld%c", width, conversion);
+		if(precision > 0)
+		{
+			sprintf(offset, "%ld.%ld%c", (long)width, (long)precision, conversion);
+		}
+		else
+		{
+			sprintf(offset, "%ld%c", (long)width, conversion);
+		}
 	}
 	else
 	{
@@ -88,52 +100,52 @@ _format_build_fmt_string(char *fmt, size_t len, ssize_t width, int flags, char c
 }
 
 static void
-_format_write_string(const char *text, ssize_t width, int flags, FILE *out)
+_format_write_string(const char *text, ssize_t width, ssize_t precision, int flags, FILE *out)
 {
 	char fmt[128];
 
-	if(_format_build_fmt_string(fmt, 128, width, flags, 's'))
+	if(_format_build_fmt_string(fmt, 128, width, precision, flags, 's'))
 	{
 		fprintf(out, fmt, text);
 	}
 	else
 	{
-		fprintf(stderr, "Couldn't write string, built format string exceeds maximum buffer length.\n");
+		fprintf(stderr, "%s: couldn't write string, built format string exceeds maximum buffer length.\n", __func__);
 	}
 }
 
 static void
-_format_write_integer(int n, ssize_t width, int flags, const char conversion, FILE *out)
+_format_write_integer(int n, ssize_t width, ssize_t precision, int flags, const char conversion, FILE *out)
 {
 	char fmt[128];
 
-	if(_format_build_fmt_string(fmt, 128, width, flags, conversion))
+	if(_format_build_fmt_string(fmt, 128, width, precision, flags, conversion))
 	{
 		fprintf(out, fmt, n);
 	}
 	else
 	{
-		fprintf(stderr, "Couldn't write integer, built format string exceeds maximum buffer length.\n");
+		fprintf(stderr, "%s: couldn't write integer, built format string exceeds maximum buffer length.\n", __func__);
 	}
 }
 
 static void
-_format_write_double(double d, ssize_t width, int flags, FILE *out)
+_format_write_double(double d, ssize_t width, ssize_t precision, int flags, FILE *out)
 {
 	char fmt[128];
 
-	if(_format_build_fmt_string(fmt, 128, width, flags, 'f'))
+	if(_format_build_fmt_string(fmt, 128, width, precision, flags, 'f'))
 	{
 		fprintf(out, fmt, d);
 	}
 	else
 	{
-		fprintf(stderr, "Couldn't write double, built format string exceeds maximum buffer length.\n");
+		fprintf(stderr, "%s: couldn't write double, built format string exceeds maximum buffer length.\n", __func__);
 	}
 }
 
 static void
-_format_write_date(time_t time, ssize_t width, int flags, const char *format, FILE *out)
+_format_write_date(time_t time, ssize_t width, ssize_t precision, int flags, const char *format, FILE *out)
 {
 	char buffer[4096];
 
@@ -160,7 +172,7 @@ _format_write_date(time_t time, ssize_t width, int flags, const char *format, FI
 			/* write date string */
 			if(strftime(buffer, sizeof(buffer), time_format, tm))
 			{
-				_format_write_string(buffer, width, flags, out);
+				_format_write_string(buffer, width, precision, flags, out);
 			}
 			else
 			{
@@ -176,7 +188,7 @@ _format_write_date(time_t time, ssize_t width, int flags, const char *format, FI
 	{
 		strcpy(buffer, ctime(&time));
 		buffer[strlen(buffer) - 1] = '\0';
-		fputs(buffer, out);
+		_format_write_string(buffer, width, precision, flags, out);
 	}
 }
 
@@ -217,7 +229,7 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 
 			if(node->type_id == FORMAT_NODE_TEXT)
 			{
-				_format_write_string(((FormatTextNode *)node)->text, node->width, node->flags, out);
+				_format_write_string(((FormatTextNode *)node)->text, node->width, node->precision, node->flags, out);
 			}
 			else if(node->type_id == FORMAT_NODE_ATTR)
 			{
@@ -227,26 +239,26 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 				{
 					if(attr.flags & FILE_ATTR_FLAG_STRING)
 					{
-						_format_write_string(file_attr_get_string(&attr), node->width, node->flags, out);
+						_format_write_string(file_attr_get_string(&attr), node->width, node->precision, node->flags, out);
 					}
 					else if(attr.flags & FILE_ATTR_FLAG_INTEGER)
 					{
 						if(((FormatAttrNode *)node)->attr == 'm')
 						{
-							_format_write_integer(file_attr_get_integer(&attr), node->width, node->flags, 'o', out);
+							_format_write_integer(file_attr_get_integer(&attr), node->width, node->precision, node->flags, 'o', out);
 						}
 						else
 						{
-							_format_write_integer(file_attr_get_integer(&attr), node->width, node->flags, 'd', out);
+							_format_write_integer(file_attr_get_integer(&attr), node->width, node->precision, node->flags, 'd', out);
 						}
 					}
 					else if(attr.flags & FILE_ATTR_FLAG_TIME)
 					{
-						_format_write_date(file_attr_get_time(&attr), node->width, node->flags, ((FormatAttrNode *)node)->format, out);
+						_format_write_date(file_attr_get_time(&attr), node->width, node->precision, node->flags, ((FormatAttrNode *)node)->format, out);
 					}
 					else if(attr.flags & FILE_ATTR_FLAG_DOUBLE)
 					{
-						_format_write_double(file_attr_get_double(&attr), node->width, node->flags, out);
+						_format_write_double(file_attr_get_double(&attr), node->width, node->precision, node->flags, out);
 					}
 					else
 					{

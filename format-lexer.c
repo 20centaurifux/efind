@@ -31,7 +31,8 @@ typedef enum
 {
 	FORMAT_LEXER_STATE_STRING,
 	FORMAT_LEXER_STATE_ATTR,
-	FORMAT_LEXER_STATE_NUMBER,
+	FORMAT_LEXER_STATE_WIDTH,
+	FORMAT_LEXER_STATE_PRECISION,
 	FORMAT_LEXER_STATE_DATE_ATTR,
 	FORMAT_LEXER_STATE_ESCAPE_SEQ
 } FormatLexerState;
@@ -241,7 +242,7 @@ _format_lexer_step_field(FormatLexerResult *result)
 	}
 	else if(isdigit(*result->ctx.tail) && *result->ctx.tail != '0')
 	{
-		_format_lexer_push(result, FORMAT_LEXER_STATE_NUMBER, 1);
+		_format_lexer_push(result, FORMAT_LEXER_STATE_WIDTH, 1);
 	}
 	else
 	{
@@ -252,18 +253,52 @@ _format_lexer_step_field(FormatLexerResult *result)
 	return success;
 }
 
-static void
+static bool
 _format_lexer_step_number(FormatLexerResult *result)
 {
-	if(isdigit(*result->ctx.tail))
+	void *state;
+	bool success = true;
+
+	if(stack_head(&result->ctx.state, &state))
 	{
-		++result->ctx.tail;
+		if((intptr_t)state == FORMAT_LEXER_STATE_WIDTH)
+		{
+			if(isdigit(*result->ctx.tail))
+			{
+				++result->ctx.tail;
+			}
+			else if(*result->ctx.tail == '.')
+			{
+				stack_push(&result->ctx.state, (void *)FORMAT_LEXER_STATE_PRECISION);
+				++result->ctx.tail;
+			}
+			else
+			{
+				_format_lexer_found_token(result, FORMAT_TOKEN_NUMBER);
+				_format_lexer_pop(result);
+			}
+		}
+		else if((intptr_t)state == FORMAT_LEXER_STATE_PRECISION)
+		{
+			if(isdigit(*result->ctx.tail))
+			{
+				++result->ctx.tail;
+			}
+			else
+			{
+				_format_lexer_found_token(result, FORMAT_TOKEN_NUMBER);
+				_format_lexer_pop(result); /* pop fraction */
+				_format_lexer_pop(result); /* pop integral */
+			}
+		}
+		else
+		{
+			fprintf(stderr, "%s: unexpected lexer state: %ld\n", __func__, (intptr_t)state);
+			success = false;
+		}
 	}
-	else
-	{
-		_format_lexer_found_token(result, FORMAT_TOKEN_NUMBER);
-		_format_lexer_pop(result);
-	}
+
+	return success;
 }
 
 static void
@@ -317,8 +352,9 @@ _format_lexer_step(FormatLexerResult *result)
 			success = _format_lexer_step_field(result);
 			break;
 
-		case FORMAT_LEXER_STATE_NUMBER:
-			_format_lexer_step_number(result);
+		case FORMAT_LEXER_STATE_WIDTH:
+		case FORMAT_LEXER_STATE_PRECISION:
+			success = _format_lexer_step_number(result);
 			break;
 
 		case FORMAT_LEXER_STATE_DATE_ATTR:

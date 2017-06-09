@@ -57,6 +57,8 @@ typedef struct
 	int32_t flags;
 	/*! Text width. */
 	ssize_t width;
+	/*! Precision. */
+	ssize_t precision;
 } FormatNodeBase;
 
 /**
