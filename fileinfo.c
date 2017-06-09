@@ -26,6 +26,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <math.h>
 #include <assert.h>
 
 #include "fileinfo.h"
@@ -33,14 +34,16 @@
 #include "utils.h"
 
 static char *
-_file_info_get_dirname_r(const char *filename)
+_file_info_get_dirname(const char *filename)
 {
-	char *dirname = NULL;
+	static char dirname[PATH_MAX];
 
-	dirname = strdup(filename);
+	assert(filename != NULL);
 
-	if(dirname)
+	if(filename && strlen(filename) < PATH_MAX)
 	{
+		strcpy(dirname, filename);
+
 		char *offset = strrchr(dirname, '/');
 
 		if(offset)
@@ -52,10 +55,6 @@ _file_info_get_dirname_r(const char *filename)
 			strcpy(dirname, ".");
 		}
 	}
-	else
-	{
-		perror("strdup()");
-	}
 
 	return dirname;
 }
@@ -66,6 +65,8 @@ _file_info_readlink(const char *filename)
 	ssize_t size;
 	static char buffer[PATH_MAX];
 
+	assert(filename != NULL);
+
 	size = readlink(filename, buffer, PATH_MAX);
 
 	if(size > 0 && size < PATH_MAX)
@@ -75,6 +76,7 @@ _file_info_readlink(const char *filename)
 	else
 	{
 		perror("readlink()");
+		*buffer = '\0';
 	}
 
 	return buffer;
@@ -88,8 +90,8 @@ _file_info_permissions(mode_t mode)
 
 	memset(bits, 0, sizeof(bits));
 
-	strcpy(bits, rwx[(mode >> 6)& 7]);
-	strcpy(&bits[3], rwx[(mode >> 3)& 7]);
+	strcpy(bits, rwx[(mode >> 6) & 7]);
+	strcpy(&bits[3], rwx[(mode >> 3) & 7]);
 	strcpy(&bits[6], rwx[(mode & 7)]);
 
 	if(mode & S_ISUID)
@@ -128,6 +130,28 @@ _file_info_remove_cli(const char *cli, const char *path)
 	return path + len;
 }
 
+static double
+_file_info_calc_sparseness(blksize_t blksize, blkcnt_t blocks, off_t size)
+{
+	double sparseness = 0.0;
+
+	if(size)
+	{
+		sparseness = (double)(blksize / 8) * blocks / size;
+
+		if(isnan(sparseness) || isinf(sparseness))
+		{
+			sparseness = 0.0;
+		}
+	}
+	else if(blocks)
+	{
+		sparseness = 1.0;
+	}
+
+	return sparseness;
+}
+
 void
 file_info_init(FileInfo *info)
 {
@@ -156,6 +180,7 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	struct stat sb;
 	bool success = false;
 
+	assert(info != NULL);
 	assert(cli != NULL);
 	assert(path != NULL);
 
@@ -197,8 +222,8 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			break;
 
 		case 'h': /* Leading directories of file's name (all but the last element). */
-			attr->flags = FILE_ATTR_FLAG_STRING | FILE_ATTR_FLAG_HEAP;
-			attr->value.str = _file_info_get_dirname_r(info->path);
+			attr->flags = FILE_ATTR_FLAG_STRING;
+			attr->value.str = _file_info_get_dirname(info->path);
 			break;
 
 		case 'H': /* Command line argument under which file was found. */
@@ -283,8 +308,8 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			break;
 
 		case 'S': /* File's sparseness. */
-			attr->flags = FILE_ATTR_FLAG_INTEGER;
-			attr->value.n = info->sb.st_blksize * info->sb.st_blocks / info->sb.st_size;
+			attr->flags = FILE_ATTR_FLAG_DOUBLE;
+			attr->value.d = _file_info_calc_sparseness(info->sb.st_blksize, info->sb.st_blocks, info->sb.st_size);
 			break;
 
 		case 'U': /* File's numeric user ID. */
@@ -364,6 +389,17 @@ file_attr_get_time(FileAttr *attr)
 	if(attr && (attr->flags & FILE_ATTR_FLAG_TIME))
 	{
 		return attr->value.n;
+	}
+
+	return 0;
+}
+
+double
+file_attr_get_double(FileAttr *attr)
+{
+	if(attr && (attr->flags & FILE_ATTR_FLAG_DOUBLE))
+	{
+		return attr->value.d;
 	}
 
 	return 0;

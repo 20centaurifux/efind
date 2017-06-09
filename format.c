@@ -20,105 +20,126 @@
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <alloca.h>
+#include <math.h>
 #include <assert.h>
 
 #include "format.h"
 
-static void
-_format_write_string(const char *text, ssize_t width, int flags, FILE *out)
+static bool
+_format_build_fmt_string(char *fmt, size_t len, ssize_t width, int flags, char conversion)
 {
-	size_t len;
-	char *ptr = NULL;
+	char *offset = fmt;
 
-	len = strlen(text);
+	assert(fmt != NULL);
 
-	if(width > 0 && (size_t)width > len)
+	memset(fmt, 0, len);
+
+	*offset++ = '%'; 
+
+	/*! @cond INTERNAL */
+	#define TEST_FMT_BUFFER(LEN) if(len - (offset - fmt) <= LEN) { return false; }
+	/*! @endcond */
+
+	if(flags & FORMAT_PRINT_FLAG_MINUS)
 	{
-		ptr = alloca(width + 1);
+		TEST_FMT_BUFFER(1);
+		*offset++ = '-';
+	}
 
-		if(ptr)
-		{
-			memset(ptr, ' ', width + 1);
-			ptr[width] = '\0';
+	if(flags & FORMAT_PRINT_FLAG_ZERO)
+	{
+		TEST_FMT_BUFFER(1);
+		*offset++ = '0';
+	}
 
-			if(flags & FORMAT_PRINT_FLAG_MINUS)
-			{
-				memcpy(ptr, text, len);
-			}
-			else
-			{
-				memcpy(ptr + (width - len), text, len);
-			}
-		}
+	if(flags & FORMAT_PRINT_FLAG_SPACE)
+	{
+		TEST_FMT_BUFFER(1);
+		*offset++ = ' ';
+	}
+
+	if(flags & FORMAT_PRINT_FLAG_PLUS)
+	{
+		TEST_FMT_BUFFER(1);
+		*offset++ = '+';
+	}
+
+	if(flags & FORMAT_PRINT_FLAG_HASH)
+	{
+		TEST_FMT_BUFFER(1);
+		*offset++ = '#';
+	}
+
+	if(width > 0)
+	{
+		int required = (int)log10(width) + 1;
+
+		TEST_FMT_BUFFER(required);
+
+		sprintf(offset, "%ld%c", width, conversion);
 	}
 	else
 	{
-		ptr = (char *)text;
+		TEST_FMT_BUFFER(1);
+		*offset = conversion;
 	}
 
-	if(ptr)
+	return true;
+}
+
+static void
+_format_write_string(const char *text, ssize_t width, int flags, FILE *out)
+{
+	char fmt[128];
+
+	if(_format_build_fmt_string(fmt, 128, width, flags, 's'))
 	{
-		fputs(ptr, out);
+		fprintf(out, fmt, text);
+	}
+	else
+	{
+		fprintf(stderr, "Couldn't write string, built format string exceeds maximum buffer length.\n");
 	}
 }
 
 static void
 _format_write_integer(int n, ssize_t width, int flags, const char conversion, FILE *out)
 {
-	char fmt[64];
-	char *offset = fmt;
+	char fmt[128];
 
-	/* build format string */
-	memset(fmt, 0, 64);
-
-	*offset++ = '%'; 
-
-	if(flags & FORMAT_PRINT_FLAG_MINUS)
+	if(_format_build_fmt_string(fmt, 128, width, flags, conversion))
 	{
-		*offset++ = '-';
-	}
-
-	if(flags & FORMAT_PRINT_FLAG_ZERO)
-	{
-		*offset++ = '0';
-	}
-
-	if(flags & FORMAT_PRINT_FLAG_SPACE)
-	{
-		*offset++ = ' ';
-	}
-
-	if(flags & FORMAT_PRINT_FLAG_PLUS)
-	{
-		*offset++ = '+';
-	}
-
-	if(flags & FORMAT_PRINT_FLAG_HASH)
-	{
-		*offset++ = '#';
-	}
-
-	if(width > 0)
-	{
-		sprintf(offset, "%ldd", width);
+		fprintf(out, fmt, n);
 	}
 	else
 	{
-		*offset = conversion;
+		fprintf(stderr, "Couldn't write integer, built format string exceeds maximum buffer length.\n");
 	}
+}
 
-	/* print string */
-	fprintf(out, fmt, n);
+static void
+_format_write_double(double d, ssize_t width, int flags, FILE *out)
+{
+	char fmt[128];
+
+	if(_format_build_fmt_string(fmt, 128, width, flags, 'f'))
+	{
+		fprintf(out, fmt, d);
+	}
+	else
+	{
+		fprintf(stderr, "Couldn't write double, built format string exceeds maximum buffer length.\n");
+	}
 }
 
 static void
 _format_write_date(time_t time, ssize_t width, int flags, const char *format, FILE *out)
 {
-	char buffer[765];
+	char buffer[4096];
 
 	if(format && *format)
 	{
-		char time_format[64];
+		char time_format[256];
 		size_t len = strlen(format);
 
 		if(len < sizeof(time_format) / 2)
@@ -136,7 +157,7 @@ _format_write_date(time_t time, ssize_t width, int flags, const char *format, FI
 				time_format[i * 2 + 1] = format[i];
 			}
 
-			/* build date string */
+			/* write date string */
 			if(strftime(buffer, sizeof(buffer), time_format, tm))
 			{
 				_format_write_string(buffer, width, flags, out);
@@ -222,6 +243,10 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 					else if(attr.flags & FILE_ATTR_FLAG_TIME)
 					{
 						_format_write_date(file_attr_get_time(&attr), node->width, node->flags, ((FormatAttrNode *)node)->format, out);
+					}
+					else if(attr.flags & FILE_ATTR_FLAG_DOUBLE)
+					{
+						_format_write_double(file_attr_get_double(&attr), node->width, node->flags, out);
 					}
 					else
 					{

@@ -58,7 +58,9 @@ typedef enum
 	/*! The FileAttr's value is allocated on the heap. */
 	FILE_ATTR_FLAG_HEAP    = 4,
 	/*! The FileAttr holds a time value. */
-	FILE_ATTR_FLAG_TIME    = 8
+	FILE_ATTR_FLAG_TIME    = 8,
+	/*! The FileAttr holds a double. */
+	FILE_ATTR_FLAG_DOUBLE  = 16
 } FileAttrFlags;
 
 /**
@@ -77,6 +79,8 @@ typedef struct
 		int n;
 		/*! A time value. */
 		time_t time;
+		/*! A double value. */
+		double d;
 	} value;
 } FileAttr;
 
@@ -144,6 +148,14 @@ int file_attr_get_integer(FileAttr *attr);
    Reads the time value from a FileAttr.
  */
 time_t file_attr_get_time(FileAttr *attr);
+
+/**
+   @param attr a FileAttr instance
+   @return an double
+
+   Reads the double value from a FileAttr.
+ */
+double file_attr_get_double(FileAttr *attr);
 
 #endif
 
