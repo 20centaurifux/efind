@@ -239,6 +239,7 @@ _format_lexer_step_field(FormatLexerResult *result)
 		_format_lexer_found_token(result, FORMAT_TOKEN_DATE_ATTRIBUTE);
 		_format_lexer_pop(result);
 		_format_lexer_push(result, FORMAT_LEXER_STATE_DATE_ATTR, 1);
+		++result->ctx.start;
 	}
 	else if(isdigit(*result->ctx.tail) && *result->ctx.tail != '0')
 	{
@@ -304,11 +305,6 @@ _format_lexer_step_number(FormatLexerResult *result)
 static void
 _format_lexer_step_date_attr(FormatLexerResult *result)
 {
-	if(strchr(DATE_ATTRIBUTES, *result->ctx.start))
-	{
-		++result->ctx.start;
-	}
-
 	if(*result->ctx.tail && (strchr(DATE_FIELDS, *result->ctx.tail) || strchr(TIME_FIELDS, *result->ctx.tail)))
 	{
 		++result->ctx.tail;
