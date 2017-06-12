@@ -25,11 +25,11 @@
 /*! Major version. */
 #define EFIND_VERSION_MAJOR     0
 /*! Minor version. */
-#define EFIND_VERSION_MINOR     1
+#define EFIND_VERSION_MINOR     2
 /*! Patch level. */
-#define EFIND_VERSION_PATCH     1
+#define EFIND_VERSION_PATCH     0
 /*! Code name. */
-#define EFIND_VERSION_CODE_NAME "Belzoni"
+#define EFIND_VERSION_CODE_NAME "Jean Malaurie"
 /*! Project website. */
 #define EFIND_WEBSITE           "http://efind.dixieflatline.de"
 /*! Copyright date. */
