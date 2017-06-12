@@ -26,11 +26,12 @@
 #include "format.h"
 
 static bool
-_format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision, int flags, char conversion)
+_format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision, int flags, const char *conversion)
 {
 	char *offset = fmt;
 
 	assert(fmt != NULL);
+	assert(conversion != NULL);
 
 	memset(fmt, 0, len);
 
@@ -76,24 +77,24 @@ _format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision
 
 		if(precision > 0)
 		{
-			required += (int)log10(precision) + 2;
+			required += (int)log10(precision) + strlen(conversion) + 2;
 		}
 
 		TEST_FMT_BUFFER(required);
 
 		if(precision > 0)
 		{
-			sprintf(offset, "%ld.%ld%c", (long)width, (long)precision, conversion);
+			sprintf(offset, "%ld.%ld%s", (long)width, (long)precision, conversion);
 		}
 		else
 		{
-			sprintf(offset, "%ld%c", (long)width, conversion);
+			sprintf(offset, "%ld%s", (long)width, conversion);
 		}
 	}
 	else
 	{
-		TEST_FMT_BUFFER(1);
-		*offset = conversion;
+		TEST_FMT_BUFFER(strlen(conversion));
+		strcpy(offset, conversion);
 	}
 
 	return true;
@@ -104,7 +105,7 @@ _format_write_string(const char *text, ssize_t width, ssize_t precision, int fla
 {
 	char fmt[128];
 
-	if(_format_build_fmt_string(fmt, 128, width, precision, flags, 's'))
+	if(_format_build_fmt_string(fmt, 128, width, precision, flags, "s"))
 	{
 		fprintf(out, fmt, text);
 	}
@@ -115,7 +116,7 @@ _format_write_string(const char *text, ssize_t width, ssize_t precision, int fla
 }
 
 static void
-_format_write_integer(int n, ssize_t width, ssize_t precision, int flags, const char conversion, FILE *out)
+_format_write_number(long long n, ssize_t width, ssize_t precision, int flags, const char *conversion, FILE *out)
 {
 	char fmt[128];
 
@@ -134,7 +135,7 @@ _format_write_double(double d, ssize_t width, ssize_t precision, int flags, FILE
 {
 	char fmt[128];
 
-	if(_format_build_fmt_string(fmt, 128, width, precision, flags, 'f'))
+	if(_format_build_fmt_string(fmt, 128, width, precision, flags, "f"))
 	{
 		fprintf(out, fmt, d);
 	}
@@ -245,12 +246,16 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 					{
 						if(((FormatAttrNode *)node)->attr == 'm')
 						{
-							_format_write_integer(file_attr_get_integer(&attr), node->width, node->precision, node->flags, 'o', out);
+							_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "o", out);
 						}
 						else
 						{
-							_format_write_integer(file_attr_get_integer(&attr), node->width, node->precision, node->flags, 'd', out);
+							_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "d", out);
 						}
+					}
+					else if(attr.flags & FILE_ATTR_FLAG_LLONG)
+					{
+						_format_write_number(file_attr_get_llong(&attr), node->width, node->precision, node->flags, "lld", out);
 					}
 					else if(attr.flags & FILE_ATTR_FLAG_TIME)
 					{

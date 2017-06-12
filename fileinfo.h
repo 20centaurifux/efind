@@ -60,7 +60,9 @@ typedef enum
 	/*! The FileAttr holds a time value. */
 	FILE_ATTR_FLAG_TIME    = 8,
 	/*! The FileAttr holds a double. */
-	FILE_ATTR_FLAG_DOUBLE  = 16
+	FILE_ATTR_FLAG_DOUBLE  = 16,
+	/*! The FileAttr holds a long long. */
+	FILE_ATTR_FLAG_LLONG   = 32
 } FileAttrFlags;
 
 /**
@@ -81,6 +83,8 @@ typedef struct
 		time_t time;
 		/*! A double value. */
 		double d;
+		/*! A long long value. */
+		long long llong;
 	} value;
 } FileAttr;
 
@@ -140,6 +144,14 @@ char *file_attr_get_string(FileAttr *attr);
    Reads the integer value from a FileAttr.
  */
 int file_attr_get_integer(FileAttr *attr);
+
+/**
+   @param attr a FileAttr instance
+   @return a long long
+
+   Reads the long long value from a FileAttr.
+ */
+long long file_attr_get_llong(FileAttr *attr);
 
 /**
    @param attr a FileAttr instance

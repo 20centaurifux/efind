@@ -293,8 +293,8 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			break;
 
 		case 'k': /* The amount of disk space used for this file in 1K blocks. */
-			attr->flags = FILE_ATTR_FLAG_INTEGER;
-			attr->value.n = info->sb.st_size / 1024;
+			attr->flags = FILE_ATTR_FLAG_LLONG;
+			attr->value.llong = info->sb.st_size / 1024;
 			break;
 
 		case 'n': /* Number of hard links to file. */
@@ -303,8 +303,8 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			break;
 
 		case 's': /* File's size in bytes. */
-			attr->flags = FILE_ATTR_FLAG_INTEGER;
-			attr->value.n = info->sb.st_size;
+			attr->flags = FILE_ATTR_FLAG_LLONG;
+			attr->value.llong = info->sb.st_size;
 			break;
 
 		case 'S': /* File's sparseness. */
@@ -378,6 +378,17 @@ file_attr_get_integer(FileAttr *attr)
 	if(attr && (attr->flags & FILE_ATTR_FLAG_INTEGER))
 	{
 		return attr->value.n;
+	}
+
+	return 0;
+}
+
+long long
+file_attr_get_llong(FileAttr *attr)
+{
+	if(attr && (attr->flags & FILE_ATTR_FLAG_LLONG))
+	{
+		return attr->value.llong;
 	}
 
 	return 0;
