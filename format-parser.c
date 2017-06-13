@@ -78,8 +78,11 @@ _format_parser_ctx_init(FormatParserCtx *ctx)
 static SList *
 _format_parser_ctx_detach_nodes(FormatParserCtx *ctx)
 {
-	SList *nodes = ctx->nodes;
+	SList *nodes;
+       
+	assert(ctx != NULL);
 
+	nodes = ctx->nodes;
 	ctx->nodes = NULL;
 
 	return nodes;
@@ -104,6 +107,9 @@ _format_parser_ctx_free(FormatParserCtx *ctx)
 static void
 _format_node_init(FormatNodeBase *node, NodeType type_id, int32_t flags, ssize_t width, ssize_t precision)
 {
+	assert(node != NULL);
+	assert(flags >= 0);
+
 	node->type_id = type_id;
 	node->flags = flags;
 	node->width = width;
@@ -160,6 +166,8 @@ _format_parser_reset_cache(FormatParserCtx *ctx)
 static void
 _format_parser_found_attribute(FormatParserCtx *ctx)
 {
+	assert(ctx != NULL);
+
 	slist_append(ctx->nodes, _format_attribute_node_new(ctx));
 	_format_parser_reset_cache(ctx);
 }
@@ -167,6 +175,8 @@ _format_parser_found_attribute(FormatParserCtx *ctx)
 static void
 _format_parser_found_date_attribute(FormatParserCtx *ctx)
 {
+	assert(ctx != NULL);
+
 	slist_append(ctx->nodes, _format_attribute_node_new(ctx));
 	_format_parser_reset_cache(ctx);
 }
@@ -174,6 +184,8 @@ _format_parser_found_date_attribute(FormatParserCtx *ctx)
 static void
 _format_parser_found_string(FormatParserCtx *ctx)
 {
+	assert(ctx != NULL);
+
 	slist_append(ctx->nodes, _format_text_node_new(ctx));
 	_format_parser_reset_cache(ctx);
 }
@@ -182,6 +194,8 @@ static void
 _format_parser_pop(FormatParserCtx *ctx)
 {
 	void *state;
+
+	assert(ctx != NULL);
 
 	stack_pop(&ctx->state, &state);
 
@@ -192,6 +206,10 @@ _format_parser_pop(FormatParserCtx *ctx)
 	else if((intptr_t)state == FORMAT_PARSER_STATE_DATE_ATTR)
 	{
 		_format_parser_found_date_attribute(ctx);
+	}
+	else
+	{
+		fprintf(stderr, "%s: unknown parser state: %ld\n", __func__, (intptr_t)state);
 	}
 }
 
@@ -244,6 +262,9 @@ _format_parser_begin_width(FormatParserCtx *ctx, FormatToken *token)
 static FormatParserStepResult
 _format_parser_begin_flags(FormatParserCtx *ctx, FormatToken *token)
 {
+	assert(ctx != NULL);
+	assert(token != NULL);
+
 	stack_push(&ctx->state, (void *)FORMAT_PARSER_STATE_FLAG);
 
 	return FORMAT_PARSER_STEP_RESULT_CONTINUE;
@@ -252,6 +273,9 @@ _format_parser_begin_flags(FormatParserCtx *ctx, FormatToken *token)
 static FormatParserStepResult
 _format_parser_begin_attribute(FormatParserCtx *ctx, FormatToken *token)
 {
+	assert(ctx != NULL);
+	assert(token != NULL);
+
 	ctx->attr = *token->text;
 	_format_parser_found_attribute(ctx);
 
@@ -261,6 +285,9 @@ _format_parser_begin_attribute(FormatParserCtx *ctx, FormatToken *token)
 static FormatParserStepResult
 _format_parser_begin_date_attribute(FormatParserCtx *ctx, FormatToken *token)
 {
+	assert(ctx != NULL);
+	assert(token != NULL);
+
 	memset(ctx->format, 0, FORMAT_FMT_BUFFER_MAX);
 
 	ctx->attr = *token->text;
@@ -274,6 +301,9 @@ static FormatParserStepResult
 _format_parser_step_none(FormatParserCtx *ctx, FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_NEXT;
+
+	assert(ctx != NULL);
+	assert(token != NULL);
 
 	if(token->type_id == FORMAT_TOKEN_STRING || token->type_id == FORMAT_TOKEN_ESCAPE_SEQ)
 	{
@@ -418,6 +448,9 @@ _format_parser_step_flag(FormatParserCtx *ctx, FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_ABORT;
 
+	assert(ctx != NULL);
+	assert(token != NULL);
+
 	if(token->type_id == FORMAT_TOKEN_FLAG)
 	{
 		assert(token->len == 1);
@@ -485,6 +518,9 @@ _format_parser_step_width(FormatParserCtx *ctx, FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_NEXT;
 
+	assert(ctx != NULL);
+	assert(token != NULL);
+
 	_format_parser_pop(ctx);
 
 	if(token->type_id == FORMAT_TOKEN_ATTRIBUTE)
@@ -507,6 +543,9 @@ static FormatParserStepResult
 _format_parser_step_date_attribute(FormatParserCtx *ctx, FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_CONTINUE;
+
+	assert(ctx != NULL);
+	assert(token != NULL);
 
 	if(token->type_id == FORMAT_TOKEN_DATE_FORMAT)
 	{

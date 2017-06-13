@@ -55,7 +55,7 @@ _format_lexer_init(FormatLexerResult *result, const char *format)
 
 	memset(result, 0, sizeof(FormatLexerResult));
 
-	if(format && strlen(format) <= FORMAT_TEXT_BUFFER_MAX)
+	if(format && strlen(format) < FORMAT_TEXT_BUFFER_MAX)
 	{
 		if(sizeof(FormatToken) > item_size)
 		{
@@ -92,6 +92,8 @@ _format_lexer_pop(FormatLexerResult *result)
 {
 	void *state;
 
+	assert(result != NULL);
+
 	stack_pop(&result->ctx.state, &state);
 	result->ctx.start = result->ctx.tail;
 }
@@ -99,6 +101,9 @@ _format_lexer_pop(FormatLexerResult *result)
 static void
 _format_lexer_push(FormatLexerResult *result, FormatLexerState state, size_t offset)
 {
+	assert(result != NULL);
+	assert(offset > 0);
+
 	stack_push(&result->ctx.state, (void *)state);
 	result->ctx.start = result->ctx.tail;
 	result->ctx.tail += offset;
@@ -109,6 +114,7 @@ _format_token_new(Allocator *alloc, FormatTokenType type_id, const char *text, s
 {
 	FormatToken *token;
 
+	assert(alloc != NULL);
 	assert(text != NULL);
 	assert(len > 0);
 
@@ -124,6 +130,8 @@ _format_token_new(Allocator *alloc, FormatTokenType type_id, const char *text, s
 static void
 _format_lexer_found_token(FormatLexerResult *result, FormatTokenType type_id)
 {
+	assert(result != NULL);
+
 	if(type_id == FORMAT_TOKEN_STRING || type_id == FORMAT_TOKEN_ESCAPE_SEQ || type_id == FORMAT_TOKEN_NUMBER || type_id == FORMAT_TOKEN_DATE_FORMAT)
 	{
 		if(result->ctx.start < result->ctx.tail && *result->ctx.start)
@@ -145,6 +153,8 @@ static bool
 _format_lexer_step_string(FormatLexerResult *result)
 {
 	bool success = true;
+
+	assert(result != NULL);
 
 	if(*result->ctx.tail == '\0')
 	{
@@ -230,6 +240,8 @@ _format_lexer_step_field(FormatLexerResult *result)
 {
 	bool success = true;
 
+	assert(result != NULL);
+
 	if(strchr(FLAGS, *result->ctx.tail))
 	{
 		_format_lexer_found_token(result, FORMAT_TOKEN_FLAG);
@@ -266,6 +278,8 @@ _format_lexer_step_number(FormatLexerResult *result)
 {
 	void *state;
 	bool success = true;
+
+	assert(result != NULL);
 
 	if(stack_head(&result->ctx.state, &state))
 	{
@@ -312,6 +326,8 @@ _format_lexer_step_number(FormatLexerResult *result)
 static void
 _format_lexer_step_date_attr(FormatLexerResult *result)
 {
+	assert(result != NULL);
+
 	if(*result->ctx.tail && (strchr(DATE_FIELDS, *result->ctx.tail) || strchr(TIME_FIELDS, *result->ctx.tail)))
 	{
 		++result->ctx.tail;
@@ -410,7 +426,12 @@ format_lexer_result_destroy(FormatLexerResult *result)
 	{
 		stack_free(&result->ctx.state);
 		slist_free(&result->ctx.token);
-		chunk_allocator_destroy((ChunkAllocator *)result->ctx.alloc);
+
+		if(result->ctx.alloc)
+		{
+			chunk_allocator_destroy((ChunkAllocator *)result->ctx.alloc);
+		}
+
 		free(result);
 	}
 }

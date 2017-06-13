@@ -29,75 +29,99 @@ static bool
 _format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision, int flags, const char *conversion)
 {
 	char *offset = fmt;
+	bool success = false;
 
 	assert(fmt != NULL);
 	assert(conversion != NULL);
 
-	memset(fmt, 0, len);
-
-	*offset++ = '%'; 
-
-	/*! @cond INTERNAL */
-	#define TEST_FMT_BUFFER(LEN) if(len - (offset - fmt) <= LEN) { return false; }
-	/*! @endcond */
-
-	if(flags & FORMAT_PRINT_FLAG_MINUS)
+	if(len > 1)
 	{
-		TEST_FMT_BUFFER(1);
-		*offset++ = '-';
-	}
+		memset(fmt, 0, len);
 
-	if(flags & FORMAT_PRINT_FLAG_ZERO)
-	{
-		TEST_FMT_BUFFER(1);
-		*offset++ = '0';
-	}
+		*offset++ = '%'; 
 
-	if(flags & FORMAT_PRINT_FLAG_SPACE)
-	{
-		TEST_FMT_BUFFER(1);
-		*offset++ = ' ';
-	}
+		/*! @cond INTERNAL */
+		#define TEST_FMT_BUFFER(LEN) if(len - (offset - fmt) <= LEN) { return false; }
+		/*! @endcond */
 
-	if(flags & FORMAT_PRINT_FLAG_PLUS)
-	{
-		TEST_FMT_BUFFER(1);
-		*offset++ = '+';
-	}
-
-	if(flags & FORMAT_PRINT_FLAG_HASH)
-	{
-		TEST_FMT_BUFFER(1);
-		*offset++ = '#';
-	}
-
-	if(width > 0)
-	{
-		int required = (int)log10(width) + 1;
-
-		if(precision > 0)
+		if(flags & FORMAT_PRINT_FLAG_MINUS)
 		{
-			required += (int)log10(precision) + strlen(conversion) + 2;
+			TEST_FMT_BUFFER(1);
+			*offset++ = '-';
 		}
 
-		TEST_FMT_BUFFER(required);
-
-		if(precision > 0)
+		if(flags & FORMAT_PRINT_FLAG_ZERO)
 		{
-			sprintf(offset, "%ld.%ld%s", (long)width, (long)precision, conversion);
+			TEST_FMT_BUFFER(1);
+			*offset++ = '0';
+		}
+
+		if(flags & FORMAT_PRINT_FLAG_SPACE)
+		{
+			TEST_FMT_BUFFER(1);
+			*offset++ = ' ';
+		}
+
+		if(flags & FORMAT_PRINT_FLAG_PLUS)
+		{
+			TEST_FMT_BUFFER(1);
+			*offset++ = '+';
+		}
+
+		if(flags & FORMAT_PRINT_FLAG_HASH)
+		{
+			TEST_FMT_BUFFER(1);
+			*offset++ = '#';
+		}
+
+		if(width > 0)
+		{
+			int required = 1;
+			
+			if(__builtin_add_overflow(required, (int)log10(width), &required))
+			{
+				return false;
+			}
+
+			if(precision > 0)
+			{
+				if(__builtin_add_overflow(required, (int)log10(precision), &required))
+				{
+					return false;
+				}
+
+				if(__builtin_add_overflow(required, strlen(conversion), &required))
+				{
+					return false;
+				}
+
+				if(__builtin_add_overflow(required, 2, &required))
+				{
+					return false;
+				}
+			}
+
+			TEST_FMT_BUFFER(required);
+
+			if(precision > 0)
+			{
+				sprintf(offset, "%ld.%ld%s", (long)width, (long)precision, conversion);
+			}
+			else
+			{
+				sprintf(offset, "%ld%s", (long)width, conversion);
+			}
 		}
 		else
 		{
-			sprintf(offset, "%ld%s", (long)width, conversion);
+			TEST_FMT_BUFFER(strlen(conversion));
+			strcpy(offset, conversion);
 		}
-	}
-	else
-	{
-		TEST_FMT_BUFFER(strlen(conversion));
-		strcpy(offset, conversion);
+
+		success = true;
 	}
 
-	return true;
+	return success;
 }
 
 static void
@@ -155,14 +179,14 @@ _format_write_date(time_t time, ssize_t width, ssize_t precision, int flags, con
 		char time_format[256];
 		size_t len = strlen(format);
 
-		if(len < sizeof(time_format) / 2)
+		if(len < SIZE_MAX && len + 1 < sizeof(time_format) / 2)
 		{
 			struct tm *tm;
 
 			tm = localtime(&time);
 
 			/* build format string */
-			memset(time_format, 0, len * 2 + 1);
+			memset(time_format, 0, sizeof(time_format));
 
 			for(size_t i = 0; i < len; ++i)
 			{
@@ -177,7 +201,7 @@ _format_write_date(time_t time, ssize_t width, ssize_t precision, int flags, con
 			}
 			else
 			{
-				fprintf(stderr, "%s: date-time string exceeds maximum.\n", __func__);
+				fprintf(stderr, "%s: date-time string exceeds maximum or is empty.\n", __func__);
 			}
 		}
 		else
