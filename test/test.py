@@ -87,7 +87,7 @@ INVALID_SEARCH_ARGS = [['ctime>5bytes and writable'],
 
 PRINTF_ARGS = ["%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n",
                "%p => %Ca%CA%Cb%CB%Cd|%TD%Th%Tj%Tm\052\a\0532%TU%Tw\v%TW[%Ty]|%TY %h '%023H' |%l| %m %#m %M\n",
-               "FI{{%p}}LE %b %% %20p%-#0P<%5s> USER: %0500u\tUSER ID: %U\F\n"]
+               "FI{{%p}}LE %b %% %20p%-#0P<%5s> USER: %0500u\tUSER ID: %U\n"]
 
 if __name__ == "__main__":
 	for argv, expected in SEARCH_ARGS:
