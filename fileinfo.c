@@ -86,13 +86,43 @@ static char *
 _file_info_permissions(mode_t mode)
 {
 	static const char *rwx[] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
-	static char bits[10];
+	static char bits[11];
 
 	memset(bits, 0, sizeof(bits));
 
-	strcpy(bits, rwx[(mode >> 6) & 7]);
-	strcpy(&bits[3], rwx[(mode >> 3) & 7]);
-	strcpy(&bits[6], rwx[(mode & 7)]);
+	switch(mode & S_IFMT)
+	{
+		case S_IFSOCK:
+			*bits = 's';
+			break;
+
+		case S_IFLNK:
+			*bits = 'l';
+			break;
+
+		case S_IFBLK:
+			*bits = 'b';
+			break;
+
+		case S_IFDIR:
+			*bits = 'd';
+			break;
+
+		case S_IFCHR:
+			*bits = 'c';
+			break;
+
+		case S_IFIFO:
+			*bits = 'p';
+			break;
+
+		default:
+			*bits = '-';
+	}
+
+	strcpy(&bits[1], rwx[(mode >> 6) & 7]);
+	strcpy(&bits[4], rwx[(mode >> 3) & 7]);
+	strcpy(&bits[7], rwx[(mode & 7)]);
 
 	if(mode & S_ISUID)
 	{
@@ -101,12 +131,12 @@ _file_info_permissions(mode_t mode)
 
 	if(mode & S_ISGID)
 	{
-        	bits[5] = (mode & S_IXGRP) ? 's' : 'l';
+        	bits[6] = (mode & S_IXGRP) ? 's' : 'l';
 	}
 
 	if(mode & S_ISVTX)
 	{
-        	bits[8] = (mode & S_IXOTH) ? 't' : 'T';
+        	bits[9] = (mode & S_IXOTH) ? 't' : 'T';
 	}
 
 	return bits;
