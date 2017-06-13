@@ -157,7 +157,14 @@ _format_lexer_step_string(FormatLexerResult *result)
 		{
 			if(*(result->ctx.tail + 1) == '%')
 			{
+				_format_lexer_found_token(result, FORMAT_TOKEN_STRING);
+
+				result->ctx.start = result->ctx.tail + 1;
 				result->ctx.tail += 2;
+
+				_format_lexer_found_token(result, FORMAT_TOKEN_STRING);
+
+				++result->ctx.start;
 			}
 			else
 			{
