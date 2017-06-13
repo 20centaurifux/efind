@@ -30,7 +30,7 @@ def test_search(argv, expected, success=True):
 
 def test_printf(path, printf):
     # run find:
-    cmd = ["find", "./test-data", "-type", "f", "-printf", printf]
+    cmd = ["find", "./test-data", "-size", "+0", "-printf", printf]
 
     print("Running find, argv=[%s]" % ", ".join(cmd[1:]))
 
@@ -39,7 +39,7 @@ def test_printf(path, printf):
     proc.wait()
 
     # run efind:
-    cmd = ["efind", "./test-data", "type=file", "--printf", printf]
+    cmd = ["efind", "./test-data", "size>=0", "--printf", printf]
 
     print("Running efind, argv=[%s]" % ", ".join(cmd[1:]))
 
@@ -71,6 +71,7 @@ SEARCH_ARGS = [[['--version'], None],
                [['--expr', 'type=directory and uid=%s' % (id('-u')), '--maxdepth=0'], ["test-data"]],
                [['mtime<=5days and mtime>=1day and type=file'], ["test-data/00/1M.0", "test-data/01/15kb.1"]],
                [['mtime=6days'], ["test-data/02/20M.2"]],
+               [['mtime=4days and name=""'], []],
                [['mtime>96hours'], ["test-data/00/1M.0", "test-data/02/20M.2"]],
                [['atime>2days and user="%s"' % (id('-un'))], ["test-data/02/5kb.2"]],
                [['atime>=24hours and readable and name="*2*"'], ["test-data/01/2G.1", "test-data/02/5kb.2"]]]
@@ -87,7 +88,10 @@ INVALID_SEARCH_ARGS = [['ctime>5bytes and writable'],
 
 PRINTF_ARGS = ["%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n",
                "%p => %Ca%CA%Cb%CB%Cd|%TD%Th%Tj%Tm\052\a\0532%TU%Tw\v%TW[%Ty]|%TY %h '%023H' |%l| %m %#m %M\n",
-               "FI{{%p}}LE %b %% %20p%-#0P<%5s> USER: %0500u\tUSER ID: %U\n"]
+               "FI{{%p}}LE %b %% %20p%-#0P<%5s> USER: %0500u\tUSER ID: %U\n",
+               "",
+               random_string(64),
+               random_string(2048) + "\n"]
 
 if __name__ == "__main__":
 	for argv, expected in SEARCH_ARGS:
