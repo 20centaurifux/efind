@@ -28,6 +28,27 @@ def test_search(argv, expected, success=True):
 
 	assert((success and proc.returncode == 0) or (not success and proc.returncode != 0))
 
+def test_printf(path, printf):
+    # run find:
+    cmd = ["find", "./test-data", "-type", "f", "-printf", printf]
+
+    print("Running find, argv=[%s]" % ", ".join(cmd[1:]))
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    find_result = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
+    proc.wait()
+
+    # run efind:
+    cmd = ["efind", "./test-data", "type=file", "--printf", printf]
+
+    print("Running efind, argv=[%s]" % ", ".join(cmd[1:]))
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    efind_result = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
+    proc.wait()
+
+    assert(set(find_result) == set(efind_result))
+
 def id(arg):
 	proc = subprocess.Popen(["id", arg], stdout=subprocess.PIPE)
 
@@ -64,9 +85,17 @@ INVALID_SEARCH_ARGS = [['ctime>5bytes and writable'],
                        ['type=socket and iname="%s"' % (random_string(1024))],
                        ['size>=%s' % (random_string(2048))]]
 
+PRINTF_ARGS = ["%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n",
+               "%p => %Ca%CA%Cb%CB%Cd|%TD%Th%Tj%Tm\052\a\0532%TU%Tw\v%TW[%Ty]|%TY %h '%023H' |%l| %m %#m %M\n",
+               "FI{{%p}}LE %b %% %20p%-#0P<%5s> USER: %0500u\tUSER ID: %U\F\n"]
+
 if __name__ == "__main__":
 	for argv, expected in SEARCH_ARGS:
 		test_search(argv, expected)
 
 	for argv in INVALID_SEARCH_ARGS:
 		test_search(argv, None, False)
+
+        for arg in PRINTF_ARGS:
+            for dir in ["./test-data", "./test-data/", ".", "./"]:
+                test_printf(dir, arg)
