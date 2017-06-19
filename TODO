@@ -1,7 +1,3 @@
 * not operator
-* GNU Guile support
-* Python support
-* Lua support
-* cache 'find' results (if desired)
-* sort result
-* group results
+* sort find results
+* more detailed logging and error reporting

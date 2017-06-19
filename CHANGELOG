@@ -1,8 +1,12 @@
+2017-06-??: v0.2.0 (Leif Erikson)
+	* FEATURE: Python 2 support for extensions
+	* FEATURE: regular expression support (regex & iregex attribute)
+	* FEATURE: added --printf option
+
 2017-05-13: v0.1.1
-	blacklist support:
-	  make it possible to exclude extensions from being loaded
+	* FEATURE: blacklist support
+	  (make it possible to exclude extensions from being loaded)
+	* FIX: don't import same module twice
 
-	don't import same module twice
-
-2017-05-06: v0.1.0
-	first release
+2017-05-06: v0.1.0 (Belzoni)
+	* first release
