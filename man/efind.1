@@ -46,8 +46,7 @@ A literal backslash (`\e').
 .IP \eNNN
 The character whose ASCII code is NNN (octal).
 .PP
-A `\e' character followed by any other character is treated as an
-ordinary character, so they both are printed.
+Any other character following a `\e' is printed.
 .IP %%
 A literal percent sign.
 .IP %A\fIk\fP
@@ -119,9 +118,7 @@ last two digits of year (00..99)
 year (1970...)
 .RE
 .IP %b
-The amount of disk space used for this file in 512-byte blocks.  Since disk
-space is allocated in multiples of the filesystem block size this is usually
-greater than %s/512, but it can also be smaller if the file is a sparse file.
+The amount of disk space used for this file in 512-byte blocks.
 .IP %C\fIk\fP
 File's last status change time in the format specified by \fIk\fR,
 which is the same as for %A.
@@ -131,12 +128,13 @@ stat), in decimal.
 .IP %f
 File's name with any leading directories removed (only the last element).
 .IP %F
-Type of the filesystem the file is on; this value can be used for
-\-fstype.
+Type of the filesystem the file is on.
 .IP %g
 File's group name, or numeric group ID if the group has no name.
 .IP %G
 File's numeric group ID.
+.IP %h
+Leading  directories of file's name (all but the last element).
 If the file name contains no slashes (since it is in the current
 directory) the %h specifier expands to `.'.
 .IP %H
@@ -144,9 +142,7 @@ Starting-point under which file was found.
 .IP %i
 File's inode number (in decimal).
 .IP %k
-The amount of disk space used for this file in 1K blocks.  Since disk space is
-allocated in multiples of the filesystem block size this is usually greater
-than %s/1024, but it can also be smaller if the file is a sparse file.
+The amount of disk space used for this file in 1K blocks.
 .IP %l
 Object of symbolic link (empty string if file is not a symbolic link).
 .IP %m
@@ -164,14 +160,8 @@ it was found removed.
 .IP %s
 File's size in bytes.
 .IP %S
-File's sparseness.  This is calculated as (BLOCKSIZE*st_blocks /
-st_size).  The exact value you will get for an ordinary file of a
-certain length is system-dependent.  However, normally sparse files
-will have values less than 1.0, and files which use indirect blocks
-may have a value which is greater than 1.0.   The value used for
-BLOCKSIZE is system-dependent, but is usually 512 bytes.   If the file
-size is zero, the value printed is undefined.  On systems which lack
-support for st_blocks, a file's sparseness is assumed to be 1.0.
+File's sparseness. If the file size is zero, the value printed is
+undefined.
 .IP %T\fIk\fP
 File's last modification time in the format specified by \fIk\fR,
 which is the same as for %A.
