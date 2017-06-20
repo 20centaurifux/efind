@@ -2,6 +2,7 @@
 	* FEATURE: Python 2 support for extensions
 	* FEATURE: regular expression support (regex & iregex attribute)
 	* FEATURE: added --printf option
+	* FEATURE: increased maximum allowed expression length
 
 2017-05-13: v0.1.1
 	* FEATURE: blacklist support

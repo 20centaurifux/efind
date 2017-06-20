@@ -28,7 +28,7 @@
 #include "translate.h"
 
 /*! Maximum expression length. */
-#define PARSER_MAX_EXPRESSION_LENGTH 512
+#define PARSER_MAX_EXPRESSION_LENGTH 4096
 
 /**
    @struct ParserExtra

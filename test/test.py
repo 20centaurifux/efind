@@ -83,7 +83,7 @@ INVALID_SEARCH_ARGS = [['ctime>5bytes and writable'],
                        [random_string()],
                        ['gid=%s' % (random_string())],
                        ['iname="%s' % (random_string(64))],
-                       ['type=socket and iname="%s"' % (random_string(1024))],
+                       ['type=socket and iname="%s"' % (random_string(4096))],
                        ['size>=%s' % (random_string(2048))]]
 
 PRINTF_ARGS = ["%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n",

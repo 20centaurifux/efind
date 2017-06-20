@@ -25,8 +25,6 @@
 #include "search.h"
 #include "utils.h"
 
-#define BUFFER_MAX 512
-
 int
 yyparse(void *scanner, void **root);
 
@@ -112,7 +110,7 @@ parse_string(const char *str)
 	result = (ParserResult *)utils_malloc(sizeof(ParserResult));
 	memset(result, 0, sizeof(ParserResult));
 
-	buffer_init(&result->data.buffer, BUFFER_MAX);
+	buffer_init(&result->data.buffer, PARSER_MAX_EXPRESSION_LENGTH);
 	slist_init(&result->data.strings, &direct_equal, &free, NULL);
 
 	result->data.alloc = (Allocator *)chunk_allocator_new(_parser_get_alloc_item_size(), 16);
