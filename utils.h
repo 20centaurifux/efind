@@ -62,12 +62,14 @@ size_t utils_strlcat(char *dst, const char *src, size_t size);
 size_t utils_trim(char *str);
 
 /**
-   @param n a number
-   @return a power of two
+   @param a first operand
+   @param b second operand
+   @param location to store sum of a and b
+   @return true if an overflow occured
 
-   Finds the smallest power of two that's greater or equal to n.
+   Adds two positive integer values and checks if an overflow occured.
  */
-size_t utils_next_pow2(size_t n);
+bool utils_int_add_checkoverflow(int a, int b, int *dst);
 
 /**
    @param name executable to find
@@ -76,19 +78,7 @@ size_t utils_next_pow2(size_t n);
    Searches for an executable testing all directories found in the PATH
    environment variable.
  */
-char * utils_whereis(const char *name);
-
-/**
-   @param node a node providing location details
-   @param buf buffer to write message to
-   @param size size of buffer
-   @param format a format string
-   @param ... optional arguments
-   @return length of the message written to buffer, -1 on failure
-
-   Writes a message to a string and prepends location details.
- */
-size_t utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, ...);
+char *utils_whereis(const char *name);
 
 /**
    @param dir directory name
@@ -109,5 +99,18 @@ bool utils_path_join(const char *dir, const char *filename, char *dst, size_t ma
    The function fails if the string length exceeds the internal maximum buffer size (4096).
  */
 void utils_strdup_printf(char **dst, const char *fmt, ...);
+
+/**
+   @param node a node providing location details
+   @param buf buffer to write message to
+   @param size size of buffer
+   @param format a format string
+   @param ... optional arguments
+   @return length of the message written to buffer, -1 on failure
+
+   Writes a message to a string and prepends location details.
+ */
+size_t utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, ...);
+
 #endif
 

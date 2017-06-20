@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "format.h"
+#include "utils.h"
 
 static bool
 _format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision, int flags, const char *conversion)
@@ -78,24 +79,24 @@ _format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision
 		{
 			int required = 1;
 			
-			if(__builtin_add_overflow(required, (int)log10(width), &required))
+			if(utils_int_add_checkoverflow(required, (int)log10(width), &required))
 			{
 				return false;
 			}
 
 			if(precision > 0)
 			{
-				if(__builtin_add_overflow(required, (int)log10(precision), &required))
+				if(utils_int_add_checkoverflow(required, (int)log10(precision), &required))
 				{
 					return false;
 				}
 
-				if(__builtin_add_overflow(required, strlen(conversion), &required))
+				if(utils_int_add_checkoverflow(required, strlen(conversion), &required))
 				{
 					return false;
 				}
 
-				if(__builtin_add_overflow(required, 2, &required))
+				if(utils_int_add_checkoverflow(required, 2, &required))
 				{
 					return false;
 				}

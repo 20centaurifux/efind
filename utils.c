@@ -147,6 +147,27 @@ utils_trim(char *str)
 	return len;
 }
 
+bool
+utils_int_add_checkoverflow(int a, int b, int *dst)
+{
+	bool overflow = true;
+
+	assert(a >= 0);
+	assert(b >= 0);
+
+	#if __GNUC__ > 4
+	overflow = __builtin_add_overflow(a, b, dst);
+	#else
+	if(INT_MAX - b > a)
+	{
+		*dst = a + b;
+		overflow = false;
+	}
+	#endif
+
+	return overflow;
+}
+
 char *
 utils_whereis(const char *name)
 {
