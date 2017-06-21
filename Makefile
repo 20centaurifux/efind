@@ -13,7 +13,7 @@ PYTHON_LDFLAGS=
 PYTHON_INC=-I /usr/include/python2.7
 
 CC=gcc
-CFLAGS=-Wall -std=gnu99 -O2 $(PYTHON_CFLAGS)
+CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 $(PYTHON_CFLAGS)
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS)
 LIBS=-ldl ./datatypes/libdatatypes-0.1.3.a $(PYTHON_LIBS) -lm
 INC=-I./datatypes $(PYTHON_INC)
@@ -52,7 +52,7 @@ tags:
 	$(CTAGS) -R .
 
 cppcheck:
-	$(CPPCHECK) --enable=style --enable=performance --enable=information --std=c99 --force -j2 --template gcc *.h *.c
+	$(CPPCHECK) --enable=all --std=c99 --force -j2 --template gcc *.h *.c
 
 clean:
 	$(MAKE) -C ./datatypes clean
