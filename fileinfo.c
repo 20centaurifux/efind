@@ -40,6 +40,8 @@ _file_info_get_dirname(const char *filename)
 
 	assert(filename != NULL);
 
+	memset(dirname, 0, sizeof(dirname));
+
 	if(filename && strlen(filename) < PATH_MAX)
 	{
 		strcpy(dirname, filename);
