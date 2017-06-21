@@ -61,7 +61,7 @@ linux_map_gid(gid_t gid)
 	
 	if(grp && grp->gr_name && *grp->gr_name)
 	{
-		name = strdup(grp->gr_name);
+		name = utils_strdup(grp->gr_name);
 	}
 	else
 	{
@@ -81,7 +81,7 @@ linux_map_uid(uid_t uid)
 	
 	if(pw && pw->pw_name && *pw->pw_name)
 	{
-		name = strdup(pw->pw_name);
+		name = utils_strdup(pw->pw_name);
 	}
 	else
 	{

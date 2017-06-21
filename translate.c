@@ -93,7 +93,7 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 		ctx->argv = (char **)utils_realloc(ctx->argv, ctx->msize * sizeof(char *));
 	}
 
-	ctx->argv[ctx->argc++] = strdup(arg);
+	ctx->argv[ctx->argc++] = utils_strdup(arg);
 
 	return true;
 }
@@ -821,7 +821,7 @@ _process_condition(TranslationCtx *ctx, ConditionNode *node)
 		case VALUE_TYPE:
 			if((success = _test_property(ctx, node, &_property_supports_type, "filetype")))
 			{
-				success = _append_type_cond(ctx, node->prop, node->value->value.ivalue);
+				success = _append_type_cond(ctx, node->value->value.ivalue);
 			}
 			break;
 

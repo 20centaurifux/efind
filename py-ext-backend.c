@@ -125,7 +125,7 @@ _py_get_module_name(const char *filename)
 
 	if(filename)
 	{
-		name = strdup(basename(filename));
+		name = utils_strdup(basename(filename));
 
 		if(name)
 		{
@@ -176,7 +176,7 @@ _py_get_extension_details(PyObject *module, char *details[3])
 
 		if(attr && PyString_Check(attr))
 		{
-			details[i] = strdup(PyString_AsString(attr));
+			details[i] = utils_strdup(PyString_AsString(attr));
 			success = true;
 		}
 
@@ -347,7 +347,7 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 			av_call(alist);
 
 			/* store signature */
-			assoc_array_set(&handle->signatures, strdup(fn_name), signature, false);
+			assoc_array_set(&handle->signatures, utils_strdup(fn_name), signature, false);
 		}
 		else
 		{
@@ -418,7 +418,7 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 
 		PyTuple_SetItem(tuple, 0, PyString_FromString(filename));
 
-		for(int i = 0; i < argc; ++i)
+		for(uint32_t i = 0; i < argc; ++i)
 		{
 			PyObject *arg = NULL;
 

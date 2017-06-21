@@ -215,22 +215,22 @@ _search_merge_options(size_t *argc, char ***argv, const char *path, const Search
 	memset(nargv, 0, sizeof(char *) * maxsize);
 
 	/* first argument (executable name) */
-	nargv[index++] = strdup("find");
+	nargv[index++] = utils_strdup("find");
 
 	/* follow symbolic links? */
 	if(opts && opts->follow)
 	{
-		nargv[index++] = strdup("-L");
+		nargv[index++] = utils_strdup("-L");
 	}
 
 	/* copy search path */
-	nargv[index++] = strdup(path);
+	nargv[index++] = utils_strdup(path);
 
 	/* regex type */
 	if(opts && opts->regex_type)
 	{
-		nargv[index++] = strdup("-regextype");
-		nargv[index++] = strdup(opts->regex_type);
+		nargv[index++] = utils_strdup("-regextype");
+		nargv[index++] = utils_strdup(opts->regex_type);
 	}
 
 	/* copy translated find arguments */
@@ -242,12 +242,12 @@ _search_merge_options(size_t *argc, char ***argv, const char *path, const Search
 	/* maximum search depth */
 	if(opts && opts->max_depth >= 0)
 	{
-		char buffer[16];
+		char buffer[32];
 
-		snprintf(buffer, 16, "%d", opts->max_depth);
+		snprintf(buffer, sizeof(buffer), "%d", opts->max_depth);
 
-		nargv[index++] = strdup("-maxdepth");
-		nargv[index++] = strdup(buffer);
+		nargv[index++] = utils_strdup("-maxdepth");
+		nargv[index++] = utils_strdup(buffer);
 	}
 
 	*argc = index;

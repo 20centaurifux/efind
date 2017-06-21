@@ -99,7 +99,7 @@ _extension_callback_new(const char *name, uint32_t argc)
 		cb = (ExtensionCallback *)utils_malloc(sizeof(ExtensionCallback));
 		memset(cb, 0, sizeof(ExtensionCallback));
 
-		cb->name = strdup(name);
+		cb->name = utils_strdup(name);
 		cb->argc = argc;
 
 		if(argc)
@@ -163,7 +163,7 @@ _extension_module_new(const char *filename, ExtensionModuleType type)
 
 		if(_extension_module_set_backend_class(&module->backend, type))
 		{
-			module->filename = strdup(filename);
+			module->filename = utils_strdup(filename);
 			module->type = type;
 			module->callbacks = assoc_array_new(str_compare, free, (FreeFunc)_extension_callback_free);
 		}
@@ -238,7 +238,7 @@ _extension_manager_function_discovered(RegistrationCtx *ctx, const char *name, u
 
 		if(success)
 		{
-			assoc_array_set(((ExtensionModule *)ctx)->callbacks, strdup(cb->name), cb, true);
+			assoc_array_set(((ExtensionModule *)ctx)->callbacks, utils_strdup(cb->name), cb, true);
 		}
 	}
 }
@@ -254,17 +254,17 @@ _extension_manager_extension_registered(RegistrationCtx *ctx, const char *name, 
 
 	if(name)
 	{
-		module->name = strdup(name);
+		module->name = utils_strdup(name);
 	}
 
 	if(version)
 	{
-		module->version = strdup(version);
+		module->version = utils_strdup(version);
 	}
 
 	if(description)
 	{
-		module->description = strdup(description);
+		module->description = utils_strdup(description);
 	}
 }
 
@@ -284,7 +284,7 @@ _extension_manager_import_module(ExtensionManager *manager, const char *filename
 		/* load module */
 		if((module->handle = module->backend.load(module->filename, _extension_manager_extension_registered, (void *)module)))
 		{
-			assoc_array_set(manager->modules, strdup(module->filename), module, true);
+			assoc_array_set(manager->modules, utils_strdup(module->filename), module, true);
 
 			/* discover functions */
 			module->backend.discover(module->handle, _extension_manager_function_discovered, (void *)module);
@@ -679,7 +679,7 @@ extension_callback_args_set_string(ExtensionCallbackArgs *args, uint32_t offset,
 
 	if(string)
 	{
-		args->argv[offset] = strdup(string);
+		args->argv[offset] = utils_strdup(string);
 	}
 
 	args->types[offset] = CALLBACK_ARG_TYPE_STRING;

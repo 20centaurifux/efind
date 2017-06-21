@@ -62,6 +62,27 @@ utils_realloc(void *ptr, size_t size)
 	return ptr;
 }
 
+char *
+utils_strdup(const char *str)
+{
+	char *ptr = NULL;
+
+	assert(str != NULL);
+
+	if(str)
+	{
+		ptr = strdup(str);
+
+		if(!ptr)
+		{
+			perror("strdup()");
+			abort();
+		}
+	}
+
+	return ptr;
+}
+
 size_t
 utils_strlcat(char *dst, const char *src, size_t size)
 {
@@ -204,7 +225,7 @@ utils_whereis(const char *name)
 			{
 				if((sb.st_mode & S_IFMT) == S_IFREG && (sb.st_mode & S_IXUSR || sb.st_mode & S_IXGRP))
 				{
-					exe = strdup(path);
+					exe = utils_strdup(path);
 				}
 			}
 		}

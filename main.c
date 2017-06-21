@@ -149,14 +149,14 @@ _read_options(int argc, char *argv[], Options *opts)
 	{
 		if(argv[1][0] != '-')
 		{
-			opts->dir = strdup(argv[1]);
+			opts->dir = utils_strdup(argv[1]);
 			++offset;
 		}
 	}
 
 	if(argc >= 3 && argv[2][0] != '-')
 	{
-		opts->expr = strdup(argv[2]);
+		opts->expr = utils_strdup(argv[2]);
 		opts->flags &= ~FLAG_STDIN; 
 		++offset;
 	}
@@ -176,7 +176,7 @@ _read_options(int argc, char *argv[], Options *opts)
 			case 'e':
 				if(!opts->expr)
 				{
-					opts->expr = strdup(optarg);
+					opts->expr = utils_strdup(optarg);
 					opts->flags &= ~FLAG_STDIN; 
 				}
 				break;
@@ -184,7 +184,7 @@ _read_options(int argc, char *argv[], Options *opts)
 			case 'd':
 				if(!opts->dir)
 				{
-					opts->dir = strdup(optarg);
+					opts->dir = utils_strdup(optarg);
 				}
 				break;
 
@@ -219,11 +219,11 @@ _read_options(int argc, char *argv[], Options *opts)
 				}
 				else if(!strcmp(long_options[index].name, "regex-type"))
 				{
-					opts->regex_type = strdup(optarg);
+					opts->regex_type = utils_strdup(optarg);
 				}
 				else if(!strcmp(long_options[index].name, "printf"))
 				{
-					opts->printf = strdup(optarg);
+					opts->printf = utils_strdup(optarg);
 				}
 
 				break;
@@ -271,7 +271,7 @@ _autodetect_homedir(void)
 
 	if(envpath)
 	{
-		return strdup(envpath);
+		return utils_strdup(envpath);
 	}
 
 	return NULL;
@@ -313,7 +313,7 @@ _build_search_options(const Options *opts, SearchOptions *sopts)
 
 	if(opts->regex_type)
 	{
-		sopts->regex_type = strdup(opts->regex_type);
+		sopts->regex_type = utils_strdup(opts->regex_type);
 	}
 }
 

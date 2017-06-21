@@ -44,6 +44,14 @@ void *utils_malloc(size_t size);
 void *utils_realloc(void *ptr, size_t size);
 
 /**
+   @param str string to copy
+   @return pointer to a newly allocated string
+
+   Returns a new string which is a copy of the string str. Aborts on failure.
+ */
+char *utils_strdup(const char *str);
+
+/**
    @param dst destination string
    @param src string to append
    @param size at most size - 1 bytes are copied
