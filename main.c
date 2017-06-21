@@ -240,9 +240,10 @@ static char *
 _read_expr_from_stdin(void)
 {
 	char *expr = (char *)utils_malloc(PARSER_MAX_EXPRESSION_LENGTH);
-	size_t bytes = PARSER_MAX_EXPRESSION_LENGTH;
+	ssize_t bytes = PARSER_MAX_EXPRESSION_LENGTH;
+	size_t read;
 	
-	bytes = getline(&expr, &bytes, stdin);
+	bytes = getline(&expr, &read, stdin);
 
 	if(!bytes)
 	{
@@ -367,14 +368,21 @@ _exec_find(const Options *opts)
 		arg.dir = opts->dir;
 		arg.fmt = fmt;
 
-		file_info_init(&arg.info);
+		if(arg.fmt)
+		{
+			file_info_init(&arg.info);
+		}
 
 		_build_search_options(opts, &sopts);
 
 		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, &arg) >= 0;
 
 		search_options_free(&sopts);
-		file_info_clear(&arg.info);
+
+		if(arg.fmt)
+		{
+			file_info_clear(&arg.info);
+		}
 	}
 	else
 	{

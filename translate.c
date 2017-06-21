@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <limits.h>
 #include <inttypes.h>
 #include <math.h>
 #include <assert.h>
@@ -121,11 +122,80 @@ _translation_ctx_append_args(TranslationCtx *ctx, ...)
 	return success;
 }
 
+/* write error message with line & column information */
+static ssize_t
+_vprintf_loc(const Node *node, char *buf, size_t size, const char *format, va_list ap)
+{
+	const YYLTYPE *locp;
+	char tmp[64];
+	size_t len;
+	ssize_t ret = -1;
+
+	assert(node != NULL);
+	assert(buf != NULL);
+	assert(format != NULL);
+
+	locp = &node->loc;
+
+	memset(buf, 0, size);
+	memset(tmp, 0, sizeof(tmp));
+
+	/* write line number(s) to buffer */
+	if(locp->first_line == locp->last_line)
+	{
+		snprintf(tmp, sizeof(tmp), "line: %d, ", locp->first_line);
+	}
+	else
+	{
+		snprintf(tmp, sizeof(tmp), "line: %d-%d, ", locp->first_line, locp->last_line);
+	}
+
+	len = utils_strlcat(buf, tmp, size);
+
+	if(len > size)
+	{
+		goto out;
+	}
+
+	/* append column(s) to buffer */
+	if(locp->first_column == locp->last_column)
+	{
+		snprintf(tmp, sizeof(tmp), "column: %d: ", locp->first_column);
+	}
+	else
+	{
+		snprintf(tmp, sizeof(tmp), "column: %d-%d: ", locp->first_column, locp->last_column);
+	}
+
+	len = utils_strlcat(buf, tmp, size);
+
+	if(len > size)
+	{
+		goto out;
+	}
+
+	/* append format string to buffer */
+	size_t available = size - len;
+
+	int written = vsnprintf(buf + len, available, format, ap);
+
+	if(written >= 0 && (size_t)written < available)
+	{
+		if(SIZE_MAX - written > len)
+		{
+			ret = len + written;
+		}
+	}
+
+out:
+	return ret;
+}
+
 /* set error message */
 static void
 _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 {
-	char msg[512];
+	char msg[4096];
 	va_list ap;
 
 	assert(ctx != NULL);
@@ -138,20 +208,35 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 	}
 
 	va_start(ap, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, ap);
-	va_end(ap);
 
 	if(node)
 	{
-		char loc_msg[600];
+		ssize_t written = _vprintf_loc(node, msg, sizeof(msg), fmt, ap);
 
-		utils_printf_loc(node, loc_msg, sizeof(loc_msg), msg);
-		ctx->err = strdup(loc_msg);
+		if(written != -1)
+		{
+			ctx->err = strdup(msg);
+		}
+		else
+		{
+			fprintf(stderr, "Couldn't set error message.\n");
+		}
 	}
 	else
 	{
-		ctx->err = strdup(msg);
+		int written = vsnprintf(msg, sizeof(msg), fmt, ap);
+
+		if(written > 0 && (size_t)written < sizeof(msg))
+		{
+			ctx->err = strdup(msg);
+		}
+		else
+		{
+			fprintf(stderr, "Couldn't set error message.\n");
+		}
 	}
+
+	va_end(ap);
 }
 
 /*
@@ -219,7 +304,7 @@ _property_to_str(PropertyId id)
 			break;
 
 		default:
-			fprintf(stderr, "%s:: critical error => invalid property id: %d\n", __func__, id);
+			fprintf(stderr, "%s: critical error, invalid property id: %#x\n", __func__, id);
 	}
 
 	return name;
@@ -286,7 +371,7 @@ _property_to_arg(PropertyId id, int arg)
 			break;
 
 		default:
-			fprintf(stderr, "%s:: critical error => invalid property id: %d\n", __func__, id);
+			fprintf(stderr, "%s: critical error. invalid property id: %#x\n", __func__, id);
 	}
 
 	return name;
@@ -313,7 +398,7 @@ _flag_to_arg(FileFlag id)
 			break;
 
 		default:
-			fprintf(stderr, "%s:: critical error => invalid flag: %d\n", __func__, id);
+			fprintf(stderr, "%s: critical error, invalid flag: %#x\n", __func__, id);
 	}
 
 	return name;
@@ -440,7 +525,7 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 			break;
 
 		default:
-			_set_error(ctx, NULL, "%s:: critical error => unsupported compare id: %d", __func__, cmp);
+			_set_error(ctx, NULL, "%s: critical error, unsupported compare id: %#x", __func__, cmp);
 			success = false;
 	}
 
@@ -460,7 +545,7 @@ _append_time_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 
 		if(val64 > INT32_MAX || val64 < INT32_MIN)
 		{
-			_set_error(ctx, NULL, "%s:: critical error => integer overflow", __func__);
+			_set_error(ctx, NULL, "%s: critical error, integer overflow", __func__);
 			success = false;
 		}
 		else
@@ -482,7 +567,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 {
 	const char *unit_name = "bytes";
 	bool success = true;
-	uint64_t bytes = val, max_val = INT64_MAX / 1024;
+	uint64_t bytes = val, max_val = (uint64_t)INT64_MAX / 1024;
 	int loops;
 
 	assert(ctx != NULL);
@@ -509,7 +594,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 			break;
 
 		default:
-			_set_error(ctx, NULL, "%s:: critical error => unsupported size id: %d", __func__, unit);
+			_set_error(ctx, NULL, "%s: critical error, unsupported size id: %#x", __func__, unit);
 			success = false;
 	}
 
@@ -517,7 +602,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 	{
 		if(bytes > max_val)
 		{
-			_set_error(ctx, NULL, "%s:: integer overflow, couldn't convert %d%s to bytes.", __func__, val, unit_name);
+			_set_error(ctx, NULL, "%s: integer overflow, couldn't convert %d %s to byte.", __func__, val, unit_name);
 			break;
 		}
 
@@ -533,7 +618,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 }
 
 static bool
-_append_type_cond(TranslationCtx *ctx, PropertyId prop, FileType type)
+_append_type_cond(TranslationCtx *ctx, FileType type)
 {
 	const char *t;
 	bool success = true;
@@ -571,7 +656,7 @@ _append_type_cond(TranslationCtx *ctx, PropertyId prop, FileType type)
 			break;
 
 		default:
-			_set_error(ctx, NULL, "%s:: critical error => unsupported file type: %d", __func__, type);
+			_set_error(ctx, NULL, "%s: critical error, unsupported file type: %#x", __func__, type);
 			success = false;
 
 	}
@@ -641,7 +726,7 @@ _process_expression(TranslationCtx *ctx, ExpressionNode *node)
 
 	if(node->op != OP_AND && node->op != OP_OR)
 	{
-		_set_error(ctx, NULL, "%s:: critical error => unsupported operator: %d", __func__, node->op);
+		_set_error(ctx, NULL, "%s: critical error, unsupported operator: %#x", __func__, node->op);
 	}
 
 	if(_open_parenthese(node, node->first))
@@ -741,7 +826,7 @@ _process_condition(TranslationCtx *ctx, ConditionNode *node)
 			break;
 
 		default:
-			_set_error(ctx, NULL, "%s:: critical error => unsupported value type: %d", __func__, node->value->vtype);
+			_set_error(ctx, NULL, "%s: critical error, unsupported value type: %#x", __func__, node->value->vtype);
 			break;
 	}
 
@@ -779,7 +864,7 @@ _process_node(TranslationCtx *ctx, Node *node)
 		}
 		else
 		{
-			_set_error(ctx, node, "%s:: critical error => unsupported node type: %d", __func__, node->type);
+			_set_error(ctx, node, "%s: critical error, unsupported node type: %#x", __func__, node->type);
 		}
 	}
 

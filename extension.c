@@ -360,6 +360,7 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 	bool success = false;
 	DIR *pdir;
 	Blacklist *blacklist;
+	char msg[PATH_MAX + 64];
 
 	assert(manager != NULL);
 	assert(path != NULL);
@@ -390,14 +391,24 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 					{
 						if(!_extension_manager_import_module(manager, filename, mod_type))
 						{
-							utils_strdup_printf(err, "Couldn't load extension \"%s\".", filename);
+							int len = snprintf(msg, sizeof(msg), "Couldn't load extension \"%s\".", filename);
+
+							if(len > 0 && (size_t)len < sizeof(msg))
+							{
+								*err = strdup(msg);
+							}
+
 							success = false;
 						}
 					}
 				}
 				else
 				{
-					utils_strdup_printf(err, "Path to extension file exceeds maximum allowed path length.");
+					if(err)
+					{
+						*err = strdup("Path to extension file exceeds maximum allowed path length.");
+					}
+
 					success = false;
 				}
 			}
@@ -409,7 +420,15 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 	}
 	else
 	{
-		utils_strdup_printf(err, "Couldn't open directory \"%s\".", path);
+		if(err)
+		{
+			int len = snprintf(msg, sizeof(msg), "Warning: couldn't open directory \"%s\".", path);
+
+			if(len > 0 && (size_t)len < sizeof(msg))
+			{
+				*err = strdup(msg);
+			}
+		}
 	}
 
 	blacklist_destroy(blacklist);
@@ -421,6 +440,7 @@ int
 extension_manager_load_default(ExtensionManager *manager)
 {
 	const char *home;
+	char *err = NULL;
 	int count = 0;
 
 	assert(manager != NULL);
@@ -437,12 +457,24 @@ extension_manager_load_default(ExtensionManager *manager)
 			{
 				++count;
 			}
+			else if(err)
+			{
+				fprintf(stderr, "%s\n", err);
+				free(err);
+				err = NULL;
+			}
 		}
 	}
 
-	if(extension_manager_load_directory(manager, "/etc/efind/extensions", NULL))
+	if(extension_manager_load_directory(manager, "/etc/efind/extensions", &err))
 	{
 		++count;
+	}
+	else if(err)
+	{
+		fprintf(stderr, "%s\n", err);
+		free(err);
+		err = NULL;
 	}
 
 	return count;

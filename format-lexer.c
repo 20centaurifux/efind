@@ -145,7 +145,7 @@ _format_lexer_found_token(FormatLexerResult *result, FormatTokenType type_id)
 	}
 	else
 	{
-		fprintf(stderr, "%s: unknown token type: %d\n", __func__, type_id);
+		fprintf(stderr, "%s: unknown token type: %#x\n", __func__, type_id);
 	}
 }
 

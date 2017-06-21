@@ -304,7 +304,7 @@ _search_translate_expr(const char *path, const char *expr, TranslationFlags flag
 }
 
 static void
-_search_child_process(int outfds[2], int errfds[2], ParserResult *result, char **argv)
+_search_child_process(int outfds[2], int errfds[2], char **argv)
 {
 	char *exe;
 
@@ -362,8 +362,8 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 	int lc = 0;
 	PreArgs pre_args;
 
-	const int PROCESS_STATUS_OK = 0;
-	const int PROCESS_STATUS_ERROR = 1;
+	const int PROCESS_STATUS_OK       = 0;
+	const int PROCESS_STATUS_ERROR    = 1;
 	const int PROCESS_STATUS_FINISHED = 2;
 
 	int status = PROCESS_STATUS_OK;
@@ -427,7 +427,7 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 							}
 						}
 
-						if(SSIZE_MAX - sum >= bytes)
+						if(SSIZE_MAX - bytes >= sum)
 						{
 							sum += bytes;
 						}
@@ -545,7 +545,7 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 			}
 			else if(pid == 0)
 			{
-				_search_child_process(outfds, errfds, result, argv);
+				_search_child_process(outfds, errfds, argv);
 			}
 			else
 			{

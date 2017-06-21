@@ -26,7 +26,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <assert.h>
-#include <stdarg.h>
 #include <limits.h>
 #include <ctype.h>
 
@@ -51,6 +50,7 @@ utils_malloc(size_t size)
 void *
 utils_realloc(void *ptr, size_t size)
 {
+	assert(ptr != NULL);
 	assert(size > 0);
 
 	if(!(ptr = realloc(ptr, size)))
@@ -127,12 +127,12 @@ utils_trim(char *str)
 
 	while(str[start] && isspace(str[start]))
 	{
-		start++;
+		++start;
 	}
 
 	while(end > start && isspace(str[end - 1]))
 	{
-		end--;
+		--end;
 	}
 
 	size_t len = end - start;
@@ -158,7 +158,7 @@ utils_int_add_checkoverflow(int a, int b, int *dst)
 	#if __GNUC__ > 4
 	overflow = __builtin_add_overflow(a, b, dst);
 	#else
-	if(INT_MAX - b > a)
+	if(INT_MAX - b >= a)
 	{
 		*dst = a + b;
 		overflow = false;
@@ -210,73 +210,11 @@ utils_whereis(const char *name)
 		}
 		else
 		{
-			fprintf(stderr, "%s: string truncation\n", __func__);
+			fprintf(stderr, "%s: string truncation failed\n", __func__);
 		}
 	}
 
 	return exe;
-}
-
-size_t
-utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, ...)
-{
-	va_list ap;
-	const YYLTYPE *locp;
-	char tmp[512];
-	size_t ret = -1;
-
-	assert(node != NULL);
-	assert(buf != NULL);
-	assert(size > 0);
-	assert(format != NULL);
-
-	locp = &node->loc;
-
-	memset(buf, 0, size);
-	memset(tmp, 0, sizeof(tmp));
-
-	if(locp->first_line == locp->last_line)
-	{
-		snprintf(tmp, sizeof(tmp), "line: %d, ", locp->first_line);
-	}
-	else
-	{
-		snprintf(tmp, sizeof(tmp), "line: %d-%d, ", locp->first_line, locp->last_line);
-	}
-
-	if(utils_strlcat(buf, tmp, size) >= size)
-	{
-		goto out;
-	}
-
-	if(locp->first_column == locp->last_column)
-	{
-		snprintf(tmp, sizeof(tmp), "column: %d: ", locp->first_column);
-	}
-	else
-	{
-		snprintf(tmp, sizeof(tmp), "column: %d-%d: ", locp->first_column, locp->last_column);
-	}
-
-	if(utils_strlcat(buf, tmp, size) >= size)
-	{
-		goto out;
-	}
-
-	va_start(ap, format);
-
-	if(vsnprintf(tmp, sizeof(tmp), format, ap) < sizeof(tmp))
-	{
-		if((ret = utils_strlcat(buf, tmp, size)) >= size)
-		{
-			ret = -1;
-		}
-	}
-
-	va_end(ap);
-
-out:
-	return ret;
 }
 
 bool
@@ -289,9 +227,9 @@ utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len
 
 	memset(dst, 0, max_len);
 
-	size_t len = strlen(dir);
+	int len = strlen(dir);
 
-	if(len < max_len)
+	if((size_t)len < max_len)
 	{
 		if(dir[len - 1] == '/')
 		{
@@ -302,30 +240,9 @@ utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len
 			len = snprintf(dst, max_len, "%s/%s", dir, filename);
 		}
 
-		result = len <= max_len;
+		result = len > 0 && (size_t)len < max_len;
 	}
 
 	return result;
-}
-
-void
-utils_strdup_printf(char **dst, const char *fmt, ...)
-{
-	if(dst && fmt && *dst)
-	{
-		char str[4096];
-		va_list ap;
-
-		*dst = NULL;
-
-		va_start(ap, fmt);
-
-		if(vsnprintf(str, sizeof(str), fmt, ap) < 4096)
-		{
-			*dst = strdup(str);
-		}
-		
-		va_end(ap);
-	}
 }
 

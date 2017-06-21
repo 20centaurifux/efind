@@ -55,7 +55,7 @@ _eval_set_fn_arg_from_value_node(ExtensionCallbackArgs *args, uint32_t offset, V
 	}
 	else
 	{
-		fprintf(stderr, "Function argument cannot be of type %d.\n", node->vtype);
+		fprintf(stderr, "%s: unexpected argument type: %#x.\n", __func__, node->vtype);
 		success = false;
 	}
 
@@ -93,7 +93,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 
 				if(expr->op != OP_COMMA)
 				{
-					fprintf(stderr, "%d in an unexpected expression operator when compiling argument list.\n", expr->op);
+					fprintf(stderr, "Couldn't compile argument list, operator not supported: %#x.\n", expr->op);
 					success = false;
 				}
 				else if(expr->first->type == NODE_FUNC)
@@ -111,7 +111,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 				}
 				else
 				{
-					fprintf(stderr, "Oops, that shouldn't have happened. Type %d is unexpected as first expression child.\n", iter->type);
+					fprintf(stderr, "%s: unexpected node type: %#x.\n", __func__, iter->type);
 					success = false;
 				}
 
@@ -126,13 +126,13 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 			}
 			else
 			{
-				fprintf(stderr, "Oops, that shouldn't have happened. Type %d is unexpected as function argument.\n", iter->type);
+				fprintf(stderr, "%s: unexpected argument type: %#x.\n", __func__, iter->type);
 				success = false;
 			}
 
 			if(argc == FN_STACK_SIZE)
 			{
-				fprintf(stderr, "Stack overflow in function \"%s\".\n", fn->name);
+				fprintf(stderr, "Stack overflow in function \"%s\", more than %d arguments are not supported.\n", fn->name, FN_STACK_SIZE);
 			}
 		}
 	}
@@ -153,7 +153,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 		}
 		else
 		{
-			fprintf(stderr, "No function named \"%s\" has the specified signature.\n", fn->name);
+			fprintf(stderr, "Function \"%s\" has a different signature, please check specified arguments.\n", fn->name);
 			success = false;
 		}
 	}
@@ -195,7 +195,7 @@ _eval_expression_node(Node *node, EvalContext *ctx)
 	}
 	else
 	{
-		fprintf(stderr, "Oops, that shouldn't have happened. Operator %d is not supported in %s.\n", expr->op, __func__);
+		fprintf(stderr, "%s: unsupported operator: %#x.\n", __func__, expr->op);
 	}
 
 	return result;
@@ -224,12 +224,12 @@ _eval_node_get_int(Node *node, EvalContext *ctx, int *result)
 		}
 		else
 		{
-			fprintf(stderr, "Oops, that shouldn't have happened. Data type: %d cannot be casted to integer.\n", val->vtype);
+			fprintf(stderr, "Data type %#x cannot be casted to integer.\n", val->vtype);
 		}
 	}
 	else
 	{
-		fprintf(stderr, "Oops, that shouldn't have happened. Node type %d is not supported in %s.\n", node->type, __func__);
+		fprintf(stderr, "%s: unsupported node type: %#x.\n", __func__, node->type);
 	}
 
 	return success;
@@ -253,7 +253,7 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 		}
 		else if(_eval_node_get_int(cmp->second, ctx, &b))
 		{
-			result = EVAL_RESULT_FALSE;
+			result = EVAL_RESULT_ABORTED;
 
 			switch(cmp->cmp)
 			{
@@ -278,8 +278,7 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 					break;
 
 				default:
-					fprintf(stderr, "Oops, that shouldn't have happened. Unsupported compare operator %d in %s.\n", cmp->cmp, __func__);
-					result = EVAL_RESULT_ABORTED;
+					fprintf(stderr, "%s: unsupported compare operator %#x.\n", __func__, cmp->cmp);
 			}
 		
 		}
@@ -306,7 +305,7 @@ _eval_node(Node *node, EvalContext *ctx)
 				break;
 
 			default:
-				fprintf(stderr, "Oops, that shouldn't have happened. Node type %d is unexpected in %s.\n", node->type, __func__);
+				fprintf(stderr, "%s: unexpected node type: %#x.\n", __func__, node->type);
 		}
 	}
 	else

@@ -19,6 +19,8 @@
    @brief Linux utilities.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
+#include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <grp.h>
 #include <pwd.h>
@@ -35,9 +37,15 @@ _utoa(unsigned int u)
 
 	char *str = utils_malloc(max_len);
 
-	if(snprintf(str, max_len, "%u", u) >= max_len)
+	int written = snprintf(str, max_len, "%u", u);
+
+	if(written >= max_len)
 	{
 		str[max_len - 1] = '\0';
+	}
+	else if(written < 0)
+	{
+		*str = '\0';
 	}
 
 	return str;

@@ -19,18 +19,18 @@
    @brief Utility functions.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-#include <stdlib.h>
-
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "ast.h"
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdarg.h>
 
 /**
    @param size number of bytes to allocate
    @return pointer to the allocated memory block
 
-   Allocates memory and abort on failure.
+   Allocates memory. Aborts on failure.
  */
 void *utils_malloc(size_t size);
 
@@ -39,7 +39,7 @@ void *utils_malloc(size_t size);
    @param size number of bytes to allocate
    @return pointer to the new memory block
 
-   Resizes a memory block and aborts on failure.
+   Resizes a memory block. Aborts on failure.
  */
 void *utils_realloc(void *ptr, size_t size);
 
@@ -64,7 +64,7 @@ size_t utils_trim(char *str);
 /**
    @param a first operand
    @param b second operand
-   @param location to store sum of a and b
+   @param dst location to store sum of a and b
    @return true if an overflow occured
 
    Adds two positive integer values and checks if an overflow occured.
@@ -90,27 +90,6 @@ char *utils_whereis(const char *name);
    Joins a path with a filename.
  */
 bool utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len);
-
-/**
-   @param dst return location for the newly-allocated string
-   @param fmt format string
-
-   Similar to the standard sprintf() function but writes the string to new allocated memory.
-   The function fails if the string length exceeds the internal maximum buffer size (4096).
- */
-void utils_strdup_printf(char **dst, const char *fmt, ...);
-
-/**
-   @param node a node providing location details
-   @param buf buffer to write message to
-   @param size size of buffer
-   @param format a format string
-   @param ... optional arguments
-   @return length of the message written to buffer, -1 on failure
-
-   Writes a message to a string and prepends location details.
- */
-size_t utils_printf_loc(const Node *node, char *buf, size_t size, const char *format, ...);
 
 #endif
 

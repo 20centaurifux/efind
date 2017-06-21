@@ -42,7 +42,7 @@ _format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision
 		*offset++ = '%'; 
 
 		/*! @cond INTERNAL */
-		#define TEST_FMT_BUFFER(LEN) if(len - (offset - fmt) <= LEN) { return false; }
+		#define TEST_FMT_BUFFER(LEN) if(len - (offset - fmt) <= (size_t)LEN) { return false; }
 		/*! @endcond */
 
 		if(flags & FORMAT_PRINT_FLAG_MINUS)
@@ -79,14 +79,14 @@ _format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision
 		{
 			int required = 1;
 			
-			if(utils_int_add_checkoverflow(required, (int)log10(width), &required))
+			if(utils_int_add_checkoverflow(required, (int)floor(log10(width)), &required))
 			{
 				return false;
 			}
 
 			if(precision > 0)
 			{
-				if(utils_int_add_checkoverflow(required, (int)log10(precision), &required))
+				if(utils_int_add_checkoverflow(required, (int)floor(log10(precision)), &required))
 				{
 					return false;
 				}
@@ -222,6 +222,7 @@ bool
 format_write(const FormatParserResult *result, FileInfo *info, const char *arg, const char *filename, FILE *out)
 {
 	FileInfo *pinfo;
+	FileInfo _info;
 	bool success = false;
 
 	assert(result != NULL);
@@ -236,12 +237,8 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 	}
 	else
 	{
-		pinfo = (FileInfo *)alloca(sizeof(FileInfo));
-
-		if(pinfo)
-		{
-			file_info_init(pinfo);
-		}
+		pinfo = &_info;
+		file_info_init(pinfo);
 	}
 
 	if(pinfo && file_info_get(pinfo, arg, filename))
@@ -301,7 +298,7 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 			}
 			else
 			{
-				fprintf(stderr, "%s: invalid node type: %d\n", __func__, node->type_id);
+				fprintf(stderr, "%s: invalid node type: %#x\n", __func__, node->type_id);
 				success = false;
 			}
 

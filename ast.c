@@ -69,61 +69,56 @@ ast_str_to_property_id(const char *str)
 {
 	PropertyId id = PROP_UNDEFINED;
 
-	if(!strcmp(str, "name"))
+	if(str)
 	{
-		id = PROP_NAME;
-	}
-	else if(!strcmp(str, "iname"))
-	{
-		id = PROP_INAME;
-	}
-	else if(!strcmp(str, "regex"))
-	{
-		id = PROP_REGEX;
-	}
-	else if(!strcmp(str, "iregex"))
-	{
-		id = PROP_IREGEX;
-	}
-	else if(!strcmp(str, "atime"))
-	{
-		id = PROP_ATIME;
-	}
-	else if(!strcmp(str, "ctime"))
-	{
-		id = PROP_CTIME;
-	}
-	else if(!strcmp(str, "mtime"))
-	{
-		id = PROP_MTIME;
-	}
-	else if(!strcmp(str, "size"))
-	{
-		id = PROP_SIZE;
-	}
-	else if(!strcmp(str, "group"))
-	{
-		id = PROP_GROUP;
-	}
-	else if(!strcmp(str, "gid"))
-	{
-		id = PROP_GROUP_ID;
-	}
-	else if(!strcmp(str, "user"))
-	{
-		id = PROP_USER;
-	}
-	else if(!strcmp(str, "uid"))
-	{
-		id = PROP_USER_ID;
-	}
-	else if(!strcmp(str, "type"))
-	{
-		id = PROP_TYPE;
-	}
-	else
-	{
-		fprintf(stderr, "Invalid str name: \"%s\"\n", str);
+		if(!strcmp(str, "name"))
+		{
+			id = PROP_NAME;
+		}
+		else if(!strcmp(str, "iname"))
+		{
+			id = PROP_INAME;
+		}
+		else if(!strcmp(str, "atime"))
+		{
+			id = PROP_ATIME;
+		}
+		else if(!strcmp(str, "ctime"))
+		{
+			id = PROP_CTIME;
+		}
+		else if(!strcmp(str, "mtime"))
+		{
+			id = PROP_MTIME;
+		}
+		else if(!strcmp(str, "size"))
+		{
+			id = PROP_SIZE;
+		}
+		else if(!strcmp(str, "group"))
+		{
+			id = PROP_GROUP;
+		}
+		else if(!strcmp(str, "gid"))
+		{
+			id = PROP_GROUP_ID;
+		}
+		else if(!strcmp(str, "user"))
+		{
+			id = PROP_USER;
+		}
+		else if(!strcmp(str, "uid"))
+		{
+			id = PROP_USER_ID;
+		}
+		else if(!strcmp(str, "type"))
+		{
+			id = PROP_TYPE;
+		}
+		else
+		{
+			fprintf(stderr, "Invalid str name: \"%s\"", str);
+		}
 	}
 
 	return id;
@@ -132,7 +127,14 @@ ast_str_to_property_id(const char *str)
 OperatorType
 ast_str_to_operator(const char *str)
 {
-	return !strcmp(str, "and") ? OP_AND : OP_OR;
+	OperatorType op = OP_UNDEFINED;
+
+	if(str)
+	{
+		op = !strcmp(str, "and") ? OP_AND : OP_OR;
+	}
+
+	return op;
 }
 
 UnitType

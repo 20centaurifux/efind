@@ -105,7 +105,7 @@ _format_parser_ctx_free(FormatParserCtx *ctx)
 }
 
 static void
-_format_node_init(FormatNodeBase *node, NodeType type_id, int32_t flags, ssize_t width, ssize_t precision)
+_format_node_init(FormatNodeBase *node, FormatNodeType type_id, int32_t flags, ssize_t width, ssize_t precision)
 {
 	assert(node != NULL);
 	assert(flags >= 0);
@@ -359,6 +359,8 @@ _format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
 	{
 		if(ctx->tail - ctx->buffer + 1 < FORMAT_TEXT_BUFFER_MAX)
 		{
+			result = FORMAT_PARSER_STEP_RESULT_NEXT;
+
 			assert(token->len >= 2 && *token->text == '\\');
 
 			if(token->len == 2 && !isdigit(token->text[1]))
@@ -432,8 +434,6 @@ _format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
 			fprintf(stderr, "%s: string exceeds allowed maximum length.\n", __func__);
 			result = FORMAT_PARSER_STEP_RESULT_ABORT;
 		}
-
-		result = FORMAT_PARSER_STEP_RESULT_NEXT;
 	}
 	else
 	{
@@ -488,8 +488,6 @@ _format_parser_step_flag(FormatParserCtx *ctx, FormatToken *token)
 	}
 	else
 	{
-		result = FORMAT_PARSER_STEP_RESULT_NEXT;
-
 		_format_parser_pop(ctx);
 
 		if(token->type_id == FORMAT_TOKEN_NUMBER)

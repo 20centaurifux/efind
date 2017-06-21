@@ -19,8 +19,6 @@
    @brief List containing blacklisted files.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-#define _GNU_SOURCE
-
 #include "blacklist.h"
 #include "utils.h"
 
@@ -38,9 +36,11 @@ blacklist_new(void)
 }
 
 void
-blacklist_destroy(Blacklist *list)
+blacklist_destroy(Blacklist *blacklist)
 {
-	list_destroy(list);
+	assert(blacklist != NULL);
+
+	list_destroy(blacklist);
 }
 
 size_t
@@ -62,7 +62,7 @@ blacklist_glob(Blacklist *blacklist, const char *pattern)
 		{
 			if(!list_contains(blacklist, g.gl_pathv[i]))
 			{
-				list_append(blacklist, strdup(g.gl_pathv[i]));
+				list_append(blacklist, utils_strdup(g.gl_pathv[i]));
 			}
 		}
 
@@ -77,18 +77,21 @@ blacklist_glob(Blacklist *blacklist, const char *pattern)
 bool
 blacklist_matches(Blacklist *blacklist, const char *filename)
 {
+	assert(blacklist != NULL);
+	assert(filename != NULL);
+
 	return list_contains(blacklist, (void *)filename);
 }
 
 size_t
 blacklist_load(Blacklist *blacklist, const char *filename)
 {
+	FILE *fp;
 	size_t count = 0;
 
 	assert(blacklist != NULL);
 	assert(filename != NULL);
 
-	FILE *fp;
 
 	if((fp = fopen(filename, "r")))
 	{
@@ -130,10 +133,11 @@ size_t
 blacklist_load_default(Blacklist *blacklist)
 {
 	size_t count = 0;
+	const char *home;
 
 	assert(blacklist != NULL);
 
-	const char *home = getenv("HOME");
+	home = getenv("HOME");
 
 	if(home)
 	{
