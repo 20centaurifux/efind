@@ -12,7 +12,7 @@ PYTHON_LIBS=-lpython2.7 -lavcall
 PYTHON_LDFLAGS=
 PYTHON_INC=-I /usr/include/python2.7
 
-CC=clang
+CC=gcc
 CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 $(PYTHON_CFLAGS)
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS)
 LIBS=-ldl ./datatypes/libdatatypes-0.2.0.a $(PYTHON_LIBS) -lm

@@ -1,14 +1,14 @@
 Name: efind
-Version: 0.1.1
+Version: 0.2.0
 Release:        1%{?dist}
 Summary: An extendable wrapper for GNU find.
 
 License: GPLv3+
 URL: http://efind.dixieflatline.de
-Source0: efind-0.1.1.tar.xz
+Source0: efind-0.2.0.tar.xz
 
-BuildRequires: bison flex
-Requires: findutils
+BuildRequires: bison flex python-devel ffcall
+Requires: findutils ffcall python-libs
 
 %description
 efind is a wrapper for GNU find providing an easier and more

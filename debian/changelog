@@ -1,3 +1,12 @@
+efind (0.2-0) unstable; urgency=low
+
+  * Python 2 support for extensions
+  * regular expression support (regex & iregex attribute)
+  * added --printf option
+  * increased maximum allowed expression length
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Tue, 24 Jun 2017 18:07:27 +0100
+
 efind (0.1-2) unstable; urgency=low
 
   * blacklist support
