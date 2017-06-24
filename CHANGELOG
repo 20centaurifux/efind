@@ -1,4 +1,4 @@
-2017-06-??: v0.2.0 (Leif Erikson)
+2017-06-24: v0.2.0 (Jean Malaurie)
 	* FEATURE: Python 2 support for extensions
 	* FEATURE: regular expression support (regex & iregex attribute)
 	* FEATURE: added --printf option
