@@ -209,14 +209,14 @@ file_info_clear(FileInfo *info)
 bool
 file_info_get(FileInfo *info, const char *cli, const char *path)
 {
-	struct stat sb;
+	struct stat64 sb;
 	bool success = false;
 
 	assert(info != NULL);
 	assert(cli != NULL);
 	assert(path != NULL);
 
-	if(!lstat(path, &sb) && strlen(cli) < PATH_MAX && strlen(path) < PATH_MAX)
+	if(!lstat64(path, &sb) && strlen(cli) < PATH_MAX && strlen(path) < PATH_MAX)
 	{
 		strcpy(info->cli, cli);
 		strcpy(info->path, path);

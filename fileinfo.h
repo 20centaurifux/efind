@@ -40,7 +40,7 @@ typedef struct
 	/*! Path of the file. */
 	char path[PATH_MAX];
 	/*! File information. */
-	struct stat sb;
+	struct stat64 sb;
 	/*! A FSMap instance used to get the filesystem of a file. */
 	FSMap *fsmap;
 } FileInfo;

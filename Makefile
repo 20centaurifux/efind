@@ -13,7 +13,7 @@ PYTHON_LDFLAGS=
 PYTHON_INC=-I /usr/include/python2.7
 
 CC=gcc
-CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 $(PYTHON_CFLAGS)
+CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) 
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS)
 LIBS=-ldl ./datatypes/libdatatypes-0.2.0.a $(PYTHON_LIBS) -lm
 INC=-I./datatypes $(PYTHON_INC)
