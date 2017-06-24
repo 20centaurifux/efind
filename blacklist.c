@@ -32,7 +32,7 @@
 Blacklist *
 blacklist_new(void)
 {
-	return list_new(str_equal, free, NULL);	
+	return list_new(str_compare, free, NULL);	
 }
 
 void

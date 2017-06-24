@@ -64,8 +64,8 @@ _format_lexer_init(FormatLexerResult *result, const char *format)
 		
 		result->ctx.alloc = (Allocator *)chunk_allocator_new(item_size, 32);
 
-		stack_init(&result->ctx.state, &direct_equal, NULL, result->ctx.alloc);
-		slist_init(&result->ctx.token, &direct_equal, NULL, result->ctx.alloc);
+		stack_init(&result->ctx.state, &direct_compare, NULL, result->ctx.alloc);
+		slist_init(&result->ctx.token, &direct_compare, NULL, result->ctx.alloc);
 
 		result->ctx.fmt = format;
 		result->ctx.tail = format;

@@ -71,8 +71,8 @@ _format_parser_ctx_init(FormatParserCtx *ctx)
 
  	ctx->alloc = (Allocator *)chunk_allocator_new(item_size, 32);
 
-	stack_init(&ctx->state, &direct_equal, NULL, ctx->alloc);
-	ctx->nodes = slist_new(&direct_equal, &free, NULL);
+	stack_init(&ctx->state, &direct_compare, NULL, ctx->alloc);
+	ctx->nodes = slist_new(&direct_compare, &free, NULL);
 }
 
 static SList *

@@ -111,7 +111,7 @@ parse_string(const char *str)
 	memset(result, 0, sizeof(ParserResult));
 
 	buffer_init(&result->data.buffer, PARSER_MAX_EXPRESSION_LENGTH);
-	slist_init(&result->data.strings, &direct_equal, &free, NULL);
+	slist_init(&result->data.strings, &direct_compare, &free, NULL);
 
 	result->data.alloc = (Allocator *)chunk_allocator_new(_parser_get_alloc_item_size(), 16);
 	result->data.column = 1;
