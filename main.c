@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <assert.h>
 
 #include "search.h"
@@ -485,6 +486,9 @@ main(int argc, char *argv[])
 	Action action;
 	Options opts;
 	int result = EXIT_FAILURE;
+
+	/* set locale */
+	setlocale(LC_ALL, "");
 
 	/* read command line options */
 	action = _read_options(argc, argv, &opts);
