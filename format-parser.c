@@ -207,7 +207,7 @@ _format_parser_pop(FormatParserCtx *ctx)
 	{
 		_format_parser_found_date_attribute(ctx);
 	}
-	else if((intptr_t)state != FORMAT_PARSER_STATE_WIDTH && (intptr_t)state != FORMAT_PARSER_STATE_FLAG)
+	else if((intptr_t)state != FORMAT_PARSER_STATE_NONE && (intptr_t)state != FORMAT_PARSER_STATE_WIDTH && (intptr_t)state != FORMAT_PARSER_STATE_FLAG)
 	{
 		fprintf(stderr, "%s: unknown parser state: %ld\n", __func__, (intptr_t)state);
 	}
