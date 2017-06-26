@@ -241,12 +241,12 @@ static char *
 _read_expr_from_stdin(void)
 {
 	char *expr = (char *)utils_malloc(PARSER_MAX_EXPRESSION_LENGTH);
-	ssize_t bytes = PARSER_MAX_EXPRESSION_LENGTH;
-	size_t read;
+	size_t read = PARSER_MAX_EXPRESSION_LENGTH;
+	ssize_t bytes;
 	
 	bytes = getline(&expr, &read, stdin);
 
-	if(!bytes)
+	if(bytes <= 0)
 	{
 		if(bytes == -1)
 		{
