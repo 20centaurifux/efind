@@ -144,50 +144,56 @@ void log_printf(LogLevel level, const char *filename, const char *fn, int line, 
 #define LOG_PRINTF(level, domain, format, args...) log_printf(level, __FILE__, __func__, __LINE__, domain, format, args)
 
 /**
+   @param domain log domain
    @param format format string
    @param args variable number of arguments
 
    Logs a formatted trace message.
  */
-#define TRACEF(format, args...)                    log_printf(LOG_LEVEL_TRACE, __FILE__, __func__, __LINE__, domain, format, args)
+#define TRACEF(domain, format, args...)            log_printf(LOG_LEVEL_TRACE, __FILE__, __func__, __LINE__, domain, format, args)
 
 /**
+   @param domain log domain
    @param format format string
    @param args variable number of arguments
 
    Logs a formatted debug message.
  */
-#define DEBUGF(format, args...)                    log_printf(LOG_LEVEL_DEBUG, __FILE__, __func__, __LINE__, domain, format, args)
+#define DEBUGF(domain, format, args...)            log_printf(LOG_LEVEL_DEBUG, __FILE__, __func__, __LINE__, domain, format, args)
 
 /**
+   @param domain log domain
    @param format format string
    @param args variable number of arguments
 
    Logs a formatted general message.
  */
-#define INFOF(format, args...)                     log_printf(LOG_LEVEL_INFO, __FILE__, __func__, __LINE__, domain, format, args)
+#define INFOF(domain, format, args...)             log_printf(LOG_LEVEL_INFO, __FILE__, __func__, __LINE__, domain, format, args)
 
 /**
+   @param domain log domain
    @param format format string
    @param args variable number of arguments
 
    Logs a formatted warning message.
  */
-#define WARNINGF(format, args...)                  log_printf(LOG_LEVEL_WARNING, __FILE__, __func__, __LINE__, domain, format, args)
+#define WARNINGF(domain, format, args...)          log_printf(LOG_LEVEL_WARNING, __FILE__, __func__, __LINE__, domain, format, args)
 /**
+   @param domain log domain
    @param format format string
    @param args variable number of arguments
 
    Logs a formatted error message.
  */
-#define ERRORF(format, args...)                    log_printf(LOG_LEVEL_ERROR, __FILE__, __func__, __LINE__, domain, format, args)
+#define ERRORF(domain, format, args...)            log_printf(LOG_LEVEL_ERROR, __FILE__, __func__, __LINE__, domain, format, args)
 /**
+   @param domain log domain
    @param format format string
    @param args variable number of arguments
 
    Logs a formatted fatal error.
  */
-#define FATALF(format, args...)                    log_printf(LOG_LEVEL_FATAL, __FILE__, __func__, __LINE__, domain, format, args)
+#define FATALF(domain, format, args...)             log_printf(LOG_LEVEL_FATAL, __FILE__, __func__, __LINE__, domain, format, args)
 
 #endif
 
