@@ -81,7 +81,7 @@ _log_check_level(LogLevel level)
 	{
 		if(level >= LOG_LEVEL_TRACE && level <= LOG_LEVEL_FATAL)
 		{
-			return level >= _verbosity;
+			return level > LOG_LEVEL_FATAL - _verbosity;
 		}
 
 	}
