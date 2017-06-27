@@ -28,7 +28,7 @@
 
 #include "log.h"
 
-static LogLevel _verbosity = LOG_LEVEL_WARNING;
+static LogLevel _verbosity = LOG_LEVEL_NONE;
 
 static const char *_LOG_LEVEL_NAMES[7] =
 {
@@ -60,15 +60,30 @@ _log_prefix(FILE *out, LogLevel level, const char *filename, const char *fn, int
 void
 log_set_verbosity(LogLevel level)
 {
-	_verbosity = level;
+	if(level < LOG_LEVEL_NONE)
+	{
+		_verbosity = LOG_LEVEL_NONE;
+	}
+	else if(level > LOG_LEVEL_FATAL)
+	{
+		_verbosity = LOG_LEVEL_FATAL;
+	}
+	else
+	{
+		_verbosity = level;
+	}
 }
 
 static bool
 _log_check_level(LogLevel level)
 {
-	if(level >= LOG_LEVEL_TRACE && level <= LOG_LEVEL_FATAL)
+	if(_verbosity > LOG_LEVEL_NONE)
 	{
-		return level >= _verbosity;
+		if(level >= LOG_LEVEL_TRACE && level <= LOG_LEVEL_FATAL)
+		{
+			return level >= _verbosity;
+		}
+
 	}
 
 	return false;
