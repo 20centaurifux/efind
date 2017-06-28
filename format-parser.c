@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "format.h"
+#include "log.h"
 #include "format-lexer.h"
 #include "format-parser.h"
 #include "utils.h"
@@ -123,6 +124,8 @@ _format_text_node_new(FormatParserCtx *ctx)
 
 	assert(ctx != NULL);
 
+	TRACEF("format", "new FormatTextNode(flags=%#x, width=%ld, precision=%ld, len=%d)", ctx->flags, ctx->width, ctx->precision, strlen(ctx->buffer));
+
 	node = (FormatTextNode *)utils_malloc(sizeof(FormatTextNode));
 
 	_format_node_init((FormatNodeBase *)node, FORMAT_NODE_TEXT, ctx->flags, ctx->width, ctx->precision);
@@ -139,12 +142,13 @@ _format_attribute_node_new(FormatParserCtx *ctx)
 
 	assert(ctx != NULL);
 
+	TRACEF("format", "new FormatAttrNode(flags=%#x, width=%ld, precision=%ld, attr=%c, format=%s)", ctx->flags, ctx->width, ctx->precision, ctx->attr, ctx->format);
+
 	node = (FormatAttrNode *)utils_malloc(sizeof(FormatAttrNode));
 
 	_format_node_init((FormatNodeBase *)node, FORMAT_NODE_ATTR, ctx->flags, ctx->width, ctx->precision);
 
 	node->attr = ctx->attr;
-
 	strcpy(node->format, ctx->format);
 
 	return (FormatNodeBase *)node;
@@ -209,7 +213,7 @@ _format_parser_pop(FormatParserCtx *ctx)
 	}
 	else if((intptr_t)state != FORMAT_PARSER_STATE_NONE && (intptr_t)state != FORMAT_PARSER_STATE_WIDTH && (intptr_t)state != FORMAT_PARSER_STATE_FLAG)
 	{
-		fprintf(stderr, "%s: unknown parser state: %ld\n", __func__, (intptr_t)state);
+		WARNINGF("format", "Unknown parser state: %#x", (intptr_t)state);
 	}
 }
 
@@ -351,7 +355,7 @@ _format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
 		}
 		else
 		{
-			fprintf(stderr, "%s: string exceeds allowed maximum length.\n", __func__);
+			fprintf(stderr, "String exceeds allowed maximum length.\n");
 			result = FORMAT_PARSER_STEP_RESULT_ABORT;
 		}
 	}
@@ -426,12 +430,12 @@ _format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
 			}
 			else
 			{
-				fprintf(stderr, "%s: unsupported escape sequence\n", __func__);
+				fprintf(stderr, "Unsupported escape sequence.\n");
 			}
 		}
 		else
 		{
-			fprintf(stderr, "%s: string exceeds allowed maximum length.\n", __func__);
+			fprintf(stderr, "String exceeds allowed maximum length.\n");
 			result = FORMAT_PARSER_STEP_RESULT_ABORT;
 		}
 	}
@@ -480,7 +484,7 @@ _format_parser_step_flag(FormatParserCtx *ctx, FormatToken *token)
 				break;
 
 			default:
-				fprintf(stderr, "%s: invalid flag: '%c'\n", __func__, *token->text);
+				FATALF("format", "Invalid flag: '%c'", *token->text);
 		}
 
 		ctx->flags |= flag;
@@ -553,7 +557,7 @@ _format_parser_step_date_attribute(FormatParserCtx *ctx, FormatToken *token)
 		}
 		else
 		{
-			fprintf(stderr, "%s: date format exceeds allowed maximum length.\n", __func__);
+			fprintf(stderr, "Date format exceeds allowed maximum length.\n");
 		}
 
 		result = FORMAT_PARSER_STEP_RESULT_NEXT;
@@ -590,7 +594,7 @@ _format_parse(FormatParserCtx *ctx, FormatLexerResult *lexer)
 
 		if(!stack_head(&ctx->state, &state))
 		{
-			fprintf(stderr, "%s: invalid parser state stack.\n", __func__);
+			WARNING("format", "Parser state stack is empty.");
 			break;
 		}
 
@@ -617,7 +621,7 @@ _format_parse(FormatParserCtx *ctx, FormatLexerResult *lexer)
 				break;
 
 			default:
-				fprintf(stderr, "%s: invalid parser state: %ld\n", __func__, (intptr_t)state);
+				FATALF("format", "Invalid parser state: %#x", (intptr_t)state);
 				result = FORMAT_PARSER_STEP_RESULT_ABORT;
 		}
 
@@ -643,6 +647,8 @@ format_parse(const char *fmt)
 	FormatParserCtx ctx;
 	FormatParserResult *result;
 
+	DEBUGF("format", "Parsing format string: %s", fmt);
+
 	result = (FormatParserResult *)utils_malloc(sizeof(FormatParserResult));
 
 	memset(result, 0, sizeof(FormatParserResult));
@@ -660,6 +666,10 @@ format_parse(const char *fmt)
 		}
 
 		_format_parser_ctx_free(&ctx);
+	}
+	else
+	{
+		DEBUG("format", "Scanning failed.");
 	}
 
 	format_lexer_result_destroy(lexer);
