@@ -249,13 +249,17 @@ static char *
 _read_expr_from_stdin(void)
 {
 	char *expr = (char *)utils_malloc(PARSER_MAX_EXPRESSION_LENGTH);
-	ssize_t bytes = PARSER_MAX_EXPRESSION_LENGTH;
-	size_t read;
+	ssize_t bytes;
+	size_t read = PARSER_MAX_EXPRESSION_LENGTH;
 	
 	bytes = getline(&expr, &read, stdin);
 
-	if(!bytes)
+	TRACEF("startup", "getline() called: result=%ld, buffer size=%ld", bytes, read);
+
+	if(bytes <= 0)
 	{
+		FATALF("startup", "getline() failed with error code %ld.", bytes);
+
 		if(bytes == -1)
 		{
 			perror("getline()");
@@ -276,11 +280,20 @@ _read_expr_from_stdin(void)
 static char *
 _autodetect_homedir(void)
 {
-	const char *envpath = getenv("HOME");
+	const char *envpath;
+
+	TRACE("startup", "Auto-detecting home directory.");
+
+	envpath = getenv("HOME");
 
 	if(envpath)
 	{
+		TRACEF("startup", "Found directory: %s", envpath);
 		return utils_strdup(envpath);
+	}
+	else
+	{
+		FATAL("startup", "Auto-detection failed, environment variable not set.");
 	}
 
 	return NULL;
@@ -293,10 +306,14 @@ _dir_is_valid(const char *path)
 
 	struct stat sb;
 
+	TRACEF("startup", "Testing directory: %s", path);
+
 	if(stat(path, &sb))
 	{
 		return false;
 	}
+
+	TRACEF("startup", "sb.st_mode: %#x", sb.st_mode);
 
 	return (sb.st_mode & S_IFMT) == S_IFDIR;
 }
@@ -364,15 +381,26 @@ _exec_find(const Options *opts)
 	int result = -1;
 
 	assert(opts != NULL);
+	assert(opts->expr != NULL);
+
+	TRACE("action", "Preparing file search.");
 
 	if(opts->printf)
 	{
 		fmt = format_parse(opts->printf);
+
+		if(!fmt->success)
+		{
+			DEBUGF("action", "Parsing of format string failed: %s", opts->printf);
+			fprintf(stderr, "Couldn't parse format string: %s\n", opts->printf);
+		}
 	}
 
 	if(!fmt || fmt->success)
 	{
 		PrintArg arg;
+
+		TRACE("startup", "Starting file search.");
 
 		arg.dir = opts->dir;
 		arg.fmt = fmt;
@@ -386,6 +414,8 @@ _exec_find(const Options *opts)
 
 		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, &arg) >= 0;
 
+		TRACE("action", "Cleaning up file search.");
+
 		search_options_free(&sopts);
 
 		if(arg.fmt)
@@ -393,15 +423,15 @@ _exec_find(const Options *opts)
 			file_info_clear(&arg.info);
 		}
 	}
-	else
-	{
-		fprintf(stderr, "Couldn't parse format string: \"%s\"\n", opts->printf);
-	}
+
+	TRACE("action", "Cleaning up parser.");
 
 	if(fmt)
 	{
 		format_parser_result_free(fmt);
 	}
+
+	DEBUGF("action", "Action %#x finished with result=%d.", ACTION_EXEC, result);
 
 	return result;
 }
@@ -413,11 +443,14 @@ _print_expr(const Options *opts)
 	int result;
 
 	assert(opts != NULL);
+	assert(opts->expr != NULL);
 
 	_build_search_options(opts, &sopts);
 
 	result = search_debug(stdout, stderr, opts->dir, opts->expr, _get_translation_flags(opts), &sopts);
 	search_options_free(&sopts);
+
+	DEBUGF("action", "Action %#x finished with result %d.", ACTION_PRINT, result);
 
 	return result;
 }
@@ -471,13 +504,14 @@ _list_extensions(void)
 		}
 		else
 		{
-			fprintf(stdout, "No extensions loaded.\n");
+			printf("No extensions loaded.\n");
 		}
 
 		extension_manager_destroy(manager);
 	}
 	else
 	{
+		FATAL("action", "Creation of ExpressionManager instance failed.");
 		fprintf(stderr, "Couldn't load extensions.\n");
 	}
 }
@@ -507,17 +541,24 @@ main(int argc, char *argv[])
 		printf("Try '%s --help' for more information.\n", argv[0]);
 		goto out;
 	}
-		
+
 	/* set verbosity */
 	if(opts.log_level)
 	{
 		log_set_verbosity(opts.log_level);
 	}
+
+	INFOF("startup", "%s started successfully.", *argv);
+
+	/* validate options */
 	if(action == ACTION_EXEC || action == ACTION_PRINT)
 	{
+		TRACE("startup", "Testing required options.");
+
 		/* autodetect home directory if path isn't specified */
 		if(!opts.dir)
 		{
+			DEBUG("startup", "No directory specified, running auto-detection.");
 			opts.dir = _autodetect_homedir();
 		}
 
@@ -531,6 +572,7 @@ main(int argc, char *argv[])
 		/* read expression from stdin */
 		if(opts.flags & FLAG_STDIN)
 		{
+			DEBUG("startup", "No expression specified, reading from standard input.");
 			opts.expr = _read_expr_from_stdin();
 		}
 
@@ -543,6 +585,8 @@ main(int argc, char *argv[])
 	}
 
 	/* start desired action */
+	DEBUGF("startup", "Running action: %#x", action);
+
 	switch(action)
 	{
 		case ACTION_EXEC:
@@ -560,12 +604,12 @@ main(int argc, char *argv[])
 			break;
 
 		case ACTION_PRINT_HELP:
-			_print_help(argv[0]);
+			_print_help(*argv);
 			result = EXIT_SUCCESS;
 			break;
 
 		case ACTION_PRINT_VERSION:
-			_print_version(argv[0]);
+			_print_version(*argv);
 			result = EXIT_SUCCESS;
 			break;
 
@@ -580,6 +624,8 @@ main(int argc, char *argv[])
 
 	out:
 		/* cleanup */
+		INFO("shutdown", "Cleaning up.");
+
 		if(opts.expr)
 		{
 			free(opts.expr);
