@@ -31,7 +31,7 @@
 /*! @cond INTERNAL */
 #define NODE_TYPE_IS_VALID(t) (t > NODE_UNDEFINED && t <= NODE_COMPARE)
 #define FILE_FLAG_IS_VALID(f) (f > FILE_FLAG_UNDEFINED && f <= FILE_FLAG_EMPTY)
-#define PROPERTY_IS_VALID(p)  (p > PROP_UNDEFINED && p <= PROP_TYPE)
+#define PROPERTY_IS_VALID(p)  (p > PROP_UNDEFINED && p <= PROP_FILESYSTEM)
 #define CMP_TYPE_IS_VALID(c)  (c >= CMP_UNDEFINED && c <= CMP_GT)
 #define OPERATOR_IS_VALID(op) (op >= OP_UNDEFINED && op <= OP_COMMA)
 /*! @endcond */
@@ -115,6 +115,10 @@ ast_str_to_property_id(const char *str)
 		else if(!strcmp(str, "type"))
 		{
 			id = PROP_TYPE;
+		}
+		else if(!strcmp(str, "filesystem") || !strcmp(str, "fs"))
+		{
+			id = PROP_FILESYSTEM;
 		}
 		else
 		{

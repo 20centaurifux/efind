@@ -48,7 +48,7 @@ NUMBER			[-]?[0-9]+
 LPAREN			"("
 RPAREN			")"
 OPERATOR		or|and
-PROPERTY		name|iname|atime|ctime|mtime|size|group|gid|user|uid|type|regex|iregex
+PROPERTY		name|iname|atime|ctime|mtime|size|group|gid|user|uid|type|regex|iregex|filesystem|fs
 FLAG			readable|writable|executable|empty
 INTERVAL		hours|hour|h|minutes|minute|m|days|day|d
 UNIT			b|bytes|byte|k|kb|kilobytes|kilobyte|M|mb|megabytes|megabyte|G|gb|gigabytes|gigabyte

@@ -58,7 +58,9 @@ typedef enum
 	/*! ID of the owner. */
 	PROP_USER_ID,
 	/*! File type. */
-	PROP_TYPE
+	PROP_TYPE,
+	/*! File system. */
+	PROP_FILESYSTEM
 } PropertyId;
 
 /**

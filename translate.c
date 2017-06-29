@@ -303,6 +303,10 @@ _property_to_str(PropertyId id)
 			name = "type";
 			break;
 
+		case PROP_FILESYSTEM:
+			name = "filesystem";
+			break;
+
 		default:
 			FATALF("translate", "Invalid property id: %#x", id);
 	}
@@ -370,6 +374,10 @@ _property_to_arg(PropertyId id, int arg)
 			name = "-type";
 			break;
 
+		case PROP_FILESYSTEM:
+			name = "-fstype";
+			break;
+
 		default:
 			FATALF("translate", "Invalid property id: %#x", id);
 	}
@@ -429,7 +437,7 @@ static bool
 _property_supports_string(PropertyId prop)
 {
 	return prop == PROP_NAME || prop == PROP_INAME || prop == PROP_REGEX || prop == PROP_IREGEX
-	               || prop == PROP_GROUP || prop == PROP_USER;
+	               || prop == PROP_GROUP || prop == PROP_USER || prop == PROP_FILESYSTEM;
 }
 
 static bool
