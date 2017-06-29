@@ -36,6 +36,7 @@
 #include <datatypes.h>
 
 #include "search.h"
+#include "log.h"
 #include "parser.h"
 #include "utils.h"
 #include "eval.h"
@@ -74,9 +75,16 @@ _search_evaluate_post_exprs(const char *filename, void *user_data)
 
 	if(args->result->root->post_exprs)
 	{
+		TRACEF("search", "Filtering file: %s", filename);
+
 		if(args->extensions)
 		{
 			result = evaluate(args->extensions, args->result->root->post_exprs, filename);
+
+			if(result == EVAL_RESULT_ABORTED)
+			{
+				TRACE("search", "Evaluation aborted.");
+			}
 		}
 		else
 		{
@@ -347,7 +355,7 @@ _search_child_process(int outfds[2], int errfds[2], char **argv)
 	}
 	else
 	{
-		fprintf(stderr, "Couldn't find 'find' executable.\n");
+		fprintf(stderr, "Couldn't find `find' executable.\n");
 	}
 }
 
@@ -361,6 +369,8 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 	size_t llen = 0;
 	int lc = 0;
 	PreArgs pre_args;
+
+	DEBUG("search", "Initializing parent process.");
 
 	const int PROCESS_STATUS_OK       = 0;
 	const int PROCESS_STATUS_ERROR    = 1;
@@ -387,6 +397,8 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 	/* read from pipes until child process terminates or an error occurs */
 	int maxfd = (errfds[0] > outfds[0] ? errfds[0] : outfds[0]) + 1;
 
+	DEBUGF("search", "Reading data from child process (pid=%ld).", pid);
+
 	while(status == PROCESS_STATUS_OK)
 	{
 		/* read data from pipes */
@@ -411,6 +423,8 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 						/* process received lines */
 						int count = _search_process_lines_from_buffer(&outbuf, &line, &llen, _search_evaluate_post_exprs, &pre_args, found_file, user_data);
 
+						TRACEF("search", "Received %ld byte(s) from stdout, read %d line(s) from stdout buffer.", bytes, count);
+
 						if(count == ABORT_SEARCH)
 						{
 							status = PROCESS_STATUS_ERROR;
@@ -423,7 +437,7 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 							}
 							else
 							{
-								fprintf(stderr, "Warning: integer overflow in function %s\n", __func__);
+								ERROR("search", "Integer overflow.");
 							}
 						}
 
@@ -439,6 +453,8 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 				{
 					while(status == PROCESS_STATUS_OK && (bytes = buffer_fill_from_fd(&errbuf, errfds[0], 512)) > 0)
 					{
+						TRACEF("search", "Read %ld byte(s) from stderr.", bytes);
+
 						/* process received lines */
 						_search_process_lines_from_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
 
@@ -455,6 +471,8 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 		int child_status;
 		int rc;
 
+		DEBUGF("search", "Waiting for child process with pid %ld.", pid);
+
 		if((rc = waitpid(pid, &child_status, WNOHANG)) == pid)
 		{
 			if(WIFEXITED(child_status) && status == PROCESS_STATUS_OK)
@@ -464,14 +482,19 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 		}
 		else if(rc == -1)
 		{
+			ERRORF("search", "`waitpid' failed, rc=%d.", rc);
 			perror("waitpid()");
 			status = PROCESS_STATUS_ERROR;
 		}
 	}
 
 	/* flush buffers */
+	TRACEF("search", "Child process exited: lc=%d, status=%#x.", lc, status);
+
 	if(status == PROCESS_STATUS_OK)
 	{
+		TRACE("search", "Flushing all buffers.");
+
 		int count = _search_flush_and_process_buffer(&outbuf, &line, &llen, _search_evaluate_post_exprs, &pre_args, found_file, user_data);
 
 		if(count != ABORT_SEARCH)
@@ -482,8 +505,10 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 			}
 			else
 			{
-				fprintf(stderr, "Warning: integer overflow in function %s\n", __func__);
+				ERROR("search", "Integer overflow.");
 			}
+
+			TRACEF("search", "Flushed stdout, lc=%d.", lc);
 		}
 
 		_search_flush_and_process_buffer(&errbuf, &line, &llen, NULL, NULL, err_message, user_data);
@@ -494,6 +519,8 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 	}
 
 	/* cleanup */
+	TRACE("search", "Cleaning up parent process.");
+
 	buffer_free(&outbuf);
 	buffer_free(&errbuf);
 	free(line);
@@ -523,11 +550,15 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 	memset(errfds, 0, sizeof(errfds));
 
 	/* create pipes */
+	TRACE("search", "Creating pipes.");
+
 	if(pipe2(outfds, 0) >= 0 && pipe2(errfds, 0) >= 0)
 	{
 		char **argv = NULL;
 		size_t argc = 0;
 		ParserResult *result;
+
+		TRACE("search", "Pipes created successfully, translating expression.");
 
 		/* parse expression */
 		result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
@@ -537,10 +568,13 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 		if(result->success)
 		{
 			/* execute find */
+			DEBUG("search", "Expression parsed successfully, forking and running `find'.");
+
 			pid_t pid = fork();
 
 			if(pid == -1)
 			{
+				FATALF("search", "`fork' failed with result %ld.", pid);
 				perror("fork()");
 			}
 			else if(pid == 0)
@@ -557,7 +591,11 @@ search_files_expr(const char *path, const char *expr, TranslationFlags flags, co
 			fprintf(stderr, "%s\n", result->err);
 		}
 
+		DEBUGF("search", "Search finished with result %d.", ret);
+
 		/* cleanup */
+		TRACE("search", "Cleaning up.");
+
 		if(argv)
 		{
 			for(size_t i = 0; i < argc; ++i)
@@ -599,12 +637,16 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 	assert(expr != NULL);
 	assert(opts != NULL);
 
+	TRACEF("search", "Translating expression: %s, flags=%#x", expr, flags);
+
 	result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
 
 	assert(result != NULL);
 
 	if(result->success)
 	{
+		TRACE("search", "Expression translated successfully, printing `find' arguments.");
+
 		if(*argv)
 		{
 			bool quote = false;
@@ -644,13 +686,19 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 
 		success = true;
 	}
-
-	if(result->err)
+	else if(result->err)
 	{
+		TRACEF("search", "Couldn't parse expression: %s", result->err);
 		fprintf(err, "%s\n", result->err);
+	}
+	else
+	{
+		TRACE("search", "Couldn't parse expression, no error message set.");
 	}
 
 	parser_result_free(result);
+
+	TRACEF("search", "Printing translated `find' arguments finished with result %d.", success);
 
 	return success;
 }
