@@ -18,7 +18,7 @@ LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS)
 LIBS=-ldl ./datatypes/libdatatypes-0.2.0.a $(PYTHON_LIBS) -lm
 INC=-I./datatypes $(PYTHON_INC)
 
-VERSION=0.2.0
+VERSION=0.2.1
 
 all:
 	$(MAKE) -C ./datatypes
