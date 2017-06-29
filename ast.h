@@ -152,7 +152,9 @@ typedef enum
 	/*! File is writable. */
 	FILE_FLAG_WRITABLE,
 	/*! File is executable. */
-	FILE_FLAG_EXECUTABLE
+	FILE_FLAG_EXECUTABLE,
+	/*! File is empty and is either a regular file or a directory. */
+	FILE_FLAG_EMPTY
 } FileFlag;
 
 /**

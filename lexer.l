@@ -49,7 +49,7 @@ LPAREN			"("
 RPAREN			")"
 OPERATOR		or|and
 PROPERTY		name|iname|atime|ctime|mtime|size|group|gid|user|uid|type|regex|iregex
-FLAG			readable|writable|executable
+FLAG			readable|writable|executable|empty
 INTERVAL		hours|hour|h|minutes|minute|m|days|day|d
 UNIT			b|bytes|byte|k|kb|kilobytes|kilobyte|M|mb|megabytes|megabyte|G|gb|gigabytes|gigabyte
 TYPE			file|dir|directory|block|character|pipe|link|socket

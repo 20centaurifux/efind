@@ -30,7 +30,7 @@
 
 /*! @cond INTERNAL */
 #define NODE_TYPE_IS_VALID(t) (t > NODE_UNDEFINED && t <= NODE_COMPARE)
-#define FILE_FLAG_IS_VALID(f) (f > FILE_FLAG_UNDEFINED && f <= FILE_FLAG_EXECUTABLE)
+#define FILE_FLAG_IS_VALID(f) (f > FILE_FLAG_UNDEFINED && f <= FILE_FLAG_EMPTY)
 #define PROPERTY_IS_VALID(p)  (p > PROP_UNDEFINED && p <= PROP_TYPE)
 #define CMP_TYPE_IS_VALID(c)  (c >= CMP_UNDEFINED && c <= CMP_GT)
 #define OPERATOR_IS_VALID(op) (op >= OP_UNDEFINED && op <= OP_COMMA)
@@ -225,22 +225,25 @@ ast_str_to_flag(const char *str)
 
 	if(str)
 	{
-		switch(*str)
+		if(!strcmp(str, "readable"))
 		{
-			case 'r':
-				flag = FILE_FLAG_READABLE;
-				break;
-
-			case 'w':
-				flag = FILE_FLAG_WRITABLE;
-				break;
-
-			case 'e':
-				flag = FILE_FLAG_EXECUTABLE;
-				break;
-
-			default:
-				FATALF("parser", "Invalid flag: %s", str);
+			flag = FILE_FLAG_READABLE;
+		}
+		else if(!strcmp(str, "writable"))
+		{
+			flag = FILE_FLAG_WRITABLE;
+		}
+		else if(!strcmp(str, "executable"))
+		{
+			flag = FILE_FLAG_EXECUTABLE;
+		}
+		else if(!strcmp(str, "empty"))
+		{
+			flag = FILE_FLAG_EMPTY;
+		}
+		else
+		{
+			FATALF("parser", "Invalid flag: %s", str);
 		}
 	}
 

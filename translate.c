@@ -397,6 +397,10 @@ _flag_to_arg(FileFlag id)
 			name = "-executable";
 			break;
 
+		case FILE_FLAG_EMPTY:
+			name = "-empty";
+			break;
+
 		default:
 			FATALF("translate", "Invalid flag: %#x", id);
 	}
