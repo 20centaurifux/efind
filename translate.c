@@ -31,6 +31,7 @@
 #include <assert.h>
 
 #include "translate.h"
+#include "log.h"
 #include "parser.h"
 #include "utils.h"
 
@@ -83,8 +84,7 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 
 			if(new_size < ctx->msize)
 			{
-				fprintf(stderr, "overflow in ctx->msize calculation\n");
-
+				FATAL("translate", "Overflow in ctx->msize calculation.");
 				return false;
 			}
 		} while(new_size <= ctx->argc);
@@ -203,7 +203,7 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 
 	if(ctx->err)
 	{
-		fprintf(stderr, "Warning: error message already set.\n");
+		WARNING("translate", "Error message already set.");
 		return;
 	}
 
@@ -219,7 +219,7 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 		}
 		else
 		{
-			fprintf(stderr, "Couldn't set error message.\n");
+			WARNING("translate", "Couldn't set error message, `_vprintf_loc' failed.");
 		}
 	}
 	else
@@ -232,7 +232,7 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 		}
 		else
 		{
-			fprintf(stderr, "Couldn't set error message.\n");
+			WARNING("translate", "Couldn't set error message, `vsnprintf' failed.");
 		}
 	}
 
@@ -304,7 +304,7 @@ _property_to_str(PropertyId id)
 			break;
 
 		default:
-			fprintf(stderr, "%s: critical error, invalid property id: %#x\n", __func__, id);
+			FATALF("translate", "Invalid property id: %#x", id);
 	}
 
 	return name;
@@ -371,7 +371,7 @@ _property_to_arg(PropertyId id, int arg)
 			break;
 
 		default:
-			fprintf(stderr, "%s: critical error. invalid property id: %#x\n", __func__, id);
+			FATALF("translate", "Invalid property id: %#x", id);
 	}
 
 	return name;
@@ -398,7 +398,7 @@ _flag_to_arg(FileFlag id)
 			break;
 
 		default:
-			fprintf(stderr, "%s: critical error, invalid flag: %#x\n", __func__, id);
+			FATALF("translate", "Invalid flag: %#x", id);
 	}
 
 	return name;
@@ -525,7 +525,7 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 			break;
 
 		default:
-			_set_error(ctx, NULL, "%s: critical error, unsupported compare id: %#x", __func__, cmp);
+			FATALF("translate", "Unsupported compare id: %#x", cmp);
 			success = false;
 	}
 
@@ -545,7 +545,7 @@ _append_time_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 
 		if(val64 > INT32_MAX || val64 < INT32_MIN)
 		{
-			_set_error(ctx, NULL, "%s: critical error, integer overflow", __func__);
+			FATAL("translate", "Integer overflow.");
 			success = false;
 		}
 		else
@@ -594,7 +594,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 			break;
 
 		default:
-			_set_error(ctx, NULL, "%s: critical error, unsupported size id: %#x", __func__, unit);
+			FATALF("translate", "Unsupported size id: %#x.", unit);
 			success = false;
 	}
 
@@ -602,7 +602,8 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 	{
 		if(bytes > max_val)
 		{
-			_set_error(ctx, NULL, "%s: integer overflow, couldn't convert %d %s to byte.", __func__, val, unit_name);
+			FATALF("translate", "Integer overflow, couldn't convert %d %s to bytes.", val, unit_name);
+			success = false;
 			break;
 		}
 
@@ -656,7 +657,7 @@ _append_type_cond(TranslationCtx *ctx, FileType type)
 			break;
 
 		default:
-			_set_error(ctx, NULL, "%s: critical error, unsupported file type: %#x", __func__, type);
+			FATALF("translate", "Unsupported file type: %#x", type);
 			success = false;
 
 	}
@@ -726,7 +727,7 @@ _process_expression(TranslationCtx *ctx, ExpressionNode *node)
 
 	if(node->op != OP_AND && node->op != OP_OR)
 	{
-		_set_error(ctx, NULL, "%s: critical error, unsupported operator: %#x", __func__, node->op);
+		FATALF("translate", "Unsupported operator: %#x", node->op);
 	}
 
 	if(_open_parenthese(node, node->first))
@@ -826,7 +827,7 @@ _process_condition(TranslationCtx *ctx, ConditionNode *node)
 			break;
 
 		default:
-			_set_error(ctx, NULL, "%s: critical error, unsupported value type: %#x", __func__, node->value->vtype);
+			FATALF("translate", "Unsupported value type: %#x", node->value->vtype);
 			break;
 	}
 
@@ -864,7 +865,7 @@ _process_node(TranslationCtx *ctx, Node *node)
 		}
 		else
 		{
-			_set_error(ctx, node, "%s: critical error, unsupported node type: %#x", __func__, node->type);
+			FATALF("translate", "Unsupported node type: %#x", node->type);
 		}
 	}
 
@@ -892,8 +893,10 @@ translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char *
 	assert(argv != NULL);
 	assert(err != NULL);
 
+	TRACEF("translate", "Translating root node with flags %#x.", flags);
+
 	if(root)
-		{
+	{
 		_translation_ctx_init(&ctx, root, flags);
 
 		success = _translate(&ctx);
@@ -904,8 +907,11 @@ translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char *
 	}
 	else
 	{
+		TRACE("translate", "Root node not set.");
 		success = true;
 	}
+
+	TRACEF("translate", "Translation completed with status %d.", success);
 
 	return success;
 }

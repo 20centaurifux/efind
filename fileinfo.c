@@ -30,6 +30,7 @@
 #include <assert.h>
 
 #include "fileinfo.h"
+#include "log.h"
 #include "linux.h"
 #include "utils.h"
 
@@ -210,18 +211,33 @@ bool
 file_info_get(FileInfo *info, const char *cli, const char *path)
 {
 	struct stat64 sb;
+	int rc;
 	bool success = false;
 
 	assert(info != NULL);
 	assert(cli != NULL);
 	assert(path != NULL);
 
-	if(!lstat64(path, &sb) && strlen(cli) < PATH_MAX && strlen(path) < PATH_MAX)
+	rc = lstat64(path, &sb);
+
+	if(!rc)
 	{
-		strcpy(info->cli, cli);
-		strcpy(info->path, path);
-		info->sb = sb;
-		success = true;
+		if(strlen(cli) < PATH_MAX && strlen(path) < PATH_MAX)
+		{
+			strcpy(info->cli, cli);
+			strcpy(info->path, path);
+			info->sb = sb;
+			success = true;
+		}
+		else
+		{
+			ERRORF("fileinfo", "Couldn't validate paths: cli=%s, path=%s", cli, path);
+		}
+	}
+	else
+	{
+		ERRORF("fileinfo", "Couldn't retrieve information about %s: '`lstat64' failed.", path);
+		perror("lstat64()");
 	}
 
 	return success;
@@ -378,6 +394,7 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			break;
 
 		default:
+			FATALF("fileinfo", "Unexpected file attribute: '%c'", field);
 			success = false;
 	}
 

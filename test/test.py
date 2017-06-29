@@ -60,6 +60,7 @@ def random_string(length=32):
 SEARCH_ARGS = [[['--version'], None],
                [['--help'], None],
                [['--list-extensions'], None],
+               [['--list-extensions', '--log-level=6'], None],
                [['size>0', '--print', '--quote'], None],
                [['size=720', '-L'], ["test-data/02/720b.2"]],
                [['size>=720 and size<=5k and type=file'], ["test-data/00/1kb.0", "test-data/00/5kb.0", "test-data/02/5kb.2", "test-data/02/720b.2"]],

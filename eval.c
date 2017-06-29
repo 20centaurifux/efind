@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "eval.h"
+#include "log.h"
 #include "extension.h"
 
 /*! @cond INTERNAL */
@@ -55,7 +56,7 @@ _eval_set_fn_arg_from_value_node(ExtensionCallbackArgs *args, uint32_t offset, V
 	}
 	else
 	{
-		fprintf(stderr, "%s: unexpected argument type: %#x.\n", __func__, node->vtype);
+		FATALF("eval", "Unexpected argument type: %#x", node->vtype);
 		success = false;
 	}
 
@@ -76,6 +77,8 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 
 	fn = (FuncNode *)node;
 
+	TRACEF("eval", "Evaluating function `%s'.", fn->name);
+
 	*fn_result = 0;
 	args = extension_callback_args_new(FN_STACK_SIZE);
 
@@ -93,7 +96,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 
 				if(expr->op != OP_COMMA)
 				{
-					fprintf(stderr, "Couldn't compile argument list, operator not supported: %#x.\n", expr->op);
+					FATALF("eval", "Couldn't compile argument list, operator %#x not supported.", expr->op);
 					success = false;
 				}
 				else if(expr->first->type == NODE_FUNC)
@@ -111,7 +114,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 				}
 				else
 				{
-					fprintf(stderr, "%s: unexpected node type: %#x.\n", __func__, iter->type);
+					FATALF("eval", "Unexpected node type: %#x", iter->type);
 					success = false;
 				}
 
@@ -126,13 +129,13 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 			}
 			else
 			{
-				fprintf(stderr, "%s: unexpected argument type: %#x.\n", __func__, iter->type);
+				FATALF("eval", "Unexpected argument type: %#x", iter->type);
 				success = false;
 			}
 
 			if(argc == FN_STACK_SIZE)
 			{
-				fprintf(stderr, "Stack overflow in function \"%s\", more than %d arguments are not supported.\n", fn->name, FN_STACK_SIZE);
+				fprintf(stderr, "Stack overflow in function `%s', more than %d arguments are not supported.\n", fn->name, FN_STACK_SIZE);
 			}
 		}
 	}
@@ -148,12 +151,12 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 		}
 		else if(status == EXTENSION_CALLBACK_STATUS_NOT_FOUND)
 		{
-			fprintf(stderr, "Function \"%s\" not found.\n", fn->name);
+			fprintf(stderr, "Function `%s' not found.\n", fn->name);
 			success = false;
 		}
 		else
 		{
-			fprintf(stderr, "Function \"%s\" has a different signature, please check specified arguments.\n", fn->name);
+			fprintf(stderr, "Function `%s' has a different signature, please check specified arguments.\n", fn->name);
 			success = false;
 		}
 	}
@@ -175,6 +178,8 @@ _eval_expression_node(Node *node, EvalContext *ctx)
 	assert(expr->first != NULL);
 	assert(expr->second != NULL);
 
+	TRACE("eval", "Evaluating expression node.");
+
 	if(expr->op == OP_AND)
 	{
 		result = _eval_node(expr->first, ctx);
@@ -195,7 +200,7 @@ _eval_expression_node(Node *node, EvalContext *ctx)
 	}
 	else
 	{
-		fprintf(stderr, "%s: unsupported operator: %#x.\n", __func__, expr->op);
+		FATALF("eval", "Unexpected operator: %#x", expr->op);
 	}
 
 	return result;
@@ -224,12 +229,12 @@ _eval_node_get_int(Node *node, EvalContext *ctx, int *result)
 		}
 		else
 		{
-			fprintf(stderr, "Data type %#x cannot be casted to integer.\n", val->vtype);
+			FATALF("eval", "Data type %#x cannot be casted to integer.", val->vtype);
 		}
 	}
 	else
 	{
-		fprintf(stderr, "%s: unsupported node type: %#x.\n", __func__, node->type);
+		FATALF("eval", "Unexpected node type: %#x", node->type);
 	}
 
 	return success;
@@ -245,10 +250,15 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 	assert(cmp->first != NULL);
 	assert(cmp->second != NULL);
 
+	TRACE("eval", "Evaluating compare node, retrieving integer from first child node.");
+
 	if(_eval_node_get_int(cmp->first, ctx, &a))
 	{
+		TRACE("eval", "Comparing result with second node.");
+
 		if(cmp->cmp == CMP_EQ && cmp->second->type == NODE_TRUE)
 		{
+			TRACEF("eval", "%d == TRUE", a);
 			result = (a == 0) ? EVAL_RESULT_FALSE : EVAL_RESULT_TRUE;
 		}
 		else if(_eval_node_get_int(cmp->second, ctx, &b))
@@ -258,30 +268,39 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 			switch(cmp->cmp)
 			{
 				case CMP_EQ:
+					TRACEF("eval", "%d == %d", a, b);
 					result = (a == b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
 					break;
 
 				case CMP_LT_EQ:
+					TRACEF("eval", "%d <= %d", a, b);
 					result = (a <= b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
 					break;
 
 				case CMP_LT:
+					TRACEF("eval", "%d < %d", a, b);
 					result = (a < b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
 					break;
 
 				case CMP_GT_EQ:
+					TRACEF("eval", "%d >= %d", a, b);
 					result = (a >= b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
 					break;
 
 				case CMP_GT:
+					TRACEF("eval", "%d > %d", a, b);
 					result = (a > b) ? EVAL_RESULT_TRUE : EVAL_RESULT_FALSE;
 					break;
 
 				default:
-					fprintf(stderr, "%s: unsupported compare operator %#x.\n", __func__, cmp->cmp);
+					FATALF("eval", "Unexpected compare operator: %#x", cmp->cmp);
 			}
 		
 		}
+	}
+	else
+	{
+		FATAL("eval", "Couldn't retrieve integer from first child node.");
 	}
 
 	return result;
@@ -305,7 +324,7 @@ _eval_node(Node *node, EvalContext *ctx)
 				break;
 
 			default:
-				fprintf(stderr, "%s: unexpected node type: %#x.\n", __func__, node->type);
+				FATALF("eval", "Unexpected node type: %#x", node->type);
 		}
 	}
 	else
@@ -324,6 +343,8 @@ evaluate(ExtensionManager *manager, Node *node, const char *filename)
 	assert(node != NULL);
 	assert(manager != NULL);
 	assert(filename != NULL);
+
+	TRACE("eval", "Evaluating syntax tree.");
 
 	memset(&ctx, 0, sizeof(EvalContext));
 

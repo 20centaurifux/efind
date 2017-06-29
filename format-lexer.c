@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "format-lexer.h"
+#include "log.h"
 #include "utils.h"
 
 /*! @cond INTERNAL */
@@ -118,6 +119,8 @@ _format_token_new(Allocator *alloc, FormatTokenType type_id, const char *text, s
 	assert(text != NULL);
 	assert(len > 0);
 
+	TRACEF("format", "new Token(type=%#x, len=%ld)", type_id, len);
+
 	token = alloc->alloc(alloc);
 
 	token->type_id = type_id;
@@ -145,7 +148,7 @@ _format_lexer_found_token(FormatLexerResult *result, FormatTokenType type_id)
 	}
 	else
 	{
-		fprintf(stderr, "%s: unknown token type: %#x\n", __func__, type_id);
+		FATALF("format", "Unknown token type: %#x", type_id);
 	}
 }
 
@@ -266,7 +269,7 @@ _format_lexer_step_field(FormatLexerResult *result)
 	}
 	else
 	{
-		fprintf(stderr, "%s: unexpected character: '%c'\n", __func__, *result->ctx.tail);
+		FATALF("format", "Unexpected character: '%c'", *result->ctx.tail);
 		success = false;
 	}
 
@@ -315,7 +318,7 @@ _format_lexer_step_number(FormatLexerResult *result)
 		}
 		else
 		{
-			fprintf(stderr, "%s: unexpected lexer state: %ld\n", __func__, (intptr_t)state);
+			FATALF("format", "Unexpected lexer state: %#x", (intptr_t)state);
 			success = false;
 		}
 	}
@@ -381,7 +384,7 @@ _format_lexer_step(FormatLexerResult *result)
 			break;
 
 		default:
-			fprintf(stderr, "%s: Invalid state: %ld\n", __func__, (intptr_t)state);
+			FATALF("format", "Invalid state: %#x", (intptr_t)state);
 			success = false;
 	}
 
@@ -399,6 +402,8 @@ format_lexer_scan(const char *format)
 	FormatLexerResult *result;
 
 	assert(format != NULL);
+
+	TRACEF("format", "Scanning format string: %s", format);
 
 	result = (FormatLexerResult *)utils_malloc(sizeof(FormatLexerResult));
 

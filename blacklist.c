@@ -20,6 +20,7 @@
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include "blacklist.h"
+#include "log.h"
 #include "utils.h"
 
 #include <stdio.h>
@@ -54,6 +55,8 @@ blacklist_glob(Blacklist *blacklist, const char *pattern)
 
 	memset(&g, 0, sizeof(glob_t));
 
+	DEBUGF("blacklist", "Adding pattern to blacklist: %s", pattern);
+
 	int rc = glob(pattern, GLOB_TILDE, NULL, &g);
 
 	if(!rc)
@@ -62,6 +65,7 @@ blacklist_glob(Blacklist *blacklist, const char *pattern)
 		{
 			if(!list_contains(blacklist, g.gl_pathv[i]))
 			{
+				TRACEF("blacklist", "Appending file to blacklist: %s", g.gl_pathv[i]);
 				list_append(blacklist, utils_strdup(g.gl_pathv[i]));
 			}
 		}
@@ -93,6 +97,8 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 	assert(filename != NULL);
 
 
+	DEBUGF("blacklist", "Loading file: %s", filename);
+
 	if((fp = fopen(filename, "r")))
 	{
 		char *pattern = (char *)utils_malloc(64);
@@ -115,6 +121,7 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 				}
 				else
 				{
+					WARNING("blacklist", "Integer overflow.");
 					count = SIZE_MAX;
 				}
 			}
@@ -124,6 +131,10 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 
 		free(pattern);
 		fclose(fp);
+	}
+	else
+	{
+		DEBUGF("blacklist", "File not found: %s", filename);
 	}
 
 	return count;
@@ -136,6 +147,8 @@ blacklist_load_default(Blacklist *blacklist)
 	const char *home;
 
 	assert(blacklist != NULL);
+
+	DEBUG("blacklist", "Loading default blacklist.");
 
 	home = getenv("HOME");
 

@@ -25,6 +25,7 @@
 #include <assert.h>
 
 #include "ast.h"
+#include "log.h"
 #include "utils.h"
 
 /*! @cond INTERNAL */
@@ -57,7 +58,7 @@ ast_str_to_interval(const char *str)
 				break;
 
 			default:
-				fprintf(stderr, "Invalid time interval string: \"%s\"\n", str);
+				FATALF("parser", "Invalid time interval: %s", str);
 		}
 	}
 		
@@ -117,7 +118,7 @@ ast_str_to_property_id(const char *str)
 		}
 		else
 		{
-			fprintf(stderr, "Invalid str name: \"%s\"", str);
+			FATALF("parser", "Invalid property: %s", str);
 		}
 	}
 
@@ -165,7 +166,7 @@ ast_str_to_unit(const char *str)
 				break;
 
 			default:
-				fprintf(stderr, "Invalid unit string: \"%s\"\n", str);
+				FATALF("parser", "Invalid unit: %s", str);
 		}
 	}
 
@@ -210,7 +211,7 @@ ast_str_to_type(const char *str)
 				break;
 
 			default:
-				fprintf(stderr, "Invalid file string: \"%s\"\n", str);
+				FATALF("parser", "Invalid file type: %s", str);
 		}
 	}
 
@@ -239,7 +240,7 @@ ast_str_to_flag(const char *str)
 				break;
 
 			default:
-				fprintf(stderr, "Invalid str name: \"%s\"\n", str);
+				FATALF("parser", "Invalid flag: %s", str);
 		}
 	}
 
@@ -273,6 +274,8 @@ ast_true_node_new(Allocator *alloc, const YYLTYPE *locp)
 {
 	TrueNode *node = node_new(alloc, locp, TrueNode, NODE_TRUE);
 
+	TRACEF("parser", "new TrueNode[%#x]", NODE_TRUE);
+
 	return (Node *)node;
 }
 
@@ -280,6 +283,8 @@ Node *
 ast_value_node_new_str_nodup(Allocator *alloc, const YYLTYPE *locp, char *value)
 {
 	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
+
+	TRACEF("parser", "new ValueNode[%#x] (vtype=%#x, value=%s)", NODE_VALUE, VALUE_STRING, value ? value : "NULL");
 
 	node->vtype = VALUE_STRING;
 	node->value.svalue = value;
@@ -292,6 +297,8 @@ ast_value_node_new_int(Allocator *alloc, const YYLTYPE *locp, int value)
 {
 	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
 
+	TRACEF("parser", "new ValueNode[%#x] (vtype=%#x, value=%d)", NODE_VALUE, VALUE_NUMERIC, value);
+
 	node->vtype = VALUE_NUMERIC;
 	node->value.ivalue = value;
 
@@ -302,6 +309,8 @@ Node *
 ast_value_node_new_type(Allocator *alloc, const YYLTYPE *locp, FileType type)
 {
 	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
+
+	TRACEF("parser", "new ValueNode[%#x] (vtype=%#x, type=%#x)", NODE_VALUE, VALUE_TYPE, type);
 
 	node->vtype = VALUE_TYPE;
 	node->value.ivalue = type;
@@ -314,6 +323,8 @@ ast_value_node_new_flag(Allocator *alloc, const YYLTYPE *locp, FileFlag flag)
 {
 	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
 
+	TRACEF("parser", "new ValueNode[%#x] (vtype=%#x, flag=%#x)", NODE_VALUE, VALUE_FLAG, flag);
+
 	node->vtype = VALUE_FLAG;
 	node->value.ivalue = flag;
 
@@ -324,6 +335,8 @@ Node *
 ast_value_node_new_int_pair(Allocator *alloc, const YYLTYPE *locp, ValueType type, int a, int b)
 {
 	assert(type == VALUE_TIME || type == VALUE_SIZE);
+
+	TRACEF("parser", "new ValueNode[%#x] (vtype=%#x, pair.a=%d, pair.b=%d)", NODE_VALUE, type, a, b);
 
 	ValueNode *node = node_new(alloc, locp, ValueNode, NODE_VALUE);
 
@@ -342,6 +355,8 @@ ast_compare_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, Compare
 	assert(first != NULL);
 	assert(second != NULL);
 	assert(CMP_TYPE_IS_VALID(cmp));
+
+	TRACEF("parser", "new CompareNode[%#x] (first=new Node(type=%#x), cmp=%#x, second=new Node(type=%#x))", NODE_COMPARE, first->type, cmp, second->type);
 
 	node->first = first;
 	node->cmp = cmp;
@@ -368,6 +383,8 @@ ast_cond_node_new(Allocator *alloc, const YYLTYPE *locp, PropertyId prop, Compar
 {
 	ConditionNode *node = node_new(alloc, locp, ConditionNode, NODE_CONDITION);
 
+	TRACEF("parser", "new ConditionNode[%#x] (prop=%#x, cmp=%#x, new ValueNode(vtype=%#x))", NODE_CONDITION, prop, cmp, value->vtype);
+
 	_ast_cond_node_init(node, prop, cmp, value);
 
 	return (Node *)node;
@@ -393,6 +410,8 @@ ast_expr_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorTy
 
 	assert(OPERATOR_IS_VALID(op));
 
+	TRACEF("parser", "new ExpressionNode[%#x] (first=new Node(type=%#x), op=%#x, second=new Node(type=%#x))", NODE_EXPRESSION, first->type, op, second->type);
+
 	node = node_new(alloc, locp, ExpressionNode, NODE_EXPRESSION);
 
 	_ast_expr_node_init(node, first, op, second);
@@ -407,6 +426,15 @@ ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args)
 
 	assert(name != NULL);
 
+	if(args)
+	{
+		TRACEF("parser", "new FuncNode[%#x] (name=%s, args=new Node(type=%#x))", NODE_FUNC, name, args->type);
+	}
+	else
+	{
+		TRACEF("parser", "new FuncNode[%#x] (name=%s, args=NULL)", NODE_FUNC, name); 
+	}
+
 	node = node_new(alloc, locp, FuncNode, NODE_FUNC);
 
 	node->name = name;
@@ -419,6 +447,21 @@ RootNode *
 ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *post_exprs)
 {
 	RootNode *node;
+
+	assert(exprs != NULL || post_exprs != NULL);
+
+	if(exprs && post_exprs)
+	{
+		TRACEF("parser", "new RootNode[%#x] (exprs=new Node(type=%#x), post_exprs=new Node(type=%#x))", NODE_ROOT, exprs->type, post_exprs->type);
+	}
+	else if(!post_exprs)
+	{
+		TRACEF("parser", "new RootNode[%#x] (exprs=new Node(type=%#x), post_exprs=NULL)", NODE_ROOT, exprs->type);
+	}
+	else
+	{
+		TRACEF("parser", "new RootNode[%#x] (exprs=NULL, post_exprs=new Node(type=%#x))", NODE_ROOT, post_exprs->type);
+	}
 
 	node = node_new(alloc, locp, RootNode, NODE_ROOT);
 
