@@ -123,7 +123,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "dir", required_argument, 0, 'd' },
 		{ "print", no_argument, 0, 'p' },
 		{ "follow", no_argument, 0, 'L' },
-		{ "maxdepth", required_argument, 0, 0 },
+		{ "max-depth", required_argument, 0, 0 },
 		{ "regex-type", required_argument, 0, 0 },
 		{ "printf", required_argument, 0, 0 },
 		{ "list-extensions", no_argument, 0, 0 },
@@ -210,7 +210,7 @@ _read_options(int argc, char *argv[], Options *opts)
 				break;
 
 			case 0:
-				if(!strcmp(long_options[index].name, "maxdepth"))
+				if(!strcmp(long_options[index].name, "max-depth"))
 				{
 					opts->max_depth = atoi(optarg);
 				}
@@ -428,7 +428,7 @@ _print_help(const char *name)
 	printf("  -L, --follow        follow symbolic links\n");
 	printf("  --regex-type type   set regular expression type; see manpage\n");
 	printf("  --printf format     print format on standard output; see manpage\n");
-	printf("  --maxdepth levels   maximum search depth\n");
+	printf("  --max-depth levels  maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list with installed extensions\n");
 	printf("  -v, --version       show version and exit\n");
