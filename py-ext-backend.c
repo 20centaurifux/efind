@@ -31,6 +31,7 @@
 
 #include "py-ext-backend.h"
 #include "extension-interface.h"
+#include "log.h"
 #include "utils.h"
 
 typedef struct
@@ -45,12 +46,18 @@ _py_set_python_path(void)
 {
 	PyObject *sys = PyImport_ImportModule("sys");
 
+	TRACE("python", "Importing `sys' module.");
+
 	if(sys && PyModule_Check(sys))
 	{
+		TRACE("python", "Retrieving `path' attribute from `sys' module.");
+
 		PyObject *path = PyObject_GetAttrString(sys, "path");
 
 		if(path && PyList_Check(path))
 		{
+			DEBUG("python", "Appending global extension directory to Python path: /etc/efind/extension");
+
 			PyList_Append(path, PyString_FromString("/etc/efind/extensions"));
 
 			const char *homedir = getenv("HOME");
@@ -64,6 +71,9 @@ _py_set_python_path(void)
 					char *localpath = (char *)utils_malloc(sizeof(char) * (len + 20));
 
 					sprintf(localpath, "%s/.efind/extensions", homedir);
+
+					DEBUGF("python", "Appending local extension directory to Python path: %s", localpath);
+
 					PyList_Append(path, PyString_FromString(localpath));
 					free(localpath);
 				}
@@ -172,12 +182,18 @@ _py_get_extension_details(PyObject *module, char *details[3])
 	{
 		success = false;
 
+		TRACEF("python", "Searching for symbol: `%s'", keys[i]);
+
 		PyObject *attr = PyObject_GetAttrString(module, keys[i]);
 
 		if(attr && PyString_Check(attr))
 		{
 			details[i] = utils_strdup(PyString_AsString(attr));
 			success = true;
+		}
+		else
+		{
+			DEBUGF("python", "Couldn't find string `%s'.", keys[i]);
 		}
 
 		Py_XDECREF(attr);
@@ -218,8 +234,12 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 	{
 		PyObject *module = NULL;
 
+		DEBUGF("python", "Importing `%s' module.", mod_name);
+
 		if((module = PyImport_Import(name)))
 		{
+			TRACEF("python", "Module `%s' imported successfully, retrieving details.", mod_name);
+
 			/* module imported successfully => get details */
 			char *details[3];
 
@@ -235,6 +255,7 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 			else
 			{
 				/* Ooops, something went wrong */
+				DEBUGF("python", "Couldn't retrieve required details from module `%s'.", mod_name);
 				Py_DECREF(module);
 			}
 		}
@@ -269,6 +290,8 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 		const char *fn_name = PyString_AsString(name);
 
 		assert(fn_name != NULL);
+
+		TRACEF("python", "Importing function: `%s'", fn_name);
 
 		/* get signature & register function */
 		PyObject *sig = NULL;
@@ -307,13 +330,13 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 						}
 						else
 						{
-							fprintf(stderr, "%s: signature of function \"%s\" contains an unsupported type.\n", __func__, fn_name);
+							DEBUGF("python", "__signature__ attribute of function `%s' contains an unsupported type.", fn_name);
 							success = false;
 						}
 					}
 					else
 					{
-						fprintf(stderr, "%s: signature of function \"%s\" is invalid, PyType_Check() failed.\n", __func__, fn_name);
+						DEBUGF("python", "__signature__ attribute of function `%s' is invalid, PyType_Check() failed.", fn_name);
 						success = false;
 					}
 
@@ -325,6 +348,11 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 		{
 
 			success = !sig || sig == Py_None;
+
+			if(!success)
+			{
+				DEBUGF("python", "__signature__ attribute of function `%s' is invalid.", fn_name);
+			}
 		}
 
 		Py_XDECREF(sig);
@@ -370,6 +398,8 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 	assert(PyModule_Check(py_handle->module));
 	assert(fn != NULL);
 
+	TRACE("python", "Searching for symbol: `EXTENSION_EXPORT'");
+
 	PyObject *exports = PyObject_GetAttrString((PyObject *)py_handle->module, "EXTENSION_EXPORT");
 
 	if(exports && PySequence_Check(exports))
@@ -388,6 +418,10 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 
 			Py_DECREF(callable);
 		}
+	}
+	else
+	{
+		DEBUG("python", "Couldn't find sequence `EXTENSION_EXPORT'.");
 	}
 
 	Py_XDECREF(exports);
@@ -464,6 +498,10 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 		}
 
 		Py_DECREF(tuple);
+	}
+	else
+	{
+		ERRORF("python", "Callbable `%s' not found.", name);
 	}
 
 	Py_XDECREF(callable);

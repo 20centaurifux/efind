@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 
 #include "extension.h"
+#include "log.h"
 #include "dl-ext-backend.h"
 #include "py-ext-backend.h"
 #include "blacklist.h"
@@ -182,6 +183,8 @@ _extension_module_free(ExtensionModule *module)
 {
 	if(module)
 	{
+		TRACEF("extension", "Cleaning up module `%s'.", module->filename);
+
 		if(module->callbacks)
 		{
 			assoc_array_destroy(module->callbacks);
@@ -209,6 +212,8 @@ _extension_manager_function_discovered(RegistrationCtx *ctx, const char *name, u
 	assert(name != NULL);
 	assert(argc < 128);
 
+	TRACEF("extension", "Discovered function: name=%s, argc=%d", name, argc);
+
 	cb = _extension_callback_new(name, argc);
 
 	if(cb)
@@ -228,6 +233,8 @@ _extension_manager_function_discovered(RegistrationCtx *ctx, const char *name, u
 			}
 			else
 			{
+				WARNINGF("extension", "Unexpected data type: %#x", val);
+
 				/* failure => free memory */
 				_extension_callback_free(cb);
 				success = false;
@@ -251,6 +258,8 @@ _extension_manager_extension_registered(RegistrationCtx *ctx, const char *name, 
 	assert(ctx != NULL);
 
 	module = (ExtensionModule *)ctx;
+
+	DEBUGF("extension", "Extension registered: name=%s, version=%s, description=%s", name, version, description);
 
 	if(name)
 	{
@@ -365,6 +374,8 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 	assert(manager != NULL);
 	assert(path != NULL);
 
+	DEBUGF("extension", "Loading extensions from directory: %s", path);
+
 	blacklist = blacklist_new();
 	blacklist_load_default(blacklist);
 
@@ -379,6 +390,8 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 		while(success && entry)
 		{
+			TRACEF("extension", "Found file: %s", entry->d_name);
+
  			ExtensionModuleType mod_type = _extension_map_file_extension(entry->d_name);
 
 			if(mod_type != EXTENSION_MODULE_TYPE_UNDEFINED)
@@ -387,8 +400,14 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 				if(utils_path_join(path, entry->d_name, filename, PATH_MAX))
 				{
-					if(!blacklist_matches(blacklist, filename))
+					if(blacklist_matches(blacklist, filename))
 					{
+						DEBUGF("extension", "File is blacklisted: %s", filename);
+					}
+					else
+					{
+						DEBUGF("extension", "Importing extension: %s", filename);
+
 						if(!_extension_manager_import_module(manager, filename, mod_type))
 						{
 							int len = snprintf(msg, sizeof(msg), "Couldn't load extension \"%s\".", filename);
@@ -412,6 +431,10 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 					success = false;
 				}
 			}
+			else
+			{
+				TRACE("extension", "Ignoring file: unsupported file extension.");
+			}
 
 			entry = readdir(pdir);
 		}
@@ -433,6 +456,8 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 	blacklist_destroy(blacklist);
 
+	TRACEF("extension", "Import completed with status %d.", success);
+
 	return success;
 }
 
@@ -444,6 +469,8 @@ extension_manager_load_default(ExtensionManager *manager)
 	int count = 0;
 
 	assert(manager != NULL);
+
+	DEBUG("extension", "Loading extensions from default directories.");
 
 	home = getenv("HOME");
 
@@ -457,13 +484,11 @@ extension_manager_load_default(ExtensionManager *manager)
 			{
 				++count;
 			}
-			else if(err)
-			{
-				fprintf(stderr, "%s\n", err);
-				free(err);
-				err = NULL;
-			}
 		}
+	}
+	else
+	{
+		DEBUG("extension", "Couldn't find home directory.");
 	}
 
 	if(extension_manager_load_directory(manager, "/etc/efind/extensions", &err))
@@ -527,6 +552,8 @@ extension_manager_invoke(ExtensionManager *manager, const char *name, const char
 	assert(name != NULL);
 	assert(filename != NULL);
 
+	TRACEF("extension", "Invoking function `%s' with %d parameter(s).", name, argc);
+
 	if((module = _extension_manager_find_callback(manager, name, &cb)))
 	{
 		if(cb->argc == argc)
@@ -538,8 +565,13 @@ extension_manager_invoke(ExtensionManager *manager, const char *name, const char
 		}
 		else
 		{
+			TRACEF("extension", "Signature check of function `%s' failed.", name);
 			status = EXTENSION_CALLBACK_STATUS_INVALID_SIGNATURE;
 		}
+	}
+	else
+	{
+		TRACEF("extension", "Function `%s' not found.", name);
 	}
 
 	return status;
