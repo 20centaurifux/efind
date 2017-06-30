@@ -24,6 +24,7 @@
 
 #include "dl-ext-backend.h"
 #include "extension-interface.h"
+#include "log.h"
 #include "utils.h"
 
 static void *
@@ -84,6 +85,11 @@ _dl_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 	{
 		*result = fn(filename, argc, argv);
 		success = 0;
+	}
+	else
+	{
+		DEBUGF("extension", "dlsym() failed: couldn't find symbol `%s'.", name);
+		fprintf(stderr, "Function `%s' not found.\n", name);
 	}
 
 	return success;
