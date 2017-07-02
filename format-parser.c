@@ -557,7 +557,7 @@ _format_parser_step_date_attribute(FormatParserCtx *ctx, FormatToken *token)
 		}
 		else
 		{
-			fprintf(stderr, "Date format exceeds allowed maximum length.\n");
+			fprintf(stderr, "Date-format exceeds allowed maximum length.\n");
 		}
 
 		result = FORMAT_PARSER_STEP_RESULT_NEXT;

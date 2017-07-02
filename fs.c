@@ -29,6 +29,7 @@
 #include <assert.h>
 
 #include "fs.h"
+#include "log.h"
 #include "utils.h"
 
 /*! Name of unknown filesystems. */
@@ -67,7 +68,7 @@ fs_map_load(void)
 			{
 				if(map->size >= SIZE_MAX / 2)
 				{
-					fprintf(stderr, "%s: integer overflow\n", __func__);
+					FATAL("misc", "Integer overflow.");
 					abort();
 				}
 

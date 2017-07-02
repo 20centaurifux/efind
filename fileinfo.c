@@ -231,12 +231,12 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 		}
 		else
 		{
-			ERRORF("fileinfo", "Couldn't validate paths: cli=%s, path=%s", cli, path);
+			ERRORF("misc", "Couldn't validate paths: cli=%s, path=%s", cli, path);
 		}
 	}
 	else
 	{
-		ERRORF("fileinfo", "Couldn't retrieve information about %s: '`lstat64' failed.", path);
+		ERRORF("misc", "Couldn't retrieve information about %s: '`lstat64' failed.", path);
 		perror("lstat64()");
 	}
 

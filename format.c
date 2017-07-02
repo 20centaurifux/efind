@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "format.h"
+#include "log.h"
 #include "utils.h"
 
 static bool
@@ -136,7 +137,7 @@ _format_write_string(const char *text, ssize_t width, ssize_t precision, int fla
 	}
 	else
 	{
-		fprintf(stderr, "%s: couldn't write string, built format string exceeds maximum buffer length.\n", __func__);
+		ERROR("format", "Couldn't write string, built format string exceeds maximum buffer length.");
 	}
 }
 
@@ -151,7 +152,7 @@ _format_write_number(long long n, ssize_t width, ssize_t precision, int flags, c
 	}
 	else
 	{
-		fprintf(stderr, "%s: couldn't write integer, built format string exceeds maximum buffer length.\n", __func__);
+		ERROR("format", "Couldn't write integer, built format string exceeds maximum buffer length.");
 	}
 }
 
@@ -166,7 +167,7 @@ _format_write_double(double d, ssize_t width, ssize_t precision, int flags, FILE
 	}
 	else
 	{
-		fprintf(stderr, "%s: couldn't write double, built format string exceeds maximum buffer length.\n", __func__);
+		ERROR("format", "Couldn't write double, built format string exceeds maximum buffer length.");
 	}
 }
 
@@ -202,12 +203,12 @@ _format_write_date(time_t time, ssize_t width, ssize_t precision, int flags, con
 			}
 			else
 			{
-				fprintf(stderr, "%s: date-time string exceeds maximum or is empty.\n", __func__);
+				ERROR("format", "Date-time string is empty or exceeds allowed maximum buffer length.");
 			}
 		}
 		else
 		{
-			fprintf(stderr, "%s: format string exceeds maximum.\n", __func__);
+			ERROR("format", "Format string exceeds allowed maximum length.");
 		}
 	}
 	else
@@ -289,7 +290,7 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 					}
 					else
 					{
-						fprintf(stderr, "%s: couldn't read attribute type: %#x\n", __func__, attr.flags);
+						FATALF("format", "Couldn't read attribute type from flags: %#x", attr.flags);
 						success = false;
 					}
 
@@ -298,7 +299,7 @@ format_write(const FormatParserResult *result, FileInfo *info, const char *arg, 
 			}
 			else
 			{
-				fprintf(stderr, "%s: invalid node type: %#x\n", __func__, node->type_id);
+				FATALF("format", "Invalid node type: %#x", node->type_id);
 				success = false;
 			}
 

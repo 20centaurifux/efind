@@ -30,6 +30,7 @@
 #include <ctype.h>
 
 #include "utils.h"
+#include "log.h"
 
 void *
 utils_malloc(size_t size)
@@ -231,7 +232,7 @@ utils_whereis(const char *name)
 		}
 		else
 		{
-			fprintf(stderr, "%s: string truncation failed\n", __func__);
+			ERROR("misc", "String truncation failed.");
 		}
 	}
 
