@@ -258,7 +258,7 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 
 		if(cmp->cmp == CMP_EQ && cmp->second->type == NODE_TRUE)
 		{
-			TRACEF("eval", "%d == TRUE", a);
+			TRACEF("eval", "%d == true", a);
 			result = (a == 0) ? EVAL_RESULT_FALSE : EVAL_RESULT_TRUE;
 		}
 		else if(_eval_node_get_int(cmp->second, ctx, &b))
