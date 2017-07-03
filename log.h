@@ -22,6 +22,8 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include <stdbool.h>
+
 /**
    @enum LogLevel
    @brief Available log level.
@@ -50,6 +52,13 @@ typedef enum
    Sets the verbosity.
  */
 void log_set_verbosity(LogLevel level);
+
+/**
+   @param enable enable colored log messages
+
+   Enables/disables colored log messages.
+ */
+void log_enable_color(bool enable);
 
 /**
    @param level log level

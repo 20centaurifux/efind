@@ -86,6 +86,8 @@ typedef struct
 {
 	/*! Log level. */
 	LogLevel log_level;
+	/*! Enable colored log messages. */
+	bool log_color;
 	/*! Flags. */
 	int32_t flags;
 	/*! Expression to translate. */
@@ -131,6 +133,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "printf", required_argument, 0, 0 },
 		{ "list-extensions", no_argument, 0, 0 },
 		{ "log-level", required_argument, 0, 0 },
+		{ "enable-log-color", no_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
 		{ 0, 0, 0, 0 }
@@ -217,6 +220,10 @@ _read_options(int argc, char *argv[], Options *opts)
 				if(!strcmp(long_options[index].name, "log-level"))
 				{
 					opts->log_level = atoi(optarg);
+				}
+				else if(!strcmp(long_options[index].name, "enable-log-color"))
+				{
+					opts->log_color = true;
 				}
 				else if(!strcmp(long_options[index].name, "max-depth"))
 				{
@@ -473,6 +480,7 @@ _print_help(const char *name)
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list with installed extensions\n");
 	printf("  --log-level level   set the log level (0-6)\n");
+	printf("  --enable-log-color  enable colored log messages\n");
 	printf("  -v, --version       show version and exit\n");
 	printf("  -h, --help          display this help and exit\n");
 }
@@ -547,6 +555,8 @@ main(int argc, char *argv[])
 	{
 		log_set_verbosity(opts.log_level);
 	}
+
+	log_enable_color(opts.log_color);
 
 	INFOF("startup", "%s started successfully.", *argv);
 

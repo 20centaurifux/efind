@@ -28,12 +28,28 @@
 
 #include "log.h"
 
-static LogLevel _verbosity = LOG_LEVEL_NONE;
+/*! @cond INTERNAL */
+static struct
+{
+	LogLevel verbosity;
+	bool enable_color;
+} _log_settings = { .verbosity = LOG_LEVEL_NONE, .enable_color = true };
 
-static const char *_LOG_LEVEL_NAMES[7] =
+static const char *_LOG_LEVEL_NAMES[6] =
 {
 	"TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "FATAL"
 };
+
+static const char *_LOG_COLORS[6] =
+{
+	"\x1B[36m", /* cyan*/
+	"\x1B[32m", /* green*/
+	"\x1B[37m", /* white */
+	"\x1B[33m", /* yellow */
+	"\x1B[31m", /* magenta */
+	"\x1B[35m"  /* red */
+};
+/*! @endcond */
 
 static void
 _log_prefix(FILE *out, LogLevel level, const char *filename, const char *fn, int line, const char *domain)
@@ -54,7 +70,25 @@ _log_prefix(FILE *out, LogLevel level, const char *filename, const char *fn, int
 		domain = "n/a";
 	}
 
+	if(_log_settings.enable_color)
+	{
+		fprintf(out, "\033[0m%s", _LOG_COLORS[level - 1]);
+	}
+
 	fprintf(out, "%s %s <%s> %s, %s(), line %d => ", _LOG_LEVEL_NAMES[level - 1], timestamp, domain, filename, fn, line);
+}
+
+static void
+_log_suffix(FILE *fp)
+{
+	if(_log_settings.enable_color)
+	{
+		fputs("\033[0m\n", fp);
+	}
+	else
+	{
+		fputc('\n', fp);
+	}
 }
 
 void
@@ -62,26 +96,32 @@ log_set_verbosity(LogLevel level)
 {
 	if(level < LOG_LEVEL_NONE)
 	{
-		_verbosity = LOG_LEVEL_NONE;
+		_log_settings.verbosity = LOG_LEVEL_NONE;
 	}
 	else if(level > LOG_LEVEL_FATAL)
 	{
-		_verbosity = LOG_LEVEL_FATAL;
+		_log_settings.verbosity = LOG_LEVEL_FATAL;
 	}
 	else
 	{
-		_verbosity = level;
+		_log_settings.verbosity = level;
 	}
+}
+
+void
+log_enable_color(bool enable)
+{
+	_log_settings.enable_color = enable;
 }
 
 static bool
 _log_check_level(LogLevel level)
 {
-	if(_verbosity > LOG_LEVEL_NONE)
+	if(_log_settings.verbosity > LOG_LEVEL_NONE)
 	{
 		if(level >= LOG_LEVEL_TRACE && level <= LOG_LEVEL_FATAL)
 		{
-			return level > LOG_LEVEL_FATAL - _verbosity;
+			return level > LOG_LEVEL_FATAL - _log_settings.verbosity;
 		}
 
 	}
@@ -104,7 +144,7 @@ log_print(LogLevel level, const char *filename, const char *fn, int line, const 
 
 		_log_prefix(fp, level, filename, fn, line, domain);
 		fputs(msg, fp);
-		fputc('\n', fp);
+		_log_suffix(fp);
 	}
 }
 
@@ -121,7 +161,7 @@ log_printf(LogLevel level, const char *filename, const char *fn, int line, const
 		va_start(ap, format);
 
 		vfprintf(fp, format, ap);
-		fputc('\n', fp);
+		_log_suffix(fp);
 
 		va_end(ap);
 	}
