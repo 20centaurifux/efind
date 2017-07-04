@@ -79,29 +79,31 @@ A value must be of one of the data types listed below:
 
 The following file attributes are searchable:
 
-| Attribute | Description                         | Type            | Example     |
-| :-------- | :---------------------------------- | :-------------- | :---------- |
-| name      | case sensitive filename pattern     | string          | "*.txt"     |
-| iname     | case insensitive filename pattern   | string          | "Foo.bar"   |
-| regex     | case sensitive regular expression   | string          | ".*\\.html" |
-| iregex    | case insensitive regular expression | string          | ".*\\.TxT"  |
-| atime     | last access time                    | time interval   | 1 minute    |
-| ctime     | last file status change             | time interval   | 15 hours    |
-| mtime     | last modification time              | time interval   | 30 days     |
-| size      | file size                           | size            | 10 megabyte |
-| group     | name of the group owning the file   | string          | "users"     |
-| gid       | id of the group owning the file     | number          | 1000        |
-| user      | name of the user owning the file    | string          | "john"      |
-| uid       | id of the user owning the file      | number          | 1000        |
-| type      | file type                           | file type       | pipe        |
+| Attribute  | Description                           | Type            | Example     |
+| :--------- | :------------------------------------ | :-------------- | :---------- |
+| name       | case sensitive filename pattern       | string          | "*.txt"     |
+| iname      | case insensitive filename pattern     | string          | "Foo.bar"   |
+| regex      | case sensitive regular expression     | string          | ".*\\.html" |
+| iregex     | case insensitive regular expression   | string          | ".*\\.TxT"  |
+| atime      | last access time                      | time interval   | 1 minute    |
+| ctime      | last file status change               | time interval   | 15 hours    |
+| mtime      | last modification time                | time interval   | 30 days     |
+| size       | file size                             | size            | 10 megabyte |
+| group      | name of the group owning the file     | string          | "users"     |
+| gid        | id of the group owning the file       | number          | 1000        |
+| user       | name of the user owning the file      | string          | "john"      |
+| uid        | id of the user owning the file        | number          | 1000        |
+| type       | file type                             | file type       | pipe        |
+| filesystem | name of the filesystem the file is on | string          | "ext4"      |
 
 Additionally you can test these flags:
 
-| Flag       | Description                             |
-| :--------- | :-------------------------------------- |
-| readable   | the file can be read by the user        |
-| writable   | the user can write to the file          |
-| executable | the user is allowed to execute the file |
+| Flag       | Description                                                   |
+| :--------- | :------------------------------------------------------------ |
+| readable   | the file can be read by the user                              |
+| writable   | the user can write to the file                                |
+| executable | the user is allowed to execute the file                       |
+| empty      | the file is empty and is either a regular file or a directory |
 
 ## Differences to GNU find
 
@@ -132,4 +134,3 @@ expression finds all documents in the current folder with a file size less or eq
 
 * not operator
 * sort find results
-* more detailed logging and error reporting
