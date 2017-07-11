@@ -8,7 +8,7 @@ CPPCHECK=cppcheck
 CTAGS=ctags
 
 PYTHON_CFLAGS=-DWITH_PYTHON
-PYTHON_LIBS=-lpython2.7 -lavcall
+PYTHON_LIBS=-lpython2.7 -lffi
 PYTHON_LDFLAGS=
 PYTHON_INC=-I /usr/include/python2.7
 
