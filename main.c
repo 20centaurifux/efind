@@ -486,7 +486,7 @@ _print_help(const char *name)
 	printf("  --printf format     print format on standard output; see manpage\n");
 	printf("  --max-depth levels  maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
-	printf("  --list-extensions   show a list with installed extensions\n");
+	printf("  --list-extensions   show a list of installed extensions\n");
 	printf("  --show-blacklist    show blacklisted extensions\n");
 	printf("  --log-level level   set the log level (0-6)\n");
 	printf("  --enable-log-color  enable colored log messages\n");
