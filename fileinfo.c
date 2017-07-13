@@ -210,7 +210,6 @@ file_info_clear(FileInfo *info)
 bool
 file_info_get(FileInfo *info, const char *cli, const char *path)
 {
-	struct stat64 sb;
 	int rc;
 	bool success = false;
 
@@ -218,7 +217,13 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	assert(cli != NULL);
 	assert(path != NULL);
 
+	#ifdef _LARGEFILE64_SOURCE
+	struct stat64 sb;
 	rc = lstat64(path, &sb);
+	#else
+	struct stat sb;
+	rc = lstat(path, &sb);
+	#endif
 
 	if(!rc)
 	{
@@ -237,7 +242,11 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	else
 	{
 		ERRORF("misc", "Couldn't retrieve information about %s: '`lstat64' failed.", path);
+		#ifdef _LARGEFILE64_SOURCE
 		perror("lstat64()");
+		#else
+		perror("lstat()");
+		#endif
 	}
 
 	return success;

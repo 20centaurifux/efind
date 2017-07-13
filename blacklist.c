@@ -19,6 +19,10 @@
    @brief List containing blacklisted files.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
+/*! @cond INTERNAL */
+#define _GNU_SOURCE
+/*! @endcond */
+
 #include "blacklist.h"
 #include "log.h"
 #include "utils.h"
