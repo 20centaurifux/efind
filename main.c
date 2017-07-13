@@ -42,6 +42,7 @@
 #include "utils.h"
 #include "format.h"
 #include "extension.h"
+#include "blacklist.h"
 #include "version.h"
 
 /**
@@ -61,7 +62,9 @@ typedef enum
 	/*! Show version and quit. */
 	ACTION_PRINT_VERSION,
 	/*! Show extensions and quit. */
-	ACTION_LIST_EXTENSIONS
+	ACTION_LIST_EXTENSIONS,
+	/*! Show blacklisted files and quit. */
+	ACTION_SHOW_BLACKLIST
 } Action;
 
 /**
@@ -132,6 +135,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "regex-type", required_argument, 0, 0 },
 		{ "printf", required_argument, 0, 0 },
 		{ "list-extensions", no_argument, 0, 0 },
+		{ "show-blacklist", no_argument, 0, 0 },
 		{ "log-level", required_argument, 0, 0 },
 		{ "enable-log-color", no_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
@@ -232,6 +236,10 @@ _read_options(int argc, char *argv[], Options *opts)
 				else if(!strcmp(long_options[index].name, "list-extensions"))
 				{
 					action = ACTION_LIST_EXTENSIONS;
+				}
+				else if(!strcmp(long_options[index].name, "show-blacklist"))
+				{
+					action = ACTION_SHOW_BLACKLIST;
 				}
 				else if(!strcmp(long_options[index].name, "regex-type"))
 				{
@@ -479,6 +487,7 @@ _print_help(const char *name)
 	printf("  --max-depth levels  maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list with installed extensions\n");
+	printf("  --show-blacklist    show blacklisted extensions\n");
 	printf("  --log-level level   set the log level (0-6)\n");
 	printf("  --enable-log-color  enable colored log messages\n");
 	printf("  -v, --version       show version and exit\n");
@@ -522,6 +531,25 @@ _list_extensions(void)
 		FATAL("action", "Creation of ExpressionManager instance failed.");
 		fprintf(stderr, "Couldn't load extensions.\n");
 	}
+}
+
+static void
+_show_blacklist(void)
+{
+	Blacklist *blacklist;
+
+	blacklist = blacklist_new();
+	blacklist_load_default(blacklist);
+
+	ListItem *iter = blacklist_head(blacklist);
+
+	while(iter)
+	{
+		fprintf(stdout, "%s\n", (char *)list_item_get_data(iter));
+		iter = list_item_next(iter);
+	}
+
+	blacklist_destroy(blacklist);
 }
 
 /**
@@ -625,6 +653,11 @@ main(int argc, char *argv[])
 
 		case ACTION_LIST_EXTENSIONS:
 			_list_extensions();
+			result = EXIT_SUCCESS;
+			break;
+
+		case ACTION_SHOW_BLACKLIST:
+			_show_blacklist();
 			result = EXIT_SUCCESS;
 			break;
 

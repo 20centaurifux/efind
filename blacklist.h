@@ -79,5 +79,12 @@ size_t blacklist_load(Blacklist *blacklist, const char *filename);
  */
 size_t blacklist_load_default(Blacklist *blacklist);
 
+/**
+   @param blacklist a Blacklist
+ *\return head of the list
+ *
+ * Gets the head of the list.
+ */
+#define blacklist_head(blacklist) list_head(blacklist)
 #endif
 
