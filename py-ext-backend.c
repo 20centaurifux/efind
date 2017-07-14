@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <avcall.h>
+#include <ffi.h>
 #include <datatypes.h>
 #include <assert.h>
 
@@ -360,22 +360,39 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 		/* call registration function */
 		if(success)
 		{
-			av_alist alist;
+			ffi_cif cif;
+			ffi_type *ret_type = &ffi_type_void;
+			ffi_arg ret_value;
+			ffi_type *arg_types[3 + argc];
+			void *arg_values[3 + argc];
 
-			av_start_void(alist, fn);
-			av_ptr(alist, RegistrationCtx*, ctx);
-			av_ptr(alist, const char*, fn_name);
-			av_int(alist, argc);
+			arg_types[0] = &ffi_type_pointer;
+			arg_types[1] = &ffi_type_pointer;
+			arg_types[2] = &ffi_type_uint;
+
+			arg_values[0] = &ctx;
+			arg_values[1] = &fn_name;
+			arg_values[2] = &argc;
 
 			for(uint32_t i = 0; i < argc; ++i)
 			{
-				av_int(alist, signature[i]);
+				arg_types[3 + i] = &ffi_type_sint;
+				arg_values[3 + i] = &signature[i];
 			}
 
-			av_call(alist);
+			ffi_status status = ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, 3, 3 + argc, ret_type, arg_types);
 
-			/* store signature */
-			assoc_array_set(&handle->signatures, utils_strdup(fn_name), signature, false);
+			if(status == FFI_OK)
+			{
+				ffi_call(&cif, FFI_FN(fn), &ret_value, arg_values);
+
+				/* store signature */
+				assoc_array_set(&handle->signatures, utils_strdup(fn_name), signature, false);
+			}
+			else
+			{
+				WARNINGF("python", "`ffi_prep_cif_var' failed with error code %#x.", status);
+			}
 		}
 		else
 		{
