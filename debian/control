@@ -6,14 +6,14 @@ Build-Depends: debhelper (>=9),
 	flex,
 	bison,
 	libpython2.7-dev,
-	libffcall1-dev
+	libffi-dev
 Standards-Version: 3.9.6
 Homepage: http://efind.dixieflatline.de
 Vcs-Git: https://github.com/20centaurifux/efind.git
 
 Package: efind
 Architecture: any
-Depends: findutils (>= 4.4.2), libpython2.7 (>= 2.7.0), libffcall1 (>= 1.0), ${shlibs:Depends}
+Depends: findutils (>= 4.4.2), libpython2.7 (>= 2.7.0), libffi6 (>= 3.1), ${shlibs:Depends}
 Description: An extendable wrapper for GNU find.
  efind is a wrapper for GNU find providing an easier and more
  intuitive expression syntax. It can be extended by custom
