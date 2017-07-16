@@ -7,24 +7,24 @@ DOXYGEN=doxygen
 CPPCHECK=cppcheck
 CTAGS=ctags
 
-PYTHON_CFLAGS=-DWITH_PYTHON
-PYTHON_LIBS=-lpython2.7 -lffi
-PYTHON_LDFLAGS=
-PYTHON_INC=-I /usr/include/python2.7
+LIBFFI_CFLAGS=`pkg-config --cflags libffi`
+LIBFFI_LDFLAGS=`pkg-config --libs libffi`
+
+PYTHON_CFLAGS=-DWITH_PYTHON `pkg-config --cflags python2` $(LIBFFI_CFLAGS)
+PYTHON_LDFLAGS=`pkg-config --libs python2` $(LIBFFI_LDFLAGS)
 
 CC=gcc
 CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) 
-LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS)
-LIBS=-ldl ./datatypes/libdatatypes-0.2.0.a $(PYTHON_LIBS) -lm
-INC=-I./datatypes $(PYTHON_INC)
+LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.2.0.a -lm
+INC=-I./datatypes
 
-VERSION=0.2.1
+VERSION=0.2.2
 
 all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) $(CFLAGS) $(INC) ./main.c ./log.c ./parser.y.c ./lexer.l.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INC) ./main.c ./log.c ./parser.y.c ./lexer.l.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS)
 
 install:
 	test -d "$(DESTDIR)$(PREFIX)/bin" || mkdir -p "$(DESTDIR)$(PREFIX)/bin"
