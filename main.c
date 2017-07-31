@@ -43,6 +43,7 @@
 #include "format.h"
 #include "extension.h"
 #include "blacklist.h"
+#include "sort.h"
 #include "version.h"
 
 /**
@@ -105,6 +106,8 @@ typedef struct
 	char *regex_type;
 	/*! Print format on stdout. */
 	char *printf;
+	/*! Sort string. */
+	char *sortby;
 } Options;
 
 /**
@@ -134,6 +137,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "max-depth", required_argument, 0, 0 },
 		{ "regex-type", required_argument, 0, 0 },
 		{ "printf", required_argument, 0, 0 },
+		{ "sort-by", required_argument, 0, 0 },
 		{ "list-extensions", no_argument, 0, 0 },
 		{ "show-blacklist", no_argument, 0, 0 },
 		{ "log-level", required_argument, 0, 0 },
@@ -248,6 +252,10 @@ _read_options(int argc, char *argv[], Options *opts)
 				else if(!strcmp(long_options[index].name, "printf"))
 				{
 					opts->printf = utils_strdup(optarg);
+				}
+				else if(!strcmp(long_options[index].name, "sort-by"))
+				{
+					opts->sortby = utils_strdup(optarg);
 				}
 
 				break;
@@ -484,6 +492,7 @@ _print_help(const char *name)
 	printf("  -L, --follow        follow symbolic links\n");
 	printf("  --regex-type type   set regular expression type; see manpage\n");
 	printf("  --printf format     print format on standard output; see manpage\n");
+	printf("  --sort-by fields    fields to sort search result by; see manpage\n");
 	printf("  --max-depth levels  maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list of installed extensions\n");
@@ -687,6 +696,11 @@ main(int argc, char *argv[])
 		if(opts.printf)
 		{
 			free(opts.printf);
+		}
+
+		if(opts.sortby)
+		{
+			free(opts.sortby);
 		}
 
 	return result;
