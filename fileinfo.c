@@ -474,3 +474,32 @@ file_attr_get_double(FileAttr *attr)
 	return 0;
 }
 
+int
+file_attr_compare(FileAttr *a, FileAttr *b)
+{
+	int result = -1;
+
+	assert(a != NULL);
+	assert(b != NULL);
+	assert(a->flags == b->flags);
+
+	if(a->flags & FILE_ATTR_FLAG_STRING)
+	{
+		result = strcmp(a->value.str, b->value.str);
+	}
+	else if(a->flags & FILE_ATTR_FLAG_INTEGER || a->flags & FILE_ATTR_FLAG_TIME)
+	{
+		result = (a->value.n > b->value.n) - (a->value.n < b->value.n);
+	}
+	else if(a->flags & FILE_ATTR_FLAG_LLONG)
+	{
+		result = (a->value.llong > b->value.llong) - (a->value.llong < b->value.llong);
+	}
+	else if(a->flags & FILE_ATTR_FLAG_DOUBLE)
+	{
+		result = (a->value.d > b->value.d) - (a->value.d < b->value.d);
+	}
+
+	return result;
+}
+

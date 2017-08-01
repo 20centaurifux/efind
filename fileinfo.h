@@ -173,5 +173,14 @@ time_t file_attr_get_time(FileAttr *attr);
  */
 double file_attr_get_double(FileAttr *attr);
 
+/*
+  @param a a file attribute
+  @param b a file attribute
+  @return 0 if values are equal, or a positive integer if the first value comes after the second
+
+  Compares two file attributes.
+ */
+int file_attr_compare(FileAttr *a, FileAttr *b);
+
 #endif
 
