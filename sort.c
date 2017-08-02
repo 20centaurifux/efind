@@ -155,13 +155,6 @@ _file_list_entry_destroy(FileListEntry *entry)
 {
 	if(entry)
 	{
-		for(int i = 0; i < entry->filesp->fields_n; ++i)
-		{
-			file_attr_free(&entry->attrs[i]);
-		}
-
-		free(entry->attrs);
-
 		if(entry->info)
 		{
 			file_info_clear(entry->info);
@@ -204,31 +197,6 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 		{
 			entry = _file_list_entry_new(list);
 			entry->info = file_info_dup(&info);
-
-			bool success = true;
-			int count = 0;
-
-			entry->attrs = (FileAttr *)utils_malloc(sizeof(FileAttr) * list->fields_n);
-
-			for(int i = 0; success && i < list->fields_n; ++i)
-			{
-				if((success = file_info_get_attr(entry->info, &entry->attrs[i], list->fields[i])))
-				{
-					++count;
-				}
-			}
-
-			if(!success)
-			{
-				for(int i = 0; i < count; ++i)
-				{
-					file_attr_free(&entry->attrs[i]);
-				}
-
-				free(entry->attrs);
-				free(entry);
-				entry = NULL;
-			}
 		}
 
 		file_info_clear(&info);
@@ -302,7 +270,28 @@ _file_list_compare_entries(const void *a, const void *b)
 
 	for(int i = 0; i < first->filesp->fields_n; ++i)
 	{
-		result = file_attr_compare(&first->attrs[i], &second->attrs[i]);
+		FileAttr attr_a;
+
+		if(file_info_get_attr(first->info, &attr_a, first->filesp->fields[i]))
+		{
+			FileAttr attr_b;
+
+			if(file_info_get_attr(second->info, &attr_b, second->filesp->fields[i]))
+			{
+				result = file_attr_compare(&attr_a, &attr_b);
+				file_attr_free(&attr_b);
+			}
+			else
+			{
+				fprintf(stderr, "Couldn't read file attribute from %s.\n", second->info->path);
+			}
+
+			file_attr_free(&attr_a);
+		}
+		else
+		{
+			fprintf(stderr, "Couldn't read file attribute from %s.\n", first->info->path);
+		}
 
 		if(result)
 		{

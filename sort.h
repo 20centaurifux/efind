@@ -34,8 +34,6 @@ typedef struct _FileList FileList;
  */
 typedef struct
 {
-	/*! Read attributes used to compare list entries. */
-	FileAttr *attrs;
 	/* A FileInfo instance used to read file details. */
 	FileInfo *info;
 	/*! Pointer to associated FileList instance. */
