@@ -111,8 +111,8 @@ typedef struct
 } Options;
 
 /**
-   @struct PrintArg
-   @brief Additional print arguments.
+   @struct FoundArg
+   @brief Additional callback arguments.
  */
 typedef struct
 {
@@ -122,7 +122,9 @@ typedef struct
 	FormatParserResult *fmt;
 	/*! FileInfo instance used to receive file attributes when printing. */
 	FileInfo info;
-} PrintArg;
+	/*! Store and sort found files. */
+	FileList files;
+} FoundArg;
 
 static Action
 _read_options(int argc, char *argv[], Options *opts)
@@ -369,7 +371,7 @@ _build_search_options(const Options *opts, SearchOptions *sopts)
 static void
 _file_cb(const char *path, void *user_data)
 {
-	PrintArg *arg = (PrintArg *)user_data;
+	FoundArg *arg = (FoundArg *)user_data;
 
 	if(path)
 	{
@@ -388,6 +390,14 @@ _file_cb(const char *path, void *user_data)
 }
 
 static void
+_collect_cb(const char *path, void *user_data)
+{
+	FoundArg *arg = (FoundArg *)user_data;
+
+	file_list_append(&arg->files, path);
+}
+
+static void
 _error_cb(const char *msg, void *user_data)
 {
 	if(msg)
@@ -402,6 +412,8 @@ _exec_find(const Options *opts)
 	FormatParserResult *fmt = NULL;
 	SearchOptions sopts;
 	int result = -1;
+	bool success = true;
+	Callback cb = _file_cb;
 
 	assert(opts != NULL);
 	assert(opts->expr != NULL);
@@ -412,16 +424,28 @@ _exec_find(const Options *opts)
 	{
 		fmt = format_parse(opts->printf);
 
-		if(!fmt->success)
+		if(!(success = fmt->success))
 		{
 			DEBUGF("action", "Parsing of format string failed: %s", opts->printf);
 			fprintf(stderr, "Couldn't parse format string: %s\n", opts->printf);
 		}
 	}
 
-	if(!fmt || fmt->success)
+	if(success && opts->sortby)
 	{
-		PrintArg arg;
+		if((success = sort_string_test(opts->sortby) > 0))
+		{
+			cb = _collect_cb;
+		}
+		else
+		{
+			fprintf(stderr, "Couldn't parse sort string.\n");
+		}
+	}
+
+	if(success)
+	{
+		FoundArg arg;
 
 		TRACE("startup", "Starting file search.");
 
@@ -433,9 +457,24 @@ _exec_find(const Options *opts)
 			file_info_init(&arg.info);
 		}
 
+		if(opts->sortby)
+		{
+			file_list_init(&arg.files, opts->dir, opts->sortby);
+		}
+
 		_build_search_options(opts, &sopts);
 
-		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, &arg) >= 0;
+		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, cb, _error_cb, &arg) >= 0;
+
+		if(result && opts->sortby)
+		{
+			file_list_sort(&arg.files);
+
+			for(size_t i = 0; i < arg.files.count; ++i)
+			{
+				_file_cb(arg.files.entries[i]->path, &arg);
+			}
+		}
 
 		TRACE("action", "Cleaning up file search.");
 
@@ -444,6 +483,11 @@ _exec_find(const Options *opts)
 		if(arg.fmt)
 		{
 			file_info_clear(&arg.info);
+		}
+
+		if(opts->sortby)
+		{
+			file_list_free(&arg.files);
 		}
 	}
 
