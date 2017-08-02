@@ -34,8 +34,6 @@ typedef struct _FileList FileList;
  */
 typedef struct
 {
-	/*! Path of the found file. */
-	char *path;
 	/*! Read attributes used to compare list entries. */
 	FileAttr *attrs;
 	/* A FileInfo instance used to read file details. */

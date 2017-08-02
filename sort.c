@@ -145,7 +145,7 @@ file_list_init(FileList *list, const char *cli, const char *sortby)
 		}
 		else
 		{
-			fprintf(stderr, "Couldn't parse orderby string.\n");
+			fprintf(stderr, "Couldn't parse sort string.\n");
 		}
 	}
 }
@@ -155,8 +155,6 @@ _file_list_entry_destroy(FileListEntry *entry)
 {
 	if(entry)
 	{
-		free(entry->path);
-
 		for(int i = 0; i < entry->filesp->fields_n; ++i)
 		{
 			file_attr_free(&entry->attrs[i]);
@@ -220,11 +218,7 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 				}
 			}
 
-			if(success)
-			{
-				entry->path = utils_strdup(path);
-			}
-			else
+			if(!success)
 			{
 				for(int i = 0; i < count; ++i)
 				{
@@ -242,7 +236,6 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 	else
 	{
 			entry = _file_list_entry_new(list);
-			entry->path = utils_strdup(path);
 	}
 
 	return entry;

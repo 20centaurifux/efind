@@ -120,8 +120,6 @@ typedef struct
 	const char *dir;
 	/*! Optional parsed format string. */
 	FormatParserResult *fmt;
-	/*! FileInfo instance used to receive file attributes when printing. */
-	FileInfo info;
 	/*! Store and sort found files. */
 	FileList files;
 } FoundArg;
@@ -380,7 +378,7 @@ _file_cb(const char *path, void *user_data)
 			assert(arg->dir != NULL);
 			assert(arg->fmt->success == true);
 
-			format_write(arg->fmt, &arg->info, arg->dir, path, stdout);
+			format_write(arg->fmt, arg->dir, path, stdout);
 		}
 		else
 		{
@@ -422,23 +420,28 @@ _exec_find(const Options *opts)
 
 	if(opts->printf)
 	{
+		DEBUGF("action", "Parsing format string: %s", opts->printf);
+
 		fmt = format_parse(opts->printf);
 
 		if(!(success = fmt->success))
 		{
-			DEBUGF("action", "Parsing of format string failed: %s", opts->printf);
+			DEBUG("action", "Parsing of format string failed.");
 			fprintf(stderr, "Couldn't parse format string: %s\n", opts->printf);
 		}
 	}
 
 	if(success && opts->sortby)
 	{
-		if((success = sort_string_test(opts->sortby) > 0))
+		DEBUGF("action", "Parsing sort string: %s", opts->sortby);
+
+		if((success = sort_string_test(opts->sortby)) > 0)
 		{
 			cb = _collect_cb;
 		}
 		else
 		{
+			DEBUG("action", "Parsing of sort string failed.");
 			fprintf(stderr, "Couldn't parse sort string.\n");
 		}
 	}
@@ -451,11 +454,6 @@ _exec_find(const Options *opts)
 
 		arg.dir = opts->dir;
 		arg.fmt = fmt;
-
-		if(arg.fmt)
-		{
-			file_info_init(&arg.info);
-		}
 
 		if(opts->sortby)
 		{
@@ -472,18 +470,13 @@ _exec_find(const Options *opts)
 
 			for(size_t i = 0; i < arg.files.count; ++i)
 			{
-				_file_cb(arg.files.entries[i]->path, &arg);
+				_file_cb(arg.files.entries[i]->info->path, &arg);
 			}
 		}
 
 		TRACE("action", "Cleaning up file search.");
 
 		search_options_free(&sopts);
-
-		if(arg.fmt)
-		{
-			file_info_clear(&arg.info);
-		}
 
 		if(opts->sortby)
 		{
