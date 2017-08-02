@@ -65,7 +65,7 @@ struct _FileList
 
 /**
    @param str string to validate
-   @return true on success
+   @return number of found fields
 
    Tests if a sort string is valid.
   */
