@@ -27,7 +27,7 @@
 #include "filelist.h"
 #include "utils.h"
 
-#define FIELDS "bfgGhiklmMnpsSuUyYpPHFD"
+#define FIELDS "bfgGhiklmMnpsSuUyYpPHFDaAcCtT"
 
 int
 sort_string_test(const char *str)
