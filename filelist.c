@@ -15,8 +15,8 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file sort.c
-   @brief Sort found files.
+   @file filelist.c
+   @brief Sortable file list.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <string.h>
@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "sort.h"
+#include "filelist.h"
 #include "utils.h"
 
 #define FIELDS "bfgGhiklmMnpsSuUyYpPHFD"

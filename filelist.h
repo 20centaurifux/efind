@@ -15,12 +15,12 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file sort.h
-   @brief Sort found files.
+   @file filelist.h
+   @brief Sortable file list.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-#ifndef SORT_H
-#define SORT_H
+#ifndef FILELIST_H
+#define FILELIST_H
 
 #include <stdbool.h>
 
