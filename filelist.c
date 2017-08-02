@@ -112,7 +112,7 @@ const char
 }
 
 void
-file_list_init(FileList *list, const char *cli, const char *sortby)
+file_list_init(FileList *list, const char *cli, const char *orderby)
 {
 	assert(list != NULL);
 	assert(cli != NULL);
@@ -123,9 +123,9 @@ file_list_init(FileList *list, const char *cli, const char *sortby)
 	list->entries = (FileListEntry **)utils_malloc(sizeof(FileListEntry *) * 8);
 	list->size = 8;
 
-	if(sortby)
+	if(orderby)
 	{
-		int count = sort_string_test(sortby);
+		int count = sort_string_test(orderby);
 
 		if(count > 0)
 		{
@@ -135,7 +135,7 @@ file_list_init(FileList *list, const char *cli, const char *sortby)
 			list->fields_asc = (bool *)utils_malloc(sizeof(bool) * count);
 			list->fields_n = count;
 
-			const char *rest = sort_string_pop(sortby, list->fields, list->fields_asc);
+			const char *rest = sort_string_pop(orderby, list->fields, list->fields_asc);
 
 			while(rest)
 			{

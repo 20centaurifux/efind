@@ -43,7 +43,7 @@
 #include "format.h"
 #include "extension.h"
 #include "blacklist.h"
-#include "sort.h"
+#include "filelist.h"
 #include "version.h"
 
 /**
@@ -107,7 +107,7 @@ typedef struct
 	/*! Print format on stdout. */
 	char *printf;
 	/*! Sort string. */
-	char *sortby;
+	char *orderby;
 } Options;
 
 /**
@@ -137,7 +137,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "max-depth", required_argument, 0, 0 },
 		{ "regex-type", required_argument, 0, 0 },
 		{ "printf", required_argument, 0, 0 },
-		{ "sort-by", required_argument, 0, 0 },
+		{ "order-by", required_argument, 0, 0 },
 		{ "list-extensions", no_argument, 0, 0 },
 		{ "show-blacklist", no_argument, 0, 0 },
 		{ "log-level", required_argument, 0, 0 },
@@ -253,9 +253,9 @@ _read_options(int argc, char *argv[], Options *opts)
 				{
 					opts->printf = utils_strdup(optarg);
 				}
-				else if(!strcmp(long_options[index].name, "sort-by"))
+				else if(!strcmp(long_options[index].name, "order-by"))
 				{
-					opts->sortby = utils_strdup(optarg);
+					opts->orderby = utils_strdup(optarg);
 				}
 
 				break;
@@ -431,11 +431,11 @@ _exec_find(const Options *opts)
 		}
 	}
 
-	if(success && opts->sortby)
+	if(success && opts->orderby)
 	{
-		DEBUGF("action", "Parsing sort string: %s", opts->sortby);
+		DEBUGF("action", "Parsing sort string: %s", opts->orderby);
 
-		if((success = sort_string_test(opts->sortby)) > 0)
+		if((success = sort_string_test(opts->orderby)) > 0)
 		{
 			cb = _collect_cb;
 		}
@@ -455,16 +455,16 @@ _exec_find(const Options *opts)
 		arg.dir = opts->dir;
 		arg.fmt = fmt;
 
-		if(opts->sortby)
+		if(opts->orderby)
 		{
-			file_list_init(&arg.files, opts->dir, opts->sortby);
+			file_list_init(&arg.files, opts->dir, opts->orderby);
 		}
 
 		_build_search_options(opts, &sopts);
 
 		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, cb, _error_cb, &arg) >= 0;
 
-		if(result && opts->sortby)
+		if(result && opts->orderby)
 		{
 			file_list_sort(&arg.files);
 			file_list_foreach(&arg.files, _file_cb, &arg);
@@ -474,7 +474,7 @@ _exec_find(const Options *opts)
 
 		search_options_free(&sopts);
 
-		if(opts->sortby)
+		if(opts->orderby)
 		{
 			file_list_free(&arg.files);
 		}
@@ -525,7 +525,7 @@ _print_help(const char *name)
 	printf("  -L, --follow        follow symbolic links\n");
 	printf("  --regex-type type   set regular expression type; see manpage\n");
 	printf("  --printf format     print format on standard output; see manpage\n");
-	printf("  --sort-by fields    fields to sort search result by; see manpage\n");
+	printf("  --order-by fields   fields to order search result by; see manpage\n");
 	printf("  --max-depth levels  maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list of installed extensions\n");
@@ -731,9 +731,9 @@ main(int argc, char *argv[])
 			free(opts.printf);
 		}
 
-		if(opts.sortby)
+		if(opts.orderby)
 		{
-			free(opts.sortby);
+			free(opts.orderby);
 		}
 
 	return result;

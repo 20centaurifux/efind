@@ -82,11 +82,11 @@ const char *sort_string_pop(const char *str, char *field, bool *asc);
 /**
    @param list FileList instance to initialize
    @param cli command line argument under which the files are located
-   @param sortby sort string
+   @param orderby sort string
 
    Initializes a FileList instance.
   */
-void file_list_init(FileList *list, const char *cli, const char *sortby);
+void file_list_init(FileList *list, const char *cli, const char *orderby);
 
 /**
    @param list FileList instance to free
