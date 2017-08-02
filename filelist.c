@@ -27,7 +27,8 @@
 #include "filelist.h"
 #include "utils.h"
 
-#define FIELDS "bfgGhiklmMnpsSuUyYpPHFDaAcCtT"
+/*! Supported fields to sort search result by. */
+#define SORTABLE_FIELDS "bfgGhiklmMnpsSuUyYpPHFDaAcCtT"
 
 int
 sort_string_test(const char *str)
@@ -49,7 +50,7 @@ sort_string_test(const char *str)
 
 			if(*ptr)
 			{
-				if(strchr(FIELDS, *ptr))
+				if(strchr(SORTABLE_FIELDS, *ptr))
 				{
 					if(result <= INT_MAX)
 					{
@@ -92,7 +93,7 @@ const char
 			++ptr;
 		}
 
-		if(*ptr && strchr(FIELDS, *ptr))
+		if(*ptr && strchr(SORTABLE_FIELDS, *ptr))
 		{
 			*field = *ptr;
 			++ptr;
