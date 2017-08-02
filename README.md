@@ -133,4 +133,3 @@ expression finds all documents in the current folder with a file size less or eq
 ## Planned features
 
 * not operator
-* sort find results
