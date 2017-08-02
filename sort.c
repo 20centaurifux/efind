@@ -155,15 +155,21 @@ _file_list_entry_destroy(FileListEntry *entry)
 {
 	if(entry)
 	{
+		free(entry->path);
+
 		for(int i = 0; i < entry->filesp->fields_n; ++i)
 		{
 			file_attr_free(&entry->attrs[i]);
 		}
 
 		free(entry->attrs);
-		free(entry->path);
-		file_info_clear(entry->info);
-		free(entry->info);
+
+		if(entry->info)
+		{
+			file_info_clear(entry->info);
+			free(entry->info);
+		}
+
 		free(entry);
 	}
 }
