@@ -467,11 +467,7 @@ _exec_find(const Options *opts)
 		if(result && opts->sortby)
 		{
 			file_list_sort(&arg.files);
-
-			for(size_t i = 0; i < arg.files.count; ++i)
-			{
-				_file_cb(arg.files.entries[i]->info->path, &arg);
-			}
+			file_list_foreach(&arg.files, _file_cb, &arg);
 		}
 
 		TRACE("action", "Cleaning up file search.");

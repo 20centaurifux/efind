@@ -315,3 +315,15 @@ file_list_sort(FileList *list)
 	qsort(list->entries, list->count, sizeof(FileListEntry *), &_file_list_compare_entries);
 }
 
+void
+file_list_foreach(FileList *list, Callback f, void *user_data)
+{
+	assert(list != NULL);
+	assert(f != NULL);
+
+	for(size_t i = 0; i < list->count; ++i)
+	{
+		f(list->entries[i]->info->path, user_data);
+	}
+}
+
