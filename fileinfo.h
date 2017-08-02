@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <stdint.h>
 
 #include "fs.h"
 
@@ -36,17 +37,15 @@
 typedef struct
 {
 	/*! Command line argument under which the file was found. */
-	char cli[PATH_MAX];
+	char *cli;
 	/*! Path of the file. */
-	char path[PATH_MAX];
+	char *path;
 	/*! File information. */
 	#ifdef _LARGEFILE64_SOURCE
 	struct stat64 sb;
 	#else
 	struct stat sb;
 	#endif
-	/*! A FSMap instance used to get the filesystem of a file. */
-	FSMap *fsmap;
 } FileInfo;
 
 /**
@@ -76,7 +75,7 @@ typedef enum
 typedef struct
 {
 	/*! Attribute flag. */
-	int32_t flags;
+	uint8_t flags;
 	union
 	{
 		/*! A string value. */

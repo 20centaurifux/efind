@@ -34,6 +34,18 @@
 #include "linux.h"
 #include "utils.h"
 
+/*! A FSMap instance used to get the filesystem of a file. */
+static FSMap *_fs_map = NULL;
+
+static void
+_fs_map_free(void)
+{
+	if(_fs_map)
+	{
+		fs_map_destroy(_fs_map);
+	}
+}
+
 static char *
 _file_info_get_dirname(const char *filename)
 {
@@ -198,11 +210,8 @@ file_info_clear(FileInfo *info)
 {
 	if(info)
 	{
-		if(info->fsmap)
-		{
-			fs_map_destroy(info->fsmap);
-		}
-
+		free(info->path);
+		free(info->cli);
 		file_info_init(info);
 	}
 }
@@ -229,8 +238,8 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	{
 		if(strlen(cli) < PATH_MAX && strlen(path) < PATH_MAX)
 		{
-			strcpy(info->cli, cli);
-			strcpy(info->path, path);
+			info->cli = utils_strdup(cli);
+			info->path = utils_strdup(path);
 			info->sb = sb;
 			success = true;
 		}
@@ -261,10 +270,9 @@ file_info_dup(const FileInfo *info)
 
 	ptr = (FileInfo *)malloc(sizeof(FileInfo));
 
-	memcpy(ptr->path, info->path, PATH_MAX);
-	memcpy(ptr->cli, info->cli, PATH_MAX);
+	ptr->path = utils_strdup(info->path);
+	ptr->cli = utils_strdup(info->cli);
 	ptr->sb = info->sb;
-	ptr->fsmap = NULL;
 
 	return ptr;
 }
@@ -318,14 +326,15 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 		case 'F': /* Type of the filesystem the file is on; this value can be used for -fstype. */
 			attr->flags = FILE_ATTR_FLAG_STRING;
 
-			if(!info->fsmap)
+			if(!_fs_map)
 			{
-				info->fsmap = fs_map_load();
+				_fs_map = fs_map_load();
+				atexit(_fs_map_free);
 			}
 
-			if(info->fsmap)
+			if(_fs_map)
 			{
-				attr->value.str = (char *)fs_map_path(info->fsmap, info->path);
+				attr->value.str = (char *)fs_map_path(_fs_map, info->path);
 			}
 			else
 			{
