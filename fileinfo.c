@@ -252,6 +252,23 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	return success;
 }
 
+FileInfo *
+file_info_dup(const FileInfo *info)
+{
+	FileInfo *ptr;
+
+	assert(info != NULL);
+
+	ptr = (FileInfo *)malloc(sizeof(FileInfo));
+
+	memcpy(ptr->path, info->path, PATH_MAX);
+	memcpy(ptr->cli, info->cli, PATH_MAX);
+	ptr->sb = info->sb;
+	ptr->fsmap = NULL;
+
+	return ptr;
+}
+
 bool
 file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 {
