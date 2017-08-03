@@ -435,7 +435,7 @@ _exec_find(const Options *opts)
 	{
 		DEBUGF("action", "Parsing sort string: %s", opts->orderby);
 
-		if((success = sort_string_test(opts->orderby)) > 0)
+		if((success = sort_string_test(opts->orderby) != -1))
 		{
 			cb = _collect_cb;
 		}

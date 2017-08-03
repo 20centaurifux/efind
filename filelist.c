@@ -145,20 +145,24 @@ file_list_init(FileList *list, const char *cli, const char *orderby)
 	{
 		int count = sort_string_test(orderby);
 
-		if(count > 0)
+		if(count != -1)
 		{
-			size_t offset = 0;
-
-			list->fields = (char *)utils_malloc(sizeof(char) * count);
-			list->fields_asc = (bool *)utils_malloc(sizeof(bool) * count);
 			list->fields_n = count;
 
-			const char *rest = sort_string_pop(orderby, list->fields, list->fields_asc);
-
-			while(rest)
+			if(count > 0)
 			{
-				++offset;
-				rest = sort_string_pop(rest, &list->fields[offset], &list->fields_asc[offset]);
+				size_t offset = 0;
+
+				list->fields = (char *)utils_malloc(sizeof(char) * count);
+				list->fields_asc = (bool *)utils_malloc(sizeof(bool) * count);
+
+				const char *rest = sort_string_pop(orderby, list->fields, list->fields_asc);
+
+				while(rest)
+				{
+					++offset;
+					rest = sort_string_pop(rest, &list->fields[offset], &list->fields_asc[offset]);
+				}
 			}
 		}
 		else
@@ -207,22 +211,15 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 	assert(list != NULL);
 	assert(path != NULL);
 
-	if(list->fields_n > 0)
-	{
-		file_info_init(&info);
+	file_info_init(&info);
 
-		if(file_info_get(&info, list->cli, path))
-		{
-			entry = _file_list_entry_new(list);
-			entry->info = file_info_dup(&info);
-		}
-
-		file_info_clear(&info);
-	}
-	else
+	if(file_info_get(&info, list->cli, path))
 	{
-			entry = _file_list_entry_new(list);
+		entry = _file_list_entry_new(list);
+		entry->info = file_info_dup(&info);
 	}
+
+	file_info_clear(&info);
 
 	return entry;
 }
