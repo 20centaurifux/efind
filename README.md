@@ -25,9 +25,9 @@ the [taglib](https://github.com/20centaurifux/efind-taglib) extension:
 ## General Usage
 
 Running **efind** without any argument the search expression is read from
-*standard input (stdin)* and files are searched in the user's home directory.
-A different directory and expression can be specified with the *--dir*
-and *--expr* options:
+standard input and files are searched in the user's home directory.
+A different directory and expression can be specified with the --dir
+and --expr options:
 
 	$ efind --dir=/tmp --expr="size>1M and type=file"
 
@@ -36,8 +36,8 @@ valid to run **efind** the following way:
 
 	$ efind ~/git 'type=file and name="CHANGELOG"'
 
-If you want to show the translated arguments without running GNU find use the
-*--print* option. To quote special shell characters append *--quote*:
+If you want to show the translated arguments without running GNU find use the --print
+option. To quote special shell characters append --quote:
 
 	$ efind . 'iregex=".*\.txt" and writable' --print --quote
 
@@ -109,26 +109,27 @@ Additionally you can test these flags:
 
 ### Output Format
 
-You can change the output format of **efind** with the *--printf* option. Field widths and
-precisions can be specified as with the *printf* C function.
+You can change the output format of **efind** with the --printf option.
 
-The following escape sequences and directives are supported:
+The following escape sequences and directives are available:
 
 #### Escape Sequences
 
 | Sequence        | Description                                    |
 | :-------------- | :----------------------------------------------|
-| \a              | Alarm bell.                                    |
-| \b              | Backspace.                                     |
-| \f              | Form feed.                                     |
-| \n              | Newline.                                       |
-| \r              | Carriage return.                               |
-| \t              | Horizontal tab.                                |
-| \v              | Vertical tab.                                  |
-| \0              | ASCII NUL.                                     |
-| \\              | A literal blackslash.                          |
-| \NNN            | The character whose ASCII code is NNN (octal). |
-| \XNN            | The character whose ASCII code is NN (hex).    |
+| \\a             | Alarm bell.                                    |
+| \\b             | Backspace.                                     |
+| \\f             | Form feed.                                     |
+| \\n             | Newline.                                       |
+| \\r             | Carriage return.                               |
+| \\t             | Horizontal tab.                                |
+| \\v             | Vertical tab.                                  |
+| \\0             | ASCII NUL.                                     |
+| \\\\            | A literal blackslash.                          |
+| \\NNN           | The character whose ASCII code is NNN (octal). |
+| \\XNN           | The character whose ASCII code is NN (hex).    |
+
+Any other character following a \\ is printed.
 
 #### Directives
 
@@ -158,8 +159,6 @@ The following escape sequences and directives are supported:
 | %Tk             | File's last modification time in the format specified by k, which is the same as for %A.                |
 | %u              | File's user name, or numeric user ID if the user has no name.                                           |
 | %U              | File's numeric user ID.                                                                                 |
-
-Any other character following a \ is printed.
 
 #### Time/Date fields
 
@@ -197,7 +196,7 @@ Available time and date fields are
 
 ### Sorting
 
-You can use the same directives to sort the search result as with the *--printf* option.
+You can use the same directives to sort the search result as with the --printf option.
 Prepend a minus sign to change direction:
 
 	$ efind . "type=file" --order-by "-sp"
@@ -215,7 +214,7 @@ expression finds all documents in the current folder with a file size less or eq
 	$ efind . "size=1G" --print
 	$ find . -size 1073741824c
 
-**efind's** *--printf* option is not fully compatible with GNU find:
+**efind's** --printf option is not fully compatible with GNU find:
 
 * In contrast to GNU find numeric values like file size or group id are *not* converted
   to string. This means that all number related flags work with **efind**.
