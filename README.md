@@ -4,9 +4,9 @@
 
 **efind** (extendable find) searches for files in a directory hierarchy.
 
-Basically it's a wrapper for [GNU find](https://www.gnu.org/software/findutils/)
-providing an easier and more intuitive expression syntax. It can be extended
-by custom functions to filter search results.
+Basically it's a wrapper for [GNU find](https://www.gnu.org/software/findutils/) providing an easier and more intuitive
+expression syntax. It can be extended by custom functions to filter search
+results.
 
 ## A quick example
 
@@ -22,7 +22,7 @@ the [taglib](https://github.com/20centaurifux/efind-taglib) extension:
 	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
 	  and artist_matches("Welle: Erdball") and audio_length()>200'
 
-## Usage
+## General Usage
 
 Running **efind** without any argument the search expression is read from
 *standard input (stdin)* and files are searched in the user's home directory.
@@ -104,6 +104,103 @@ Additionally you can test these flags:
 | writable   | the user can write to the file                                |
 | executable | the user is allowed to execute the file                       |
 | empty      | the file is empty and is either a regular file or a directory |
+
+## Advanced Features
+
+### Output Format
+
+You can change the output format of **efind** with the *--printf* option. Field widths and
+precisions can be specified as with the *printf* C function.
+
+The following escape sequences and directives are supported:
+
+#### Escape Sequences
+
+| Sequence        | Description                                    |
+| :-------------- | :----------------------------------------------|
+| \a              | Alarm bell.                                    |
+| \b              | Backspace.                                     |
+| \f              | Form feed.                                     |
+| \n              | Newline.                                       |
+| \r              | Carriage return.                               |
+| \t              | Horizontal tab.                                |
+| \v              | Vertical tab.                                  |
+| \0              | ASCII NUL.                                     |
+| \\              | A literal blackslash.                          |
+| \NNN            | The character whose ASCII code is NNN (octal). |
+| \XNN            | The character whose ASCII code is NN (hex).    |
+
+#### Directives
+
+| Directive       | Description                                                                                             |
+| :-------------- | :-------------------------------------------------------------------------------------------------------|
+| %%              | A literal percent sign.                                                                                 |
+| %Ak             | File's last access time in the format specified by k or in the format returned by the C ctime function. |
+| %b              | The amount of disk space used for this file in 512-byte blocks.                                         |
+| %Ck             | File's last status change time in the format specified by k, which is the same as for %A.               |
+| %D              | The device number on which the file exists (the st\_dev field of struct stat) in decimal.               |
+| %f              | File's name with any leading directories removed (only the last element).                               |
+| %F              | Type of the filesystem the file is on.                                                                  |
+| %g              | File's group name, or numeric group ID if the group has no name.                                        |
+| %G              | File's numeric group ID.                                                                                |
+| %h              | Leading  directories of file's name (all but the last element).                                         |
+| %H              | Starting-point under which file was found.                                                              |
+| %i              | File's inode number (in decimal).                                                                       |
+| %k              | The amount of disk space used for this file in 1K blocks.                                               |
+| %l              | Object of symbolic link (empty string if file is not a symbolic link).                                  |
+| %m              | File's permission bits (in octal).                                                                      |
+| %M              | File's permissions (in symbolic form, as for ls).                                                       |
+| %n              | Number of hard links to file.                                                                           |
+| %p              | File's name.                                                                                            |
+| %P              | File's name with the name of the starting-point under which it was found removed.                       |
+| %s              | File's size in bytes.                                                                                   |
+| %S              | File's sparseness. If the file size is zero, the value printed is undefined.                            |
+| %Tk             | File's last modification time in the format specified by k, which is the same as for %A.                |
+| %u              | File's user name, or numeric user ID if the user has no name.                                           |
+| %U              | File's numeric user ID.                                                                                 |
+
+Any other character following a \ is printed.
+
+#### Time/Date fields
+
+Available time and date fields are
+
+| Field       | Description                                                       |
+| :---------- | :-----------------------------------------------------------------|
+| H           | hour (00..23)                                                     |
+| I           | hour (01..12)                                                     |
+| k           | hour (0..23)                                                      |
+| l           | hour (1..12)                                                      |
+| M           | minute (00..59)                                                   |
+| p           | locale's AM or PM                                                 |
+| r           | time, 12-hour (hh:mm:ss [AP]M)                                    |
+| S           | second (00.00..61.00)                                             |
+| T           | time, 24-hour (hh:mm:ss.xxxxxxxxxx)                               |
+| X           | locale's time representation (H:M:S)                              |
+| Z           | time zone (e.g., EDT), or nothing if no time zone is determinable |
+| a           | locale's abbreviated weekday name (Sun..Sat)                      |
+| A           | locale's full weekday name, variable length (Sunday..Saturday)    |
+| b           | locale's abbreviated month name (Jan..Dec)                        |
+| B           | locale's full month name, variable length (January..December)     |
+| c           | locale's date and time (Sat Nov 04 12:02:33 EST 1989)             |
+| d           | day of month (01..31)                                             |
+| D           | date (mm/dd/yy)                                                   |
+| h           | same as b                                                         |
+| j           | day of year (001..366)                                            |
+| m           | month (01..12)                                                    |
+| U           | week number of year with Sunday as first day of week (00..53)     |
+| w           | day of week (0..6)                                                |
+| W           | week number of year with Monday as first day of week (00..53)     |
+| x           | locale's date representation (mm/dd/yy)                           |
+| y           | last two digits of year (00..99)                                  |
+| Y           | year (1970...)                                                    |
+
+### Sorting
+
+You can use the same directives to sort the search result as with the *--printf* option.
+Prepend a minus sign to change direction:
+
+	$ efind . "type=file" --order-by "-sp"
 
 ## Differences to GNU find
 

@@ -62,9 +62,9 @@ hour (00..23)
 .IP I
 hour (01..12)
 .IP k
-hour ( 0..23)
+hour (0..23)
 .IP l
-hour ( 1..12)
+hour (1..12)
 .IP M
 minute (00..59)
 .IP p
@@ -72,11 +72,11 @@ locale's AM or PM
 .IP r
 time, 12-hour (hh:mm:ss [AP]M)
 .IP S
-Second (00.00 .. 61.00).  There is a fractional part.
+second (00.00..61.00). There is a fractional part.
 .IP T
 time, 24-hour (hh:mm:ss.xxxxxxxxxx)
 .IP X
-locale's time representation (H:M:S).  The seconds field includes a
+locale's time representation (H:M:S). The seconds field includes a
 fractional part.
 .IP Z
 time zone (e.g., EDT), or nothing if no time zone is determinable
@@ -91,7 +91,7 @@ locale's abbreviated month name (Jan..Dec)
 .IP B
 locale's full month name, variable length (January..December)
 .IP c
-locale's date and time (Sat Nov 04 12:02:33 EST 1989).  The format is
+locale's date and time (Sat Nov 04 12:02:33 EST 1989). The format is
 the same as for
 .BR ctime (3)
 and so to preserve compatibility with that format, there is no fractional part
@@ -126,7 +126,7 @@ File's last status change time in the format specified by \fIk\fR,
 which is the same as for %A.
 .IP %D
 The device number on which the file exists (the st_dev field of struct
-stat), in decimal.
+stat) in decimal.
 .IP %f
 File's name with any leading directories removed (only the last element).
 .IP %F
@@ -136,7 +136,7 @@ File's group name, or numeric group ID if the group has no name.
 .IP %G
 File's numeric group ID.
 .IP %h
-Leading  directories of file's name (all but the last element).
+Leading directories of file's name (all but the last element).
 If the file name contains no slashes (since it is in the current
 directory) the %h specifier expands to `.'.
 .IP %H
