@@ -23,11 +23,9 @@
 #define FORMAT_H
 
 #include "format-parser.h"
-#include "fileinfo.h"
 
 /**
    @param result a FormatParserResult instance
-   @param info (optional) FileInfo instance used to read the file attributes
    @param arg command line arguments under which the file was found
    @param filename found file
    @param out stream to write output to
@@ -35,7 +33,7 @@
 
    Print file attributes according to the specified format.
  */
-bool format_write(const FormatParserResult *result, FileInfo *info, const char *arg, const char *filename, FILE *out);
+bool format_write(const FormatParserResult *result, const char *arg, const char *filename, FILE *out);
 
 #endif
 

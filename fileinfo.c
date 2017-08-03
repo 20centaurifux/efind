@@ -34,6 +34,18 @@
 #include "linux.h"
 #include "utils.h"
 
+/*! A FSMap instance used to get the filesystem of a file. */
+static FSMap *_fs_map = NULL;
+
+static void
+_fs_map_free(void)
+{
+	if(_fs_map)
+	{
+		fs_map_destroy(_fs_map);
+	}
+}
+
 static char *
 _file_info_get_dirname(const char *filename)
 {
@@ -198,11 +210,8 @@ file_info_clear(FileInfo *info)
 {
 	if(info)
 	{
-		if(info->fsmap)
-		{
-			fs_map_destroy(info->fsmap);
-		}
-
+		free(info->path);
+		free(info->cli);
 		file_info_init(info);
 	}
 }
@@ -229,8 +238,8 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	{
 		if(strlen(cli) < PATH_MAX && strlen(path) < PATH_MAX)
 		{
-			strcpy(info->cli, cli);
-			strcpy(info->path, path);
+			info->cli = utils_strdup(cli);
+			info->path = utils_strdup(path);
 			info->sb = sb;
 			success = true;
 		}
@@ -242,6 +251,7 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	else
 	{
 		ERRORF("misc", "Couldn't retrieve information about %s: '`lstat64' failed.", path);
+		fprintf(stderr, "Couldn't stat file: %s\n", path);
 		#ifdef _LARGEFILE64_SOURCE
 		perror("lstat64()");
 		#else
@@ -250,6 +260,22 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	}
 
 	return success;
+}
+
+FileInfo *
+file_info_dup(const FileInfo *info)
+{
+	FileInfo *ptr;
+
+	assert(info != NULL);
+
+	ptr = (FileInfo *)malloc(sizeof(FileInfo));
+
+	ptr->path = utils_strdup(info->path);
+	ptr->cli = utils_strdup(info->cli);
+	ptr->sb = info->sb;
+
+	return ptr;
 }
 
 bool
@@ -301,14 +327,15 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 		case 'F': /* Type of the filesystem the file is on; this value can be used for -fstype. */
 			attr->flags = FILE_ATTR_FLAG_STRING;
 
-			if(!info->fsmap)
+			if(!_fs_map)
 			{
-				info->fsmap = fs_map_load();
+				_fs_map = fs_map_load();
+				atexit(_fs_map_free);
 			}
 
-			if(info->fsmap)
+			if(_fs_map)
 			{
-				attr->value.str = (char *)fs_map_path(info->fsmap, info->path);
+				attr->value.str = (char *)fs_map_path(_fs_map, info->path);
 			}
 			else
 			{
@@ -472,5 +499,34 @@ file_attr_get_double(FileAttr *attr)
 	}
 
 	return 0;
+}
+
+int
+file_attr_compare(FileAttr *a, FileAttr *b)
+{
+	int result = -1;
+
+	assert(a != NULL);
+	assert(b != NULL);
+	assert(a->flags == b->flags);
+
+	if(a->flags & FILE_ATTR_FLAG_STRING)
+	{
+		result = strcmp(a->value.str, b->value.str);
+	}
+	else if(a->flags & FILE_ATTR_FLAG_INTEGER || a->flags & FILE_ATTR_FLAG_TIME)
+	{
+		result = (a->value.n > b->value.n) - (a->value.n < b->value.n);
+	}
+	else if(a->flags & FILE_ATTR_FLAG_LLONG)
+	{
+		result = (a->value.llong > b->value.llong) - (a->value.llong < b->value.llong);
+	}
+	else if(a->flags & FILE_ATTR_FLAG_DOUBLE)
+	{
+		result = (a->value.d > b->value.d) - (a->value.d < b->value.d);
+	}
+
+	return result;
 }
 

@@ -144,6 +144,7 @@ fs_map_path(FSMap *map, const char *path)
 	}
 	else
 	{
+		fprintf(stderr, "Couldn't retrieve real path from file: %s\n", path);
 		perror("realpath()");
 	}
 

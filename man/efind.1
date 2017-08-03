@@ -171,6 +171,9 @@ which is the same as for %A.
 File's user name, or numeric user ID if the user has no name.
 .IP %U
 File's numeric user ID.
+.IP "\fB\-\-order-by\fR=\fIfields"
+Fields to sort search result by. The same field names as in the --printf
+option are supported. Prepend `-' to a field to sort in descending order.
 .IP "\fB\-p, \-\-print"
 Don't search files but print translated expression to stdout.
 .IP "\fB\-q, \-\-quote"
@@ -332,10 +335,15 @@ To show all blacklisted extensions type in
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.
 .SH EXAMPLES
-To find all writable source and header files of a C project that were modified
-less than two days ago you could use the following expression:
-.P
-.B efind . '(name="*.h" or name="*.c") and type=file and writable and mtime<2 days'
+To find all MP3 and Ogg Vorbis files that were modified less than two days ago
+you could use the following expression:
+
+.B efind ~/music '(iname="*.mp3" or iname="*.ogg") and type=file and mtime<2 days'
+
+With the taglib extension you can filter search results by audio tags and
+properties:
+
+.B efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>=120'
 
 Use the
 .B \-\-print
@@ -349,10 +357,10 @@ If not specified \fBefind\fR reads the expression from stdin:
 
 .B echo 'mtime>=10 days' | efind . --print
 
-With the taglib extension you can filter the search result by audio tags
-and properties:
+Search results can be sorted with the --order-by option:
 
-.B efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>300'
+.B efind . 'type=file' --max-depth=1 --order-by '-sp' | head -n10
+
 .SH FILES
 .IP "\fB~/.efind/extensions"
 local extension files

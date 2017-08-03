@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <stdint.h>
 
 #include "fs.h"
 
@@ -36,17 +37,15 @@
 typedef struct
 {
 	/*! Command line argument under which the file was found. */
-	char cli[PATH_MAX];
+	char *cli;
 	/*! Path of the file. */
-	char path[PATH_MAX];
+	char *path;
 	/*! File information. */
 	#ifdef _LARGEFILE64_SOURCE
 	struct stat64 sb;
 	#else
 	struct stat sb;
 	#endif
-	/*! A FSMap instance used to get the filesystem of a file. */
-	FSMap *fsmap;
 } FileInfo;
 
 /**
@@ -76,7 +75,7 @@ typedef enum
 typedef struct
 {
 	/*! Attribute flag. */
-	int32_t flags;
+	uint8_t flags;
 	union
 	{
 		/*! A string value. */
@@ -115,6 +114,14 @@ void file_info_clear(FileInfo *info);
    Prepare a FileInfo instance for attribute reading.
  */
 bool file_info_get(FileInfo *info, const char *cli, const char *path);
+
+/**
+   @param info a FileInfo instance
+   @return a new FileInfo instance
+
+   Copies a FileInfo instance.
+ */
+FileInfo *file_info_dup(const FileInfo *info);
 
 /**
    @param info a FileInfo instance
@@ -172,6 +179,15 @@ time_t file_attr_get_time(FileAttr *attr);
    Reads the double value from a FileAttr.
  */
 double file_attr_get_double(FileAttr *attr);
+
+/*
+  @param a a file attribute
+  @param b a file attribute
+  @return 0 if values are equal, or a positive integer if the first value comes after the second
+
+  Compares two file attributes.
+ */
+int file_attr_compare(FileAttr *a, FileAttr *b);
 
 #endif
 

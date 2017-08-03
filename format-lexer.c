@@ -189,7 +189,7 @@ _format_lexer_step_string(FormatLexerResult *result)
 		}
 		else
 		{
-			fprintf(stderr, "Missing text after '%%'\n");
+			fprintf(stderr, "Missing text after '%%'.\n");
 			success = false;
 		}
 	}

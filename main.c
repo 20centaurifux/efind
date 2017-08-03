@@ -43,6 +43,7 @@
 #include "format.h"
 #include "extension.h"
 #include "blacklist.h"
+#include "filelist.h"
 #include "version.h"
 
 /**
@@ -105,11 +106,13 @@ typedef struct
 	char *regex_type;
 	/*! Print format on stdout. */
 	char *printf;
+	/*! Sort string. */
+	char *orderby;
 } Options;
 
 /**
-   @struct PrintArg
-   @brief Additional print arguments.
+   @struct FoundArg
+   @brief Additional callback arguments.
  */
 typedef struct
 {
@@ -117,9 +120,9 @@ typedef struct
 	const char *dir;
 	/*! Optional parsed format string. */
 	FormatParserResult *fmt;
-	/*! FileInfo instance used to receive file attributes when printing. */
-	FileInfo info;
-} PrintArg;
+	/*! Store and sort found files. */
+	FileList files;
+} FoundArg;
 
 static Action
 _read_options(int argc, char *argv[], Options *opts)
@@ -134,6 +137,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ "max-depth", required_argument, 0, 0 },
 		{ "regex-type", required_argument, 0, 0 },
 		{ "printf", required_argument, 0, 0 },
+		{ "order-by", required_argument, 0, 0 },
 		{ "list-extensions", no_argument, 0, 0 },
 		{ "show-blacklist", no_argument, 0, 0 },
 		{ "log-level", required_argument, 0, 0 },
@@ -249,6 +253,10 @@ _read_options(int argc, char *argv[], Options *opts)
 				{
 					opts->printf = utils_strdup(optarg);
 				}
+				else if(!strcmp(long_options[index].name, "order-by"))
+				{
+					opts->orderby = utils_strdup(optarg);
+				}
 
 				break;
 
@@ -361,7 +369,7 @@ _build_search_options(const Options *opts, SearchOptions *sopts)
 static void
 _file_cb(const char *path, void *user_data)
 {
-	PrintArg *arg = (PrintArg *)user_data;
+	FoundArg *arg = (FoundArg *)user_data;
 
 	if(path)
 	{
@@ -370,13 +378,21 @@ _file_cb(const char *path, void *user_data)
 			assert(arg->dir != NULL);
 			assert(arg->fmt->success == true);
 
-			format_write(arg->fmt, &arg->info, arg->dir, path, stdout);
+			format_write(arg->fmt, arg->dir, path, stdout);
 		}
 		else
 		{
 			printf("%s\n", path);
 		}
 	}
+}
+
+static void
+_collect_cb(const char *path, void *user_data)
+{
+	FoundArg *arg = (FoundArg *)user_data;
+
+	file_list_append(&arg->files, path);
 }
 
 static void
@@ -394,6 +410,8 @@ _exec_find(const Options *opts)
 	FormatParserResult *fmt = NULL;
 	SearchOptions sopts;
 	int result = -1;
+	bool success = true;
+	Callback cb = _file_cb;
 
 	assert(opts != NULL);
 	assert(opts->expr != NULL);
@@ -402,40 +420,63 @@ _exec_find(const Options *opts)
 
 	if(opts->printf)
 	{
+		DEBUGF("action", "Parsing format string: %s", opts->printf);
+
 		fmt = format_parse(opts->printf);
 
-		if(!fmt->success)
+		if(!(success = fmt->success))
 		{
-			DEBUGF("action", "Parsing of format string failed: %s", opts->printf);
+			DEBUG("action", "Parsing of format string failed.");
 			fprintf(stderr, "Couldn't parse format string: %s\n", opts->printf);
 		}
 	}
 
-	if(!fmt || fmt->success)
+	if(success && opts->orderby)
 	{
-		PrintArg arg;
+		DEBUGF("action", "Parsing sort string: %s", opts->orderby);
+
+		if((success = sort_string_test(opts->orderby) != -1))
+		{
+			cb = _collect_cb;
+		}
+		else
+		{
+			DEBUG("action", "Parsing of sort string failed.");
+			fprintf(stderr, "Couldn't parse sort string.\n");
+		}
+	}
+
+	if(success)
+	{
+		FoundArg arg;
 
 		TRACE("startup", "Starting file search.");
 
 		arg.dir = opts->dir;
 		arg.fmt = fmt;
 
-		if(arg.fmt)
+		if(opts->orderby)
 		{
-			file_info_init(&arg.info);
+			file_list_init(&arg.files, opts->dir, opts->orderby);
 		}
 
 		_build_search_options(opts, &sopts);
 
-		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, _file_cb, _error_cb, &arg) >= 0;
+		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, cb, _error_cb, &arg) >= 0;
+
+		if(result && opts->orderby)
+		{
+			file_list_sort(&arg.files);
+			file_list_foreach(&arg.files, _file_cb, &arg);
+		}
 
 		TRACE("action", "Cleaning up file search.");
 
 		search_options_free(&sopts);
 
-		if(arg.fmt)
+		if(opts->orderby)
 		{
-			file_info_clear(&arg.info);
+			file_list_free(&arg.files);
 		}
 	}
 
@@ -484,6 +525,7 @@ _print_help(const char *name)
 	printf("  -L, --follow        follow symbolic links\n");
 	printf("  --regex-type type   set regular expression type; see manpage\n");
 	printf("  --printf format     print format on standard output; see manpage\n");
+	printf("  --order-by fields   fields to order search result by; see manpage\n");
 	printf("  --max-depth levels  maximum search depth\n");
 	printf("  -p, --print         don't search files but print expression to stdout\n");
 	printf("  --list-extensions   show a list of installed extensions\n");
@@ -687,6 +729,11 @@ main(int argc, char *argv[])
 		if(opts.printf)
 		{
 			free(opts.printf);
+		}
+
+		if(opts.orderby)
+		{
+			free(opts.orderby);
 		}
 
 	return result;
