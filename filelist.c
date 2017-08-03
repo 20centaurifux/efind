@@ -25,6 +25,7 @@
 #include <assert.h>
 
 #include "filelist.h"
+#include "log.h"
 #include "utils.h"
 
 /*! Supported fields to sort search result by. */
@@ -143,7 +144,11 @@ file_list_init(FileList *list, const char *cli, const char *orderby)
 
 	if(orderby)
 	{
+		DEBUGF("filelist", "Testing sort string: %s", orderby);
+
 		int count = sort_string_test(orderby);
+
+		DEBUGF("filelist", "Found %d field(s) to sort.", count);
 
 		if(count != -1)
 		{
@@ -160,6 +165,7 @@ file_list_init(FileList *list, const char *cli, const char *orderby)
 
 				while(rest)
 				{
+					TRACEF("filelist", "Found field '%c', ascending=%d.", list->fields[offset], list->fields_asc[offset]);
 					++offset;
 					rest = sort_string_pop(rest, &list->fields[offset], &list->fields_asc[offset]);
 				}
@@ -218,6 +224,10 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 		entry = _file_list_entry_new(list);
 		entry->info = file_info_dup(&info);
 	}
+	else
+	{
+		DEBUGF("fileinfo", "Couldn't get file details of file %s.", path);;
+	}
 
 	file_info_clear(&info);
 
@@ -250,6 +260,8 @@ file_list_append(FileList *list, const char *path)
 	assert(list != NULL);
 	assert(path != NULL);
 
+	TRACEF("filelist", "Appending file: %s", path);
+
 	/* resize entry array */
 	if(list->size == list->count)
 	{
@@ -267,6 +279,14 @@ file_list_append(FileList *list, const char *path)
 			list->count++;
 			success = true;
 		}
+		else
+		{
+			DEBUG("filelist", "Couldn't create list entry");
+		}
+	}
+	else
+	{
+		ERROR("fileinfo", "Couldn't resize file list.");
 	}
 
 	return success;
@@ -326,6 +346,8 @@ void
 file_list_sort(FileList *list)
 {
 	assert(list != NULL);
+
+	DEBUG("filelist", "Sorting file list.");
 
 	qsort(list->entries, list->count, sizeof(FileListEntry *), &_file_list_compare_entries);
 }
