@@ -499,19 +499,19 @@ static bool
 _print_expr(const Options *opts)
 {
 	SearchOptions sopts;
-	int result;
+	bool success;
 
 	assert(opts != NULL);
 	assert(opts->expr != NULL);
 
 	_build_search_options(opts, &sopts);
 
-	result = search_debug(stdout, stderr, opts->dir, opts->expr, _get_translation_flags(opts), &sopts);
+	success = search_debug(stdout, stderr, opts->dir, opts->expr, _get_translation_flags(opts), &sopts);
 	search_options_free(&sopts);
 
-	DEBUGF("action", "Action %#x finished with result %d.", ACTION_PRINT, result);
+	DEBUGF("action", "Action %#x finished with result %d.", ACTION_PRINT, success);
 
-	return result;
+	return success;
 }
 
 static void
