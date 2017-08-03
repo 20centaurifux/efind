@@ -121,7 +121,7 @@ typedef struct
 	/*! Optional parsed format string. */
 	FormatParserResult *fmt;
 	/*! Store and sort found files. */
-	FileList files;
+	FileList *files;
 } FoundArg;
 
 static Action
@@ -392,7 +392,7 @@ _collect_cb(const char *path, void *user_data)
 {
 	FoundArg *arg = (FoundArg *)user_data;
 
-	file_list_append(&arg->files, path);
+	file_list_append(arg->files, path);
 }
 
 static void
@@ -407,89 +407,92 @@ _error_cb(const char *msg, void *user_data)
 static bool
 _exec_find(const Options *opts)
 {
-	FormatParserResult *fmt = NULL;
 	SearchOptions sopts;
-	int result = -1;
-	bool success = true;
+	FoundArg arg;
 	Callback cb = _file_cb;
+	bool success = false;
 
 	assert(opts != NULL);
 	assert(opts->expr != NULL);
 
 	TRACE("action", "Preparing file search.");
 
+	memset(&arg, 0, sizeof(FileList));
+	arg.dir = opts->dir;
+
+	/* parse printf format string */
 	if(opts->printf)
 	{
 		DEBUGF("action", "Parsing format string: %s", opts->printf);
 
-		fmt = format_parse(opts->printf);
+		arg.fmt = format_parse(opts->printf);
 
-		if(!(success = fmt->success))
+		if(!arg.fmt->success)
 		{
 			DEBUG("action", "Parsing of format string failed.");
 			fprintf(stderr, "Couldn't parse format string: %s\n", opts->printf);
+			goto out;
 		}
 	}
 
-	if(success && opts->orderby)
+	/* parse sort string */
+	if(opts->orderby)
 	{
 		DEBUGF("action", "Parsing sort string: %s", opts->orderby);
 
-		if((success = sort_string_test(opts->orderby) != -1))
+		if(sort_string_test(opts->orderby) != -1)
 		{
+			arg.files = (FileList *)utils_malloc(sizeof(FileList));
+			file_list_init(arg.files, opts->dir, opts->orderby);
 			cb = _collect_cb;
 		}
 		else
 		{
 			DEBUG("action", "Parsing of sort string failed.");
 			fprintf(stderr, "Couldn't parse sort string.\n");
+			goto out;
 		}
 	}
 
-	if(success)
+	/* search files */
+	TRACE("startup", "Starting file search.");
+
+	_build_search_options(opts, &sopts);
+
+	success = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, cb, _error_cb, &arg) >= 0;
+
+	/* sort files before printing search result */
+	if(success && arg.files)
 	{
-		FoundArg arg;
-
-		TRACE("startup", "Starting file search.");
-
-		arg.dir = opts->dir;
-		arg.fmt = fmt;
-
-		if(opts->orderby)
-		{
-			file_list_init(&arg.files, opts->dir, opts->orderby);
-		}
-
-		_build_search_options(opts, &sopts);
-
-		result = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, cb, _error_cb, &arg) >= 0;
-
-		if(result && opts->orderby)
-		{
-			file_list_sort(&arg.files);
-			file_list_foreach(&arg.files, _file_cb, &arg);
-		}
-
-		TRACE("action", "Cleaning up file search.");
-
-		search_options_free(&sopts);
-
-		if(opts->orderby)
-		{
-			file_list_free(&arg.files);
-		}
+		file_list_sort(arg.files);
+		file_list_foreach(arg.files, _file_cb, &arg);
 	}
 
-	TRACE("action", "Cleaning up parser.");
+	TRACE("action", "Cleaning up file search.");
 
-	if(fmt)
+	/* cleanup search options */
+	search_options_free(&sopts);
+
+out:
+	/* cleanup */
+	TRACE("action", "Cleaning up format parser.");
+
+	if(arg.fmt)
 	{
-		format_parser_result_free(fmt);
+		format_parser_result_free(arg.fmt);
 	}
 
-	DEBUGF("action", "Action %#x finished with result=%d.", ACTION_EXEC, result);
+	TRACE("action", "Cleaning up file list.");
 
-	return result;
+	if(arg.files)
+	{
+		file_list_free(arg.files);
+		free(arg.files);
+	}
+
+	DEBUGF("action", "Action %#x finished with result=%d.", ACTION_EXEC, success);
+
+	return success;
 }
 
 static bool
