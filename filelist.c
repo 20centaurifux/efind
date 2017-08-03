@@ -33,41 +33,41 @@
 int
 sort_string_test(const char *str)
 {
-	int result = -1;
+	const char *ptr = str;
+	int result = 0;
 
-	if(str && *str)
+	while(result >= 0 && ptr && *ptr)
 	{
-		const char *ptr = str;
-
-		result = 0;
-
-		while(result >= 0 && *ptr)
+		if(*ptr == ' ')
 		{
-			if(*ptr == '-')
-			{
-				++ptr;
-			}
+			++ptr;
+			continue;
+		}
 
-			if(*ptr)
-			{
-				if(strchr(SORTABLE_FIELDS, *ptr))
-				{
-					if(result <= INT_MAX)
-					{
-						++result;
-					}
-				}
-				else
-				{
-					result = -1;
-				}
+		if(*ptr == '-')
+		{
+			++ptr;
+		}
 
-				++ptr;
+		if(*ptr)
+		{
+			if(strchr(SORTABLE_FIELDS, *ptr))
+			{
+				if(result < INT_MAX)
+				{
+					++result;
+				}
 			}
 			else
 			{
 				result = -1;
 			}
+
+			++ptr;
+		}
+		else
+		{
+			result = -1;
 		}
 	}
 
@@ -78,6 +78,7 @@ const char
 *sort_string_pop(const char *str, char *field, bool *asc)
 {
 	const char *ptr = str;
+	const char *rest = NULL;
 
 	assert(field != NULL);
 	assert(asc != NULL);
@@ -85,31 +86,47 @@ const char
 	*field = '\0';
 	*asc = true;
 
-	if(ptr && *ptr)
+	if(ptr)
 	{
-		if(*ptr == '-')
+		/* remove whitespace */
+		while(*ptr && *ptr == ' ')
 		{
-			*asc = false;
 			++ptr;
 		}
 
-		if(*ptr && strchr(SORTABLE_FIELDS, *ptr))
+		/* read field name & sort direction */
+		if(*ptr)
 		{
-			*field = *ptr;
-			++ptr;
-		}
+			if(*ptr == '-')
+			{
+				*asc = false;
+				++ptr;
+			}
 
-		if(!*ptr)
-		{
-			ptr = NULL;
+			if(*ptr && strchr(SORTABLE_FIELDS, *ptr))
+			{
+				*field = *ptr;
+				++ptr;
+			}
+			else
+			{
+				fprintf(stderr, "Found unexpected character in sort string: '%c'.\n", *ptr);
+			}
+
+			/* find next character */
+			while(*ptr && *ptr == ' ')
+			{
+				++ptr;
+			}
+
+			if(*ptr)
+			{
+				rest = ptr;
+			}
 		}
 	}
-	else
-	{
-		ptr = NULL;
-	}
 
-	return ptr;
+	return rest;
 }
 
 void
