@@ -251,6 +251,7 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	else
 	{
 		ERRORF("misc", "Couldn't retrieve information about %s: '`lstat64' failed.", path);
+		fprintf(stderr, "Couldn't stat file: %s\n", path);
 		#ifdef _LARGEFILE64_SOURCE
 		perror("lstat64()");
 		#else
