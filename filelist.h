@@ -47,9 +47,9 @@ typedef struct
  */
 struct _FileList
 {
-	/*! Command line argument under which the file was found. */
+	/*! Command line argument under which the files were found. */
 	char *cli;
-	/*! Fields the list should be filtered by. */
+	/*! Fields the list should be sorted by. */
 	char *fields;
 	/*! Sort directions. */
 	bool *fields_asc;
@@ -73,15 +73,15 @@ int sort_string_test(const char *str);
 
 /**
    @param str sort string
-   @param field location to store found field
-   @param asc location to store sort direction
+   @param field memory location to store found field
+   @param asc memory location to store sort direction
    @return pointer to next field or NULL
   */
 const char *sort_string_pop(const char *str, char *field, bool *asc);
 
 /**
    @param list FileList instance to initialize
-   @param cli command line argument under which the files are located
+   @param cli command line argument under which the files are found
    @param orderby sort string
 
    Initializes a FileList instance.
