@@ -417,7 +417,7 @@ _exec_find(const Options *opts)
 
 	TRACE("action", "Preparing file search.");
 
-	memset(&arg, 0, sizeof(FileList));
+	memset(&arg, 0, sizeof(FoundArg));
 	arg.dir = opts->dir;
 
 	/* parse printf format string */
