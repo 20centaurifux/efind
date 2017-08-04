@@ -133,14 +133,23 @@ const char
 void
 file_list_init(FileList *list, const char *cli, const char *orderby)
 {
+	size_t item_size = sizeof(FileListEntry);
+
 	assert(list != NULL);
 	assert(cli != NULL);
 
 	memset(list, 0, sizeof(FileList));
 
 	list->cli = utils_strdup(cli);
-	list->entries = utils_new(8, FileListEntry *);
-	list->size = 8;
+	list->entries = utils_new(512, FileListEntry *);
+	list->size = 512;
+
+	if(sizeof(FileInfo) > item_size)
+	{
+		item_size = sizeof(FileInfo);
+	}
+
+	list->alloc = (Allocator *)chunk_allocator_new(item_size, 1024);
 
 	if(orderby)
 	{
@@ -179,17 +188,11 @@ file_list_init(FileList *list, const char *cli, const char *orderby)
 }
 
 static void
-_file_list_entry_destroy(FileListEntry *entry)
+_file_list_entry_free(FileListEntry *entry)
 {
-	if(entry)
+	if(entry && entry->info)
 	{
-		if(entry->info)
-		{
-			file_info_clear(entry->info);
-			free(entry->info);
-		}
-
-		free(entry);
+		file_info_clear(entry->info);
 	}
 }
 
@@ -200,7 +203,8 @@ _file_list_entry_new(FileList *list)
 
 	assert(list != NULL);
 
-	entry = utils_new(1, FileListEntry);
+	entry = list->alloc->alloc(list->alloc);
+	memset(entry, 0, sizeof(FileListEntry));
 	entry->filesp = list;
 
 	return entry;
@@ -220,14 +224,13 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 	if(file_info_get(&info, list->cli, path))
 	{
 		entry = _file_list_entry_new(list);
-		entry->info = file_info_dup(&info);
+		entry->info = list->alloc->alloc(list->alloc);
+		memcpy(entry->info, &info, sizeof(FileInfo));
 	}
 	else
 	{
 		DEBUGF("fileinfo", "Couldn't get file details of file %s.", path);;
 	}
-
-	file_info_clear(&info);
 
 	return entry;
 }
@@ -243,9 +246,10 @@ file_list_free(FileList *list)
 
 		for(size_t i = 0; i < list->count; ++i)
 		{
-			_file_list_entry_destroy(list->entries[i]);
+			_file_list_entry_free(list->entries[i]);
 		}
 
+		chunk_allocator_destroy((ChunkAllocator *)list->alloc);
 		free(list->entries);
 	}
 }
@@ -365,4 +369,5 @@ file_list_foreach(FileList *list, Callback f, void *user_data)
 		f(list->entries[i]->info->path, user_data);
 	}
 }
+
 

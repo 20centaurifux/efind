@@ -261,21 +261,6 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	return success;
 }
 
-FileInfo *
-file_info_dup(const FileInfo *info)
-{
-	FileInfo *ptr;
-
-	assert(info != NULL);
-
-	ptr = utils_new(1, FileInfo);
-	ptr->path = utils_strdup(info->path);
-	ptr->cli = utils_strdup(info->cli);
-	ptr->sb = info->sb;
-
-	return ptr;
-}
-
 bool
 file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 {

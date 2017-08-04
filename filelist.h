@@ -23,6 +23,7 @@
 #define FILELIST_H
 
 #include <stdbool.h>
+#include <datatypes.h>
 
 #include "fileinfo.h"
 #include "search.h"
@@ -61,6 +62,8 @@ struct _FileList
 	size_t count;
 	/*! Size allocated for the entries array. */
 	size_t size;
+	/*! Allocator for FileListEntries. */
+	Allocator *alloc;
 };
 
 /**

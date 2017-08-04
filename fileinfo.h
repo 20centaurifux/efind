@@ -117,14 +117,6 @@ bool file_info_get(FileInfo *info, const char *cli, const char *path);
 
 /**
    @param info a FileInfo instance
-   @return a new FileInfo instance
-
-   Copies a FileInfo instance.
- */
-FileInfo *file_info_dup(const FileInfo *info);
-
-/**
-   @param info a FileInfo instance
    @param attr location to store the read attribute to
    @param field field to read (see efind's printf-syntax)
    @return true on success
