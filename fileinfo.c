@@ -19,7 +19,10 @@
    @brief Read file attributes.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
+/*! @cond INTERNAL */
 #define _GNU_SOURCE
+/*! @endcond */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -46,18 +49,16 @@ _fs_map_free(void)
 	}
 }
 
-static char *
+char *
 _file_info_get_dirname(const char *filename)
 {
-	static char dirname[PATH_MAX];
+	char *dirname = NULL;
 
 	assert(filename != NULL);
 
-	memset(dirname, 0, sizeof(dirname));
-
 	if(filename && strlen(filename) < PATH_MAX)
 	{
-		strcpy(dirname, filename);
+		dirname = utils_strdup(filename);
 
 		char *offset = strrchr(dirname, '/');
 
@@ -74,11 +75,11 @@ _file_info_get_dirname(const char *filename)
 	return dirname;
 }
 
-static char *
+char *
 _file_info_readlink(const char *filename)
 {
 	ssize_t size;
-	static char buffer[PATH_MAX];
+	char *buffer = utils_new(PATH_MAX, char);
 
 	assert(filename != NULL);
 
@@ -97,13 +98,11 @@ _file_info_readlink(const char *filename)
 	return buffer;
 }
 
-static char *
+char *
 _file_info_permissions(mode_t mode)
 {
 	static const char *rwx[] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
-	static char bits[11];
-
-	memset(bits, 0, sizeof(bits));
+	char *bits = utils_new(11, char);
 
 	switch(mode & S_IFMT)
 	{
@@ -304,7 +303,7 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			break;
 
 		case 'h': /* Leading directories of file's name (all but the last element). */
-			attr->flags = FILE_ATTR_FLAG_STRING;
+			attr->flags = FILE_ATTR_FLAG_STRING | FILE_ATTR_FLAG_HEAP;
 			attr->value.str = _file_info_get_dirname(info->path);
 			break;
 
@@ -348,6 +347,7 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			if(S_ISLNK(info->sb.st_mode))
 			{
 				attr->value.str = _file_info_readlink(info->path);
+				attr->flags |= FILE_ATTR_FLAG_HEAP;
 			}
 			else
 			{
@@ -424,7 +424,7 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			break;
 
 		case 'M': /* File's permissions (in symbolic form, as for ls). */
-			attr->flags = FILE_ATTR_FLAG_STRING;
+			attr->flags = FILE_ATTR_FLAG_STRING | FILE_ATTR_FLAG_HEAP;
 			attr->value.str = _file_info_permissions(info->sb.st_mode);
 			break;
 
