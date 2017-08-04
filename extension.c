@@ -97,16 +97,13 @@ _extension_callback_new(const char *name, uint32_t argc)
 
 	if(name)
 	{
-		cb = (ExtensionCallback *)utils_malloc(sizeof(ExtensionCallback));
-		memset(cb, 0, sizeof(ExtensionCallback));
-
+		cb = utils_new(1, ExtensionCallback);
 		cb->name = utils_strdup(name);
 		cb->argc = argc;
 
 		if(argc)
 		{
-			cb->types = (CallbackArgType *)utils_malloc(sizeof(CallbackArgType) * argc);
-			memset(cb->types, 0, sizeof(CallbackArgType) * argc);
+			cb->types = utils_new(argc, CallbackArgType);
 		}
 	}
 
@@ -159,8 +156,7 @@ _extension_module_new(const char *filename, ExtensionModuleType type)
 
 	if(filename && type != EXTENSION_MODULE_TYPE_UNDEFINED)
 	{
-		module = (ExtensionModule *)utils_malloc(sizeof(ExtensionModule));
-		memset(module, 0, sizeof(ExtensionModule));
+		module = utils_new(1, ExtensionModule);
 
 		if(_extension_module_set_backend_class(&module->backend, type))
 		{
@@ -343,7 +339,7 @@ extension_manager_new(void)
 {
 	ExtensionManager *manager;
 
-	manager = (ExtensionManager *)utils_malloc(sizeof(ExtensionManager));
+	manager = utils_new(1, ExtensionManager);
 	manager->modules = assoc_array_new(str_compare, free, (FreeFunc)_extension_module_free);
 
 	return manager;
@@ -645,17 +641,13 @@ extension_callback_args_new(uint32_t argc)
 {
 	ExtensionCallbackArgs *args;
 
-	args = (ExtensionCallbackArgs *)utils_malloc(sizeof(ExtensionCallbackArgs));
-	memset(args, 0, sizeof(ExtensionCallbackArgs));
+	args = utils_new(1, ExtensionCallbackArgs);
 	args->argc = argc;
 	
 	if(args->argc > 0)
 	{
-		args->argv = (void **)utils_malloc(sizeof(void *) * argc);
-		memset(args->argv, 0, sizeof(void *) * argc);
-
-		args->types = (CallbackArgType *)utils_malloc(sizeof(CallbackArgType) * argc);
-		memset(args->types, 0, sizeof(CallbackArgType) * argc);
+		args->argv = utils_new(argc, void *);
+		args->types = utils_new(argc, CallbackArgType);
 	}
 
 	return args;
@@ -693,7 +685,7 @@ extension_callback_args_set_integer(ExtensionCallbackArgs *args, uint32_t offset
 		free(args->argv[offset]);
 	}
 
-	args->argv[offset] = utils_malloc(sizeof(int32_t));
+	args->argv[offset] = utils_new(1, int32_t);
 	*((int32_t *)args->argv[offset]) = value;
 	args->types[offset] = CALLBACK_ARG_TYPE_INTEGER;
 }

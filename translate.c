@@ -63,7 +63,7 @@ _translation_ctx_init(TranslationCtx *ctx, Node *root, TranslationFlags flags)
 	memset(ctx, 0, sizeof(TranslationCtx));
 	ctx->root = root;
 	ctx->msize = 8;
-	ctx->argv = (char **)utils_malloc(sizeof(char *) * ctx->msize);
+	ctx->argv = utils_new(ctx->msize, char *);
 	ctx->flags = flags;
 }
 
@@ -90,7 +90,7 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 		} while(new_size <= ctx->argc);
 
 		ctx->msize = new_size;
-		ctx->argv = (char **)utils_realloc(ctx->argv, ctx->msize * sizeof(char *));
+		ctx->argv = utils_renew(ctx->argv, ctx->msize, char *);
 	}
 
 	ctx->argv[ctx->argc++] = utils_strdup(arg);

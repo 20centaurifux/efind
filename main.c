@@ -442,7 +442,7 @@ _exec_find(const Options *opts)
 
 		if(sort_string_test(opts->orderby) != -1)
 		{
-			arg.files = (FileList *)utils_malloc(sizeof(FileList));
+			arg.files = utils_new(1, FileList);
 			file_list_init(arg.files, opts->dir, opts->orderby);
 			cb = _collect_cb;
 		}

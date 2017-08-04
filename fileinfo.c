@@ -269,8 +269,7 @@ file_info_dup(const FileInfo *info)
 
 	assert(info != NULL);
 
-	ptr = (FileInfo *)malloc(sizeof(FileInfo));
-
+	ptr = utils_new(1, FileInfo);
 	ptr->path = utils_strdup(info->path);
 	ptr->cli = utils_strdup(info->cli);
 	ptr->sb = info->sb;

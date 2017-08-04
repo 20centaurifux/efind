@@ -55,8 +55,8 @@ fs_map_load(void)
 
 	if(fp)
 	{
-		map = (FSMap *)utils_malloc(sizeof(FSMap));
-		map->mps = (MountPoint **)utils_malloc(sizeof(MountPoint *) * 32);
+		map = utils_new(1, FSMap);
+		map->mps = utils_new(32, MountPoint *);
 		map->size = 32;
 		map->len = 0;
 
@@ -73,10 +73,10 @@ fs_map_load(void)
 				}
 
 				map->size *= 2;
-				map->mps = (MountPoint **)utils_realloc(map->mps, sizeof(MountPoint *) * map->size);
+				map->mps = utils_renew(map->mps, map->size, MountPoint *);
 			}
 
-			map->mps[map->len] = (MountPoint *)utils_malloc(sizeof(MountPoint));
+			map->mps[map->len] = utils_new(1, MountPoint);
 
 			strncpy(map->mps[map->len]->fs, ent->mnt_type, FS_NAME_MAX);
 			map->mps[map->len]->fs[FS_NAME_MAX - 1] = '\0';

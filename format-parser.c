@@ -126,7 +126,7 @@ _format_text_node_new(FormatParserCtx *ctx)
 
 	TRACEF("format", "new FormatTextNode(flags=%#x, width=%ld, precision=%ld, len=%d)", ctx->flags, ctx->width, ctx->precision, strlen(ctx->buffer));
 
-	node = (FormatTextNode *)utils_malloc(sizeof(FormatTextNode));
+	node = utils_new(1, FormatTextNode);
 
 	_format_node_init((FormatNodeBase *)node, FORMAT_NODE_TEXT, ctx->flags, ctx->width, ctx->precision);
 
@@ -144,7 +144,7 @@ _format_attribute_node_new(FormatParserCtx *ctx)
 
 	TRACEF("format", "new FormatAttrNode(flags=%#x, width=%ld, precision=%ld, attr=%c, format=%s)", ctx->flags, ctx->width, ctx->precision, ctx->attr, ctx->format);
 
-	node = (FormatAttrNode *)utils_malloc(sizeof(FormatAttrNode));
+	node = utils_new(1, FormatAttrNode);
 
 	_format_node_init((FormatNodeBase *)node, FORMAT_NODE_ATTR, ctx->flags, ctx->width, ctx->precision);
 
@@ -649,10 +649,7 @@ format_parse(const char *fmt)
 
 	DEBUGF("format", "Parsing format string: %s", fmt);
 
-	result = (FormatParserResult *)utils_malloc(sizeof(FormatParserResult));
-
-	memset(result, 0, sizeof(FormatParserResult));
-
+	result = utils_new(1, FormatParserResult);
 	lexer = format_lexer_scan(fmt);
 
 	if(lexer->success)

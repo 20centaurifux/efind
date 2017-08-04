@@ -219,8 +219,7 @@ _search_merge_options(size_t *argc, char ***argv, const char *path, const Search
 	/* initialize argument vector */
 	maxsize = (*argc) + 8; /* "find" + path + *argv + options + NULL */
 
-	nargv = (char **)utils_malloc(sizeof(char *) * maxsize);
-	memset(nargv, 0, sizeof(char *) * maxsize);
+	nargv = utils_new(maxsize, char *);
 
 	/* first argument (executable name) */
 	nargv[index++] = utils_strdup("find");

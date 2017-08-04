@@ -28,26 +28,69 @@
 
 /**
    @param size number of bytes to allocate
-   @return pointer to the allocated memory block
+   @return pointer to allocated memory
 
-   Allocates memory. Aborts on failure.
+   Allocates memory. The function aborts on failure.
  */
 void *utils_malloc(size_t size);
 
 /**
-   @param ptr pointer to memory block to resize
-   @param size number of bytes to allocate
-   @return pointer to the new memory block
+   @param nmemb number of elements
+   @param size size of an element
+   @return pointer to allocated memory
 
-   Resizes a memory block. Aborts on failure.
+   Allocates zero-filled memory for an array of nmemb elements
+   of size bytes. The function aborts on failure.
+ */
+void *utils_calloc(size_t nmemb, size_t size);
+
+/**
+   @param nmemb number of elements
+   @param t type of an element
+   @return pointer to allocated memory
+
+   Allocates zero-filled memory for an array of nmemb elements
+   of sizeof(t) bytes. The function aborts on failure. The returned
+   pointer is cast to the given type.
+ */
+#define utils_new(nmemb, t) (t *)utils_calloc(nmemb, sizeof(t))
+
+/**
+   @param ptr pointer to memory to reallocate
+   @param size new memory size
+   @return pointer to the new memory
+
+   Reallocates the memory pointed to ptr. The function aborts on failure.
  */
 void *utils_realloc(void *ptr, size_t size);
+
+/**
+   @param ptr pointer to memory to reallocate
+   @param nmemb number of elements
+   @param size size of an element
+   @return pointer to new memory
+
+   Reallocates the memory pointed to ptr. The function aborts on failure.
+ */
+void *utils_realloc_n(void *ptr, size_t nmemb, size_t size);
+
+/**
+   @param ptr pointer to memory to reallocate
+   @param nmemb number of elements
+   @param t type of an element
+   @return pointer to new memory
+
+   Reallocates the memory pointed to ptr. The function aborts on failure.
+   The returned pointer is cast to the given type.
+ */
+#define utils_renew(ptr, nmemb, t) (t *)utils_realloc_n(ptr, nmemb, sizeof(t))
 
 /**
    @param str string to copy
    @return pointer to a newly allocated string
 
-   Returns a new string which is a copy of the string str. Aborts on failure.
+   Returns a new string which is a copy of str. The function
+   aborts on failure.
  */
 char *utils_strdup(const char *str);
 

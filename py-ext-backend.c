@@ -68,7 +68,7 @@ _py_set_python_path(void)
 
 				if(SIZE_MAX - 20 >= len)
 				{
-					char *localpath = (char *)utils_malloc(sizeof(char) * (len + 20));
+					char *localpath = (char *)utils_malloc(len + 20);
 
 					sprintf(localpath, "%s/.efind/extensions", homedir);
 
@@ -118,8 +118,7 @@ _py_handle_new(PyObject *module)
 	assert(module != NULL);
 	assert(PyModule_Check(module));
 
-	handle = (PyHandle *)utils_malloc(sizeof(PyHandle));
-
+	handle = utils_new(1, PyHandle);
 	handle->module = module;
 	assoc_array_init(&handle->signatures, str_compare, free, free);
 
@@ -312,7 +311,7 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 			if(len && len <= UINT32_MAX)
 			{
 				argc = (uint32_t)len;
-				signature = (int *)utils_malloc(sizeof(int) * len);
+				signature = utils_new(1, int);
 
 				for(Py_ssize_t i = 0; success && i < PySequence_Length(sig); ++i)
 				{

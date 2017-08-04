@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include "utils.h"
 #include "log.h"
@@ -57,6 +58,35 @@ utils_realloc(void *ptr, size_t size)
 	if(!(ptr = realloc(ptr, size)))
 	{
 		perror("realloc()");
+		abort();
+	}
+
+	return ptr;
+}
+
+void *
+utils_realloc_n(void *ptr, size_t nmemb, size_t size)
+{
+	if(SIZE_MAX / size < nmemb)
+	{
+		fprintf(stderr, "Couldn't resize array due to integer overflow.\n");
+		abort();
+	}
+
+	return utils_realloc(ptr, nmemb * size);
+}
+
+void *
+utils_calloc(size_t nmemb, size_t size)
+{
+	void *ptr;
+
+	assert(nmemb > 0);
+	assert(size > 0);
+
+	if(!(ptr = calloc(nmemb, size)))
+	{
+		perror("calloc()");
 		abort();
 	}
 

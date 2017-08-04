@@ -139,7 +139,7 @@ file_list_init(FileList *list, const char *cli, const char *orderby)
 	memset(list, 0, sizeof(FileList));
 
 	list->cli = utils_strdup(cli);
-	list->entries = (FileListEntry **)utils_malloc(sizeof(FileListEntry *) * 8);
+	list->entries = utils_new(8, FileListEntry *);
 	list->size = 8;
 
 	if(orderby)
@@ -158,8 +158,8 @@ file_list_init(FileList *list, const char *cli, const char *orderby)
 			{
 				size_t offset = 0;
 
-				list->fields = (char *)utils_malloc(sizeof(char) * count);
-				list->fields_asc = (bool *)utils_malloc(sizeof(bool) * count);
+				list->fields = utils_new(count, char);
+				list->fields_asc = utils_new(count, bool);
 
 				const char *rest = sort_string_pop(orderby, list->fields, list->fields_asc);
 
@@ -200,9 +200,7 @@ _file_list_entry_new(FileList *list)
 
 	assert(list != NULL);
 
-	entry = (FileListEntry *)utils_malloc(sizeof(FileListEntry));
-
-	memset(entry, 0, sizeof(FileListEntry));
+	entry = utils_new(1, FileListEntry);
 	entry->filesp = list;
 
 	return entry;
@@ -255,6 +253,7 @@ file_list_free(FileList *list)
 bool
 file_list_append(FileList *list, const char *path)
 {
+	FileListEntry *entry = NULL;
 	bool success = false;
 
 	assert(list != NULL);
@@ -266,27 +265,30 @@ file_list_append(FileList *list, const char *path)
 	if(list->size == list->count)
 	{
 		list->size *= 2;
-		list->entries = (FileListEntry **)utils_realloc(list->entries, sizeof(FileListEntry *) * list->size);
-	}
 
-	if(list->size > list->count)
-	{
-		FileListEntry *entry = _file_list_entry_new_from_path(list, path);
-
-		if(entry)
+		if(list->size > list->count)
 		{
-			list->entries[list->count] = entry;
-			list->count++;
-			success = true;
+			list->entries = utils_renew(list->entries, list->size, FileListEntry *);
 		}
 		else
 		{
-			DEBUG("filelist", "Couldn't create list entry");
+			FATAL("filelist", "Integer overflow.");
+			abort();
 		}
+	}
+
+	/* append entry */
+	entry = _file_list_entry_new_from_path(list, path);
+
+	if(entry)
+	{
+		list->entries[list->count] = entry;
+		list->count++;
+		success = true;
 	}
 	else
 	{
-		ERROR("fileinfo", "Couldn't resize file list.");
+		DEBUG("filelist", "Couldn't create list entry.");
 	}
 
 	return success;

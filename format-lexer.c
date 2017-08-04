@@ -405,7 +405,7 @@ format_lexer_scan(const char *format)
 
 	TRACEF("format", "Scanning format string: %s", format);
 
-	result = (FormatLexerResult *)utils_malloc(sizeof(FormatLexerResult));
+	result = utils_new(1, FormatLexerResult);
 
 	if(_format_lexer_init(result, format))
 	{
