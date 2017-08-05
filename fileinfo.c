@@ -166,7 +166,7 @@ _file_info_remove_cli(const char *cli, const char *path)
 
 	len = strlen(cli);
 
-	if(cli[len - 1] != '/')
+	if(cli[len - 1] != '/' && path[len])
 	{
 		++len;
 	}
