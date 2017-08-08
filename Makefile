@@ -1,4 +1,5 @@
 PREFIX=/usr
+LOCALEDIR=$(PREFIX)/locale
 
 MAKE=make
 FLEX=flex
@@ -24,7 +25,7 @@ all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) $(CFLAGS) $(INC) ./main.c ./log.c ./parser.y.c ./lexer.l.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./gettext.c ./log.c ./parser.y.c ./lexer.l.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
 
 install:
 	test -d "$(DESTDIR)$(PREFIX)/bin" || mkdir -p "$(DESTDIR)$(PREFIX)/bin"

@@ -32,6 +32,7 @@
 
 #include "utils.h"
 #include "log.h"
+#include "gettext.h"
 
 void *
 utils_malloc(size_t size)
@@ -69,7 +70,7 @@ utils_realloc_n(void *ptr, size_t nmemb, size_t size)
 {
 	if(SIZE_MAX / size < nmemb)
 	{
-		fprintf(stderr, "Couldn't resize array due to integer overflow.\n");
+		fprintf(stderr, _("Couldn't resize array due to integer overflow.\n"));
 		abort();
 	}
 

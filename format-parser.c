@@ -27,6 +27,7 @@
 #include "format-lexer.h"
 #include "format-parser.h"
 #include "utils.h"
+#include "gettext.h"
 
 /*! @cond INTERNAL */
 typedef enum
@@ -355,7 +356,7 @@ _format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
 		}
 		else
 		{
-			fprintf(stderr, "String exceeds allowed maximum length.\n");
+			fprintf(stderr, _("String exceeds allowed maximum length.\n"));
 			result = FORMAT_PARSER_STEP_RESULT_ABORT;
 		}
 	}
@@ -430,12 +431,12 @@ _format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
 			}
 			else
 			{
-				fprintf(stderr, "Unsupported escape sequence.\n");
+				fprintf(stderr, _("Unsupported escape sequence.\n"));
 			}
 		}
 		else
 		{
-			fprintf(stderr, "String exceeds allowed maximum length.\n");
+			fprintf(stderr, _("String exceeds allowed maximum length.\n"));
 			result = FORMAT_PARSER_STEP_RESULT_ABORT;
 		}
 	}
@@ -557,7 +558,7 @@ _format_parser_step_date_attribute(FormatParserCtx *ctx, FormatToken *token)
 		}
 		else
 		{
-			fprintf(stderr, "Date-format exceeds allowed maximum length.\n");
+			fprintf(stderr, _("Date-format exceeds allowed maximum length.\n"));
 		}
 
 		result = FORMAT_PARSER_STEP_RESULT_NEXT;

@@ -44,6 +44,7 @@
 #include "extension.h"
 #include "blacklist.h"
 #include "filelist.h"
+#include "gettext.h"
 #include "version.h"
 
 /**
@@ -400,7 +401,8 @@ _error_cb(const char *msg, void *user_data)
 {
 	if(msg)
 	{
-		fprintf(stderr, "WARNING: %s\n", msg);
+		fputs(msg, stderr);
+		fputc('\n', stderr);
 	}
 }
 
@@ -430,7 +432,7 @@ _exec_find(const Options *opts)
 		if(!arg.fmt->success)
 		{
 			DEBUG("action", "Parsing of format string failed.");
-			fprintf(stderr, "Couldn't parse format string: %s\n", opts->printf);
+			fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
 			goto out;
 		}
 	}
@@ -449,7 +451,7 @@ _exec_find(const Options *opts)
 		else
 		{
 			DEBUG("action", "Parsing of sort string failed.");
-			fprintf(stderr, "Couldn't parse sort string.\n");
+			fprintf(stderr, _("Couldn't parse sort string.\n"));
 			goto out;
 		}
 	}
@@ -519,30 +521,30 @@ _print_help(const char *name)
 {
 	assert(name != NULL);
 
-	printf("Usage: %s [options]\n", name);
-	printf("       %s [path] [options]\n", name);
-	printf("       %s [path] [expression] [options]\n\n", name);
-	printf("  -e, --expr          expression to evaluate when finding files\n");
-	printf("  -q, --quote         quote special characters in translated expression\n");
-	printf("  -d, --dir           root directory\n");
-	printf("  -L, --follow        follow symbolic links\n");
-	printf("  --regex-type type   set regular expression type; see manpage\n");
-	printf("  --printf format     print format on standard output; see manpage\n");
-	printf("  --order-by fields   fields to order search result by; see manpage\n");
-	printf("  --max-depth levels  maximum search depth\n");
-	printf("  -p, --print         don't search files but print expression to stdout\n");
-	printf("  --list-extensions   show a list of installed extensions\n");
-	printf("  --show-blacklist    show blacklisted extensions\n");
-	printf("  --log-level level   set the log level (0-6)\n");
-	printf("  --enable-log-color  enable colored log messages\n");
-	printf("  -v, --version       show version and exit\n");
-	printf("  -h, --help          display this help and exit\n");
+	printf(_("Usage: %s [options]\n"), name);
+	printf(_("       %s [path] [options]\n"), name);
+	printf(_("       %s [path] [expression] [options]\n\n"), name);
+	printf(_("  -e, --expr          expression to evaluate when finding files\n"));
+	printf(_("  -q, --quote         quote special characters in translated expression\n"));
+	printf(_("  -d, --dir           root directory\n"));
+	printf(_("  -L, --follow        follow symbolic links\n"));
+	printf(_("  --regex-type type   set regular expression type; see manpage\n"));
+	printf(_("  --printf format     print format on standard output; see manpage\n"));
+	printf(_("  --order-by fields   fields to order search result by; see manpage\n"));
+	printf(_("  --max-depth levels  maximum search depth\n"));
+	printf(_("  -p, --print         don't search files but print expression to stdout\n"));
+	printf(_("  --list-extensions   show a list of installed extensions\n"));
+	printf(_("  --show-blacklist    show blacklisted extensions\n"));
+	printf(_("  --log-level level   set the log level (0-6)\n"));
+	printf(_("  --enable-log-color  enable colored log messages\n"));
+	printf(_("  -v, --version       show version and exit\n"));
+	printf(_("  -h, --help          display this help and exit\n"));
 }
 
 static void
 _print_version(const char *name)
 {
-	printf("%s %d.%d.%d (%s)\nWebsite: %s\n(C) %s %s <%s>\nThis program is released under the terms of the %s (%s)\n",
+	printf(_("%s %d.%d.%d (%s)\nWebsite: %s\n(C) %s %s <%s>\nThis program is released under the terms of the %s (%s)\n"),
 	       name, EFIND_VERSION_MAJOR, EFIND_VERSION_MINOR, EFIND_VERSION_PATCH, EFIND_VERSION_CODE_NAME,
 	       EFIND_WEBSITE,
 	       EFIND_COPYRIGHT_DATE, EFIND_AUTHOR_NAME, EFIND_AUTHOR_EMAIL,
@@ -566,7 +568,7 @@ _list_extensions(void)
 		}
 		else
 		{
-			printf("No extensions loaded.\n");
+			printf(_("No extensions loaded.\n"));
 		}
 
 		extension_manager_destroy(manager);
@@ -574,7 +576,7 @@ _list_extensions(void)
 	else
 	{
 		FATAL("action", "Creation of ExpressionManager instance failed.");
-		fprintf(stderr, "Couldn't load extensions.\n");
+		fprintf(stderr, _("Couldn't load extensions.\n"));
 	}
 }
 
@@ -614,12 +616,15 @@ main(int argc, char *argv[])
 	/* set locale */
 	setlocale(LC_ALL, "");
 
+	/* initialize gettext */
+	gettext_init();
+
 	/* read command line options */
 	action = _read_options(argc, argv, &opts);
 
 	if(action == ACTION_ABORT)
 	{
-		printf("Try '%s --help' for more information.\n", argv[0]);
+		printf(_("Try '%s --help' for more information.\n"), argv[0]);
 		goto out;
 	}
 
@@ -648,7 +653,7 @@ main(int argc, char *argv[])
 		/* test if directory is valid */
 		if(!_dir_is_valid(opts.dir))
 		{
-			fprintf(stderr, "The specified directory is invalid.\n");
+			fprintf(stderr, _("The specified directory is invalid.\n"));
 			goto out;
 		}
 
@@ -662,7 +667,7 @@ main(int argc, char *argv[])
 		/* test if expression is empty */
 		if(!opts.expr || !opts.expr[0])
 		{
-			fprintf(stderr, "Expression cannot be empty.\n");
+			fprintf(stderr, _("Expression cannot be empty.\n"));
 			goto out;
 		}
 	}

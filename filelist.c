@@ -27,6 +27,7 @@
 #include "filelist.h"
 #include "log.h"
 #include "utils.h"
+#include "gettext.h"
 
 /*! Supported fields to sort search result by. */
 #define SORTABLE_FIELDS "bfgGhiklmMnpsSuUyYpPHFDaAcCtT"
@@ -111,7 +112,7 @@ const char
 			}
 			else
 			{
-				fprintf(stderr, "Found unexpected character in sort string: '%c'.\n", *ptr);
+				fprintf(stderr, _("Found unexpected character in sort string: '%c'.\n"), *ptr);
 			}
 
 			/* find next character */
@@ -182,7 +183,7 @@ file_list_init(FileList *list, const char *cli, const char *orderby)
 		}
 		else
 		{
-			fprintf(stderr, "Couldn't parse sort string.\n");
+			fprintf(stderr, _("Couldn't parse sort string.\n"));
 		}
 	}
 }
@@ -229,7 +230,7 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 	}
 	else
 	{
-		DEBUGF("fileinfo", "Couldn't get file details of file %s.", path);;
+		DEBUGF("fileinfo", "Couldn't read details of file %s.", path);;
 	}
 
 	return entry;
@@ -324,14 +325,14 @@ _file_list_compare_entries(const void *a, const void *b)
 			}
 			else
 			{
-				fprintf(stderr, "Couldn't read file attribute from %s.\n", second->info->path);
+				fprintf(stderr, _("Couldn't read attribute from file %s.\n"), second->info->path);
 			}
 
 			file_attr_free(&attr_a);
 		}
 		else
 		{
-			fprintf(stderr, "Couldn't read file attribute from %s.\n", first->info->path);
+			fprintf(stderr, _("Couldn't read attribute from file %s.\n"), first->info->path);
 		}
 
 		if(result)

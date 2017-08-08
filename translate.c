@@ -34,6 +34,7 @@
 #include "log.h"
 #include "parser.h"
 #include "utils.h"
+#include "gettext.h"
 
 /*
  *	translation context
@@ -143,11 +144,11 @@ _vprintf_loc(const Node *node, char *buf, size_t size, const char *format, va_li
 	/* write line number(s) to buffer */
 	if(locp->first_line == locp->last_line)
 	{
-		snprintf(tmp, sizeof(tmp), "line: %d, ", locp->first_line);
+		snprintf(tmp, sizeof(tmp), _("line: %d, "), locp->first_line);
 	}
 	else
 	{
-		snprintf(tmp, sizeof(tmp), "line: %d-%d, ", locp->first_line, locp->last_line);
+		snprintf(tmp, sizeof(tmp), _("line: %d-%d, "), locp->first_line, locp->last_line);
 	}
 
 	len = utils_strlcat(buf, tmp, size);
@@ -160,11 +161,11 @@ _vprintf_loc(const Node *node, char *buf, size_t size, const char *format, va_li
 	/* append column(s) to buffer */
 	if(locp->first_column == locp->last_column)
 	{
-		snprintf(tmp, sizeof(tmp), "column: %d: ", locp->first_column);
+		snprintf(tmp, sizeof(tmp), _("column: %d: "), locp->first_column);
 	}
 	else
 	{
-		snprintf(tmp, sizeof(tmp), "column: %d-%d: ", locp->first_column, locp->last_column);
+		snprintf(tmp, sizeof(tmp), _("column: %d-%d: "), locp->first_column, locp->last_column);
 	}
 
 	len = utils_strlcat(buf, tmp, size);
@@ -469,7 +470,7 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 	/* test if property supports given type */
 	if(!test_property(node->prop))
 	{
-		_set_error(ctx, (Node *)node, "Cannot compare %s value to property \"%s\".", type_desc, _property_to_str(node->prop));
+		_set_error(ctx, (Node *)node, _("Cannot compare a value of type \"%s\" value to property \"%s\"."), type_desc, _property_to_str(node->prop));
 
 		return false;
 	}
@@ -477,7 +478,7 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 	/* test if property supports the given operator */
 	if(node->cmp != CMP_EQ && !_property_supports_numeric_operators(node->prop))
 	{
-		_set_error(ctx, (Node *)node, "Invalid operator for property \"%s\".", type_desc, _property_to_str(node->prop));
+		_set_error(ctx, (Node *)node, _("Values of type \"%s\" don't support the \"%s\" operator."), type_desc, _property_to_str(node->prop));
 
 		return false;
 	}
