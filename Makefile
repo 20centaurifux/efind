@@ -1,5 +1,5 @@
 PREFIX=/usr
-LOCALEDIR=$(PREFIX)/locale
+LOCALEDIR=$(PREFIX)/share/locale
 
 MAKE=make
 FLEX=flex
