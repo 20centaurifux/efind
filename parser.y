@@ -24,6 +24,7 @@
 #include "parser.h"
 #include "search.h"
 #include "utils.h"
+#include "gettext.h"
 
 int
 yyparse(void *scanner, void **root);
@@ -39,25 +40,25 @@ yyerror(YYLTYPE *locp, void *scanner, void **root, const char *str)
 	}
 	else
 	{
-		fprintf(stderr, "parsing failed, ");
+		fprintf(stderr, _("parsing failed, "));
 	}
 
 	if(locp->first_line == locp->last_line)
 	{
-		fprintf(stderr, "line: %d, ", locp->first_line);
+		fprintf(stderr, _("line: %d, "), locp->first_line);
 	}
 	else
 	{
-		fprintf(stderr, "line: %d-%d, ", locp->first_line, locp->last_line);
+		fprintf(stderr, _("line: %d-%d, "), locp->first_line, locp->last_line);
 	}
 
 	if(locp->first_column == locp->last_column)
 	{
-		fprintf(stderr, "column: %d\n", locp->first_column);
+		fprintf(stderr, _("column: %d\n"), locp->first_column);
 	}
 	else
 	{
-		fprintf(stderr, "column: %d-%d\n", locp->first_column, locp->last_column);
+		fprintf(stderr, _("column: %d-%d\n"), locp->first_column, locp->last_column);
 	}
 }
 
@@ -120,13 +121,13 @@ parse_string(const char *str)
 	/* test expression length */
 	if(!str)
 	{
-		result->err = strdup("Expression cannot be empty.");
+		result->err = strdup(_("Expression cannot be empty."));
 		return result;
 	}
 
 	if(strlen(str) > PARSER_MAX_EXPRESSION_LENGTH)
 	{
-		result->err = strdup("Expression length exceeds maximum.");
+		result->err = strdup(_("Expression length exceeds maximum allowed length."));
 		return result;
 	}
 
@@ -196,7 +197,7 @@ query:
                                                   }
                                                   else
                                                   {
-                                                    yyerror(&@1, scanner, NULL, "post processing expressions have to be added with the \"and\" operator");
+                                                    yyerror(&@1, scanner, NULL, _("Please use custom functions after the \"and\" operator"));
                                                     YYABORT;
                                                   }
                                                 }

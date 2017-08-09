@@ -371,4 +371,3 @@ file_list_foreach(FileList *list, Callback f, void *user_data)
 	}
 }
 
-
