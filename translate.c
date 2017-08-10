@@ -417,6 +417,40 @@ _flag_to_arg(FileFlag id)
 	return name;
 }
 
+/* compare operator to stirng */
+static const char *
+_cmp_to_str(CompareType cmp)
+{
+	const char *name = NULL;
+
+	switch(cmp)
+	{
+		case CMP_LT:
+			name = "<";
+			break;
+
+		case CMP_LT_EQ:
+			name = "<=";
+			break;
+
+		case CMP_EQ:
+			name = "=";
+			break;
+
+		case CMP_GT:
+			name = ">";
+			break;
+
+		case CMP_GT_EQ:
+			name = ">=";
+			break;
+
+		default:
+			FATALF("translate", "Invalid compare operator: %#x", cmp);
+	}
+
+	return name;
+}
 /*
  *	validation:
  */
@@ -478,7 +512,7 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 	/* test if property supports the given operator */
 	if(node->cmp != CMP_EQ && !_property_supports_numeric_operators(node->prop))
 	{
-		_set_error(ctx, (Node *)node, _("Values of type \"%s\" don't support the \"%s\" operator."), type_desc, _property_to_str(node->prop));
+		_set_error(ctx, (Node *)node, _("Values of type \"%s\" don't support the \"%s\" operator."), type_desc, _cmp_to_str(node->cmp));
 
 		return false;
 	}
