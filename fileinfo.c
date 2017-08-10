@@ -49,7 +49,7 @@ _fs_map_free(void)
 	}
 }
 
-char *
+static char *
 _file_info_get_dirname(const char *filename)
 {
 	char *dirname = NULL;
@@ -75,7 +75,7 @@ _file_info_get_dirname(const char *filename)
 	return dirname;
 }
 
-char *
+static char *
 _file_info_readlink(const char *filename)
 {
 	ssize_t size;
@@ -98,7 +98,7 @@ _file_info_readlink(const char *filename)
 	return buffer;
 }
 
-char *
+static char *
 _file_info_permissions(mode_t mode)
 {
 	static const char *rwx[] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
