@@ -1,5 +1,5 @@
 # efind translation
-# Copyright (C) 2017, Sebastian FedrauY
+# Copyright (C) 2017, Sebastian Fedrau
 # This file is distributed under the same license as efind.
 # Sebastian Fedrau <sebastian.fedrau@gmail.com>, 2017.
 #
@@ -107,7 +107,7 @@ msgstr "Der reale Pfad der Datei %s konnte nicht aufgelöst werden.\n"
 #: main.c:435
 #, c-format
 msgid "Couldn't parse format string: %s\n"
-msgstr "Der Formattext konnte nicht interpretiert werden: %s\n"
+msgstr "Der Formattext konnte nicht geparst werden: %s\n"
 
 #: main.c:524
 #, c-format
@@ -154,19 +154,19 @@ msgstr "  -L, --follow        symbolischen Links folgen\n"
 msgid "  --regex-type type   set regular expression type; see manpage\n"
 msgstr ""
 "  --regex-type Typ    das Format für reguläre Ausdrücke setzen; siehe "
-"manpage\n"
+"Handbuch\n"
 
 #: main.c:532
 #, c-format
 msgid "  --printf format     print format on standard output; see manpage\n"
 msgstr ""
-"  --printf Format     Ausgabeformat für die Standardausgabe; siehe manpage\n"
+"  --printf Format     Ausgabeformat für die Standardausgabe; siehe Handbuch\n"
 
 #: main.c:533
 #, c-format
 msgid "  --order-by fields   fields to order search result by; see manpage\n"
 msgstr ""
-"  --order-by Felder   beim Sortieren zu verwendende Felder; siehe manpage\n"
+"  --order-by Felder   beim Sortieren zu verwendende Felder; siehe Handbuch\n"
 
 #: main.c:534
 #, c-format
