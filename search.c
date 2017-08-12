@@ -40,6 +40,7 @@
 #include "parser.h"
 #include "utils.h"
 #include "eval.h"
+#include "gettext.h"
 
 /*! @cond INTERNAL */
 typedef EvalResult (*PreCondition)(const char *filename, void *user_data);
@@ -88,7 +89,7 @@ _search_evaluate_post_exprs(const char *filename, void *user_data)
 		}
 		else
 		{
-			fprintf(stderr, "Couldn't evaluate expression, no extensions loaded.\n");
+			fprintf(stderr, _("Couldn't evaluate expression, no extensions loaded.\n"));
 			result = EVAL_RESULT_ABORTED;
 		}
 	}
@@ -354,7 +355,7 @@ _search_child_process(int outfds[2], int errfds[2], char **argv)
 	}
 	else
 	{
-		fprintf(stderr, "Couldn't find `find' executable.\n");
+		fprintf(stderr, _("Couldn't find `find' executable.\n"));
 	}
 }
 

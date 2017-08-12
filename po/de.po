@@ -1,0 +1,328 @@
+# efind translation
+# Copyright (C) 2017, Sebastian Fedrau
+# This file is distributed under the same license as efind.
+# Sebastian Fedrau <sebastian.fedrau@gmail.com>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: efind v0.3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-08-09 16:44+0200\n"
+"PO-Revision-Date: 2017-08-08 17:16+0200\n"
+"Last-Translator:  <sebastian.fedrau@gmail.com>\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: dl-ext-backend.c:93 eval.c:155
+#, c-format
+msgid "Function `%s' not found.\n"
+msgstr "Die Funktion `%s' wurde nicht gefunden.\n"
+
+#: eval.c:139
+#, c-format
+msgid ""
+"Stack overflow in function `%s', more than %d arguments are not supported.\n"
+msgstr ""
+"Stapelüberlauf in Funktion `%s'. Es werden nicht mehr als %d Argumente "
+"unterstützt.\n"
+
+#: eval.c:160
+#, c-format
+msgid ""
+"Function `%s' has a different signature, please check specified arguments.\n"
+msgstr ""
+"Die Funktion `%s' hat eine abweichende Signatur, bitte prüfen Sie die "
+"Argumente.\n"
+
+#: extension.c:410
+#, c-format
+msgid "Couldn't load extension \"%s\"."
+msgstr "Die Erweiterung \"%s\" konnte nicht geladen werden."
+
+#: extension.c:425
+msgid "Path to extension file exceeds maximum allowed path length."
+msgstr "Der Pfad zur Erweiterungsdatei ist zu lang."
+
+#: extension.c:443
+#, c-format
+msgid "Couldn't open directory \"%s\"."
+msgstr "Das Verzeichnis \"%s\" konnte nicht geöffnet werden."
+
+#: fileinfo.c:254
+#, c-format
+msgid "Couldn't stat file: %s\n"
+msgstr "Der Status der Datei \"%s\" konnte nicht abgerufen werden.\n"
+
+#: filelist.c:115
+#, c-format
+msgid "Found unexpected character in sort string: '%c'.\n"
+msgstr ""
+"Es wurde ein unerwartetes Zeichen in der Sortieroption entdeckt: '%c'.\n"
+
+#: filelist.c:186 main.c:454
+#, c-format
+msgid "Couldn't parse sort string.\n"
+msgstr "Die Sortieroption konnte nicht geparst werden.\n"
+
+#: filelist.c:328 filelist.c:335
+#, c-format
+msgid "Couldn't read attribute from file %s.\n"
+msgstr ""
+"Das gewünschte Attribut konnte nicht aus der Datei %s ausgelesen werden.\n"
+
+#: format-lexer.c:193
+#, c-format
+msgid "Missing text after '%%'.\n"
+msgstr "Fehlender Text hinter dem '%%' Zeichen.\n"
+
+#: format-lexer.c:230
+#, c-format
+msgid "Invalid escape sequence.\n"
+msgstr "Ungültige Escape-Sequenz.\n"
+
+#: format-parser.c:359 format-parser.c:439
+#, c-format
+msgid "String exceeds allowed maximum length.\n"
+msgstr "Der Text ist länger als die erlaubte Maximallänge.\n"
+
+#: format-parser.c:434
+#, c-format
+msgid "Unsupported escape sequence.\n"
+msgstr "Nicht unterstützte Escape-Sequenz.\n"
+
+#: format-parser.c:561
+#, c-format
+msgid "Date-format exceeds allowed maximum length.\n"
+msgstr "Das Datumsformat ist länger als die erlaubte Maximallänge.\n"
+
+#: fs.c:148
+#, c-format
+msgid "Couldn't retrieve real path from file: %s\n"
+msgstr "Der reale Pfad der Datei %s konnte nicht aufgelöst werden.\n"
+
+#: main.c:435
+#, c-format
+msgid "Couldn't parse format string: %s\n"
+msgstr "Der Formattext konnte nicht geparst werden: %s\n"
+
+#: main.c:524
+#, c-format
+msgid "Usage: %s [options]\n"
+msgstr "Aufruf: %s [Optionen]\n"
+
+#: main.c:525
+#, c-format
+msgid "       %s [path] [options]\n"
+msgstr "        %s [Pfad] [Optionen]\n"
+
+#: main.c:526
+#, c-format
+msgid ""
+"       %s [path] [expression] [options]\n"
+"\n"
+msgstr ""
+"        %s [Pfad] [Ausdruck] [Optionen]\n"
+"\n"
+
+#: main.c:527
+#, c-format
+msgid "  -e, --expr          expression to evaluate when finding files\n"
+msgstr "  -e, --expr          zu evaluierender Ausdruck\n"
+
+#: main.c:528
+#, c-format
+msgid ""
+"  -q, --quote         quote special characters in translated expression\n"
+msgstr "  -q, --quote         Sonderzeichen in Anführungszeichen setzen\n"
+
+#: main.c:529
+#, c-format
+msgid "  -d, --dir           root directory\n"
+msgstr "  -d, --dir           Startverzeichnis\n"
+
+#: main.c:530
+#, c-format
+msgid "  -L, --follow        follow symbolic links\n"
+msgstr "  -L, --follow        symbolischen Links folgen\n"
+
+#: main.c:531
+#, c-format
+msgid "  --regex-type type   set regular expression type; see manpage\n"
+msgstr ""
+"  --regex-type Typ    das Format für reguläre Ausdrücke setzen; siehe "
+"Handbuch\n"
+
+#: main.c:532
+#, c-format
+msgid "  --printf format     print format on standard output; see manpage\n"
+msgstr ""
+"  --printf Format     Ausgabeformat für die Standardausgabe; siehe Handbuch\n"
+
+#: main.c:533
+#, c-format
+msgid "  --order-by fields   fields to order search result by; see manpage\n"
+msgstr ""
+"  --order-by Felder   beim Sortieren zu verwendende Felder; siehe Handbuch\n"
+
+#: main.c:534
+#, c-format
+msgid "  --max-depth levels  maximum search depth\n"
+msgstr "  --max-depth Tiefe   maximale Suchtiefe\n"
+
+#: main.c:535
+#, c-format
+msgid ""
+"  -p, --print         don't search files but print expression to stdout\n"
+msgstr ""
+"  -p, --print         übersetzten Suchausdruck auf Standardausgabe ausgeben\n"
+
+#: main.c:536
+#, c-format
+msgid "  --list-extensions   show a list of installed extensions\n"
+msgstr "  --list-extensions   installierte Erweiterungen ausgeben\n"
+
+#: main.c:537
+#, c-format
+msgid "  --show-blacklist    show blacklisted extensions\n"
+msgstr "  --show-blacklist    ausgeschlossene Erweiterungen ausgeben\n"
+
+#: main.c:538
+#, c-format
+msgid "  --log-level level   set the log level (0-6)\n"
+msgstr "  --log-level Level   Loglevel setzen (0-6)\n"
+
+#: main.c:539
+#, c-format
+msgid "  --enable-log-color  enable colored log messages\n"
+msgstr "  --enable-log-color  farbige Logmeldungen aktivieren\n"
+
+#: main.c:540
+#, c-format
+msgid "  -v, --version       show version and exit\n"
+msgstr "  -v, --version       Versionsinformationen anzeigen und beenden\n"
+
+#: main.c:541
+#, c-format
+msgid "  -h, --help          display this help and exit\n"
+msgstr "  -h, --help          diese Hilfe anzeigen und beenden\n"
+
+#: main.c:547
+#, c-format
+msgid ""
+"%s %d.%d.%d (%s)\n"
+"Website: %s\n"
+"(C) %s %s <%s>\n"
+"This program is released under the terms of the %s (%s)\n"
+msgstr ""
+"%s %d.%d.%d (%s)\n"
+"Webseite: %s\n"
+"(C) %s %s <%s>\n"
+"Dieses Programm wurde unter der %s (%s) veröffentlicht.\n"
+
+#: main.c:571
+#, c-format
+msgid "No extensions loaded.\n"
+msgstr "Es sind keine Erweiterungen geladen.\n"
+
+#: main.c:579
+#, c-format
+msgid "Couldn't load extensions.\n"
+msgstr "Es konnten keine Erweiterungen geladen werden.\n"
+
+#: main.c:627
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "'%s --help' liefert weitere Informationen.\n"
+
+#: main.c:656
+#, c-format
+msgid "The specified directory is invalid.\n"
+msgstr "Das angegebene Verzeichnis ist ungültig.\n"
+
+#: main.c:670
+#, c-format
+msgid "Expression cannot be empty.\n"
+msgstr "Der Ausdruck darf nicht leer sein.\n"
+
+#: search.c:92
+#, c-format
+msgid "Couldn't evaluate expression, no extensions loaded.\n"
+msgstr ""
+"Der Ausdruck konnte nicht ausgeführt werden, weil keine Erweiterungen "
+"geladen sind.\n"
+
+#: search.c:358
+#, c-format
+msgid "Couldn't find `find' executable.\n"
+msgstr "Die Anwendung `find' konnte nicht gefunden werden.\n"
+
+#: translate.c:147 parser.y:48
+#, c-format
+msgid "line: %d, "
+msgstr "Zeile: %d, "
+
+#: translate.c:151 parser.y:52
+#, c-format
+msgid "line: %d-%d, "
+msgstr "Zeile: %d-%d, "
+
+#: translate.c:164
+#, c-format
+msgid "column: %d: "
+msgstr "Spalte: %d:"
+
+#: translate.c:168
+#, c-format
+msgid "column: %d-%d: "
+msgstr "Spalte: %d-%d: "
+
+#: translate.c:473
+#, c-format
+msgid "Cannot compare a value of type \"%s\" value to property \"%s\"."
+msgstr ""
+"Ein Wert des Typs \"%s\" kann nicht mit der Eigenschaft \"%s\" verglichen "
+"werden."
+
+#: translate.c:481
+#, c-format
+msgid "Values of type \"%s\" don't support the \"%s\" operator."
+msgstr "Werte des Typs \"%s\" unterstützen nicht den \"%s\" Operator."
+
+#: utils.c:73
+#, c-format
+msgid "Couldn't resize array due to integer overflow.\n"
+msgstr ""
+"Das Arraygröße konnte aufgrund eines Stapelüberlaufs nicht geändert werden.\n"
+
+#: parser.y:43
+#, c-format
+msgid "parsing failed, "
+msgstr "Parsen fehlgeschlagen, "
+
+#: parser.y:57
+#, c-format
+msgid "column: %d\n"
+msgstr "Spalte: %d\n"
+
+#: parser.y:61
+#, c-format
+msgid "column: %d-%d\n"
+msgstr "Spalte: %d-%d\n"
+
+#: parser.y:124
+#, c-format
+msgid "Expression cannot be empty."
+msgstr "Der Ausdruck darf nicht leer sein."
+
+#: parser.y:130
+#, c-format
+msgid "Expression length exceeds maximum allowed length."
+msgstr "Der Pfad zur Erweiterungsdatei ist zu lang."
+
+#: parser.y:200
+msgid "Please use custom functions after the \"and\" operator"
+msgstr "Bitte rufen Sie benutzerdefinierte Funktionen hinter dem \"and\" Operator auf"

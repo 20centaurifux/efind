@@ -25,6 +25,7 @@
 #include "eval.h"
 #include "log.h"
 #include "extension.h"
+#include "gettext.h"
 
 /*! @cond INTERNAL */
 #define FN_STACK_SIZE 64
@@ -135,7 +136,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 
 			if(argc == FN_STACK_SIZE)
 			{
-				fprintf(stderr, "Stack overflow in function `%s', more than %d arguments are not supported.\n", fn->name, FN_STACK_SIZE);
+				fprintf(stderr, _("Stack overflow in function `%s', more than %d arguments are not supported.\n"), fn->name, FN_STACK_SIZE);
 			}
 		}
 	}
@@ -151,12 +152,12 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 		}
 		else if(status == EXTENSION_CALLBACK_STATUS_NOT_FOUND)
 		{
-			fprintf(stderr, "Function `%s' not found.\n", fn->name);
+			fprintf(stderr, _("Function `%s' not found.\n"), fn->name);
 			success = false;
 		}
 		else
 		{
-			fprintf(stderr, "Function `%s' has a different signature, please check specified arguments.\n", fn->name);
+			fprintf(stderr, _("Function `%s' has a different signature, please check specified arguments.\n"), fn->name);
 			success = false;
 		}
 	}

@@ -32,6 +32,7 @@
 #include "py-ext-backend.h"
 #include "blacklist.h"
 #include "utils.h"
+#include "gettext.h"
 
 /*! @cond INTERNAL */
 typedef struct
@@ -406,7 +407,7 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 						if(!_extension_manager_import_module(manager, filename, mod_type))
 						{
-							int len = snprintf(msg, sizeof(msg), "Couldn't load extension \"%s\".", filename);
+							int len = snprintf(msg, sizeof(msg), _("Couldn't load extension \"%s\"."), filename);
 
 							if(len > 0 && (size_t)len < sizeof(msg))
 							{
@@ -421,7 +422,7 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 				{
 					if(err)
 					{
-						*err = strdup("Path to extension file exceeds maximum allowed path length.");
+						*err = strdup(_("Path to extension file exceeds maximum allowed path length."));
 					}
 
 					success = false;
@@ -437,16 +438,13 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 		closedir(pdir);
 	}
-	else
+	else if(err)
 	{
-		if(err)
-		{
-			int len = snprintf(msg, sizeof(msg), "Warning: couldn't open directory \"%s\".", path);
+		int len = snprintf(msg, sizeof(msg), _("Couldn't open directory \"%s\"."), path);
 
-			if(len > 0 && (size_t)len < sizeof(msg))
-			{
-				*err = strdup(msg);
-			}
+		if(len > 0 && (size_t)len < sizeof(msg))
+		{
+			*err = strdup(msg);
 		}
 	}
 
@@ -461,7 +459,6 @@ int
 extension_manager_load_default(ExtensionManager *manager)
 {
 	const char *home;
-	char *err = NULL;
 	int count = 0;
 
 	assert(manager != NULL);
@@ -487,15 +484,9 @@ extension_manager_load_default(ExtensionManager *manager)
 		DEBUG("extension", "Couldn't find home directory.");
 	}
 
-	if(extension_manager_load_directory(manager, "/etc/efind/extensions", &err))
+	if(extension_manager_load_directory(manager, "/etc/efind/extensions", NULL))
 	{
 		++count;
-	}
-	else if(err)
-	{
-		fprintf(stderr, "%s\n", err);
-		free(err);
-		err = NULL;
 	}
 
 	return count;

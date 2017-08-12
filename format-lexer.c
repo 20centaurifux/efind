@@ -26,6 +26,7 @@
 #include "format-lexer.h"
 #include "log.h"
 #include "utils.h"
+#include "gettext.h"
 
 /*! @cond INTERNAL */
 typedef enum
@@ -189,7 +190,7 @@ _format_lexer_step_string(FormatLexerResult *result)
 		}
 		else
 		{
-			fprintf(stderr, "Missing text after '%%'.\n");
+			fprintf(stderr, _("Missing text after '%%'.\n"));
 			success = false;
 		}
 	}
@@ -226,7 +227,7 @@ _format_lexer_step_string(FormatLexerResult *result)
 		}
 		else
 		{
-			fprintf(stderr, "Invalid escape sequence.\n");
+			fprintf(stderr, _("Invalid escape sequence.\n"));
 			success = false;
 		}
 	}

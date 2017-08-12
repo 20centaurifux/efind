@@ -26,6 +26,7 @@
 #include "extension-interface.h"
 #include "log.h"
 #include "utils.h"
+#include "gettext.h"
 
 static void *
 _dl_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx *ctx)
@@ -89,7 +90,7 @@ _dl_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 	else
 	{
 		DEBUGF("extension", "dlsym() failed: couldn't find symbol `%s'.", name);
-		fprintf(stderr, "Function `%s' not found.\n", name);
+		fprintf(stderr, _("Function `%s' not found.\n"), name);
 	}
 
 	return success;

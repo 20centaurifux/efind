@@ -31,6 +31,7 @@
 #include "fs.h"
 #include "log.h"
 #include "utils.h"
+#include "gettext.h"
 
 /*! Name of unknown filesystems. */
 const char *FS_UNKNOWN = "Unknown";
@@ -144,7 +145,7 @@ fs_map_path(FSMap *map, const char *path)
 	}
 	else
 	{
-		fprintf(stderr, "Couldn't retrieve real path from file: %s\n", path);
+		fprintf(stderr, _("Couldn't retrieve real path from file: %s\n"), path);
 		perror("realpath()");
 	}
 

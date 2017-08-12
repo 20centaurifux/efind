@@ -1,4 +1,5 @@
 PREFIX=/usr
+LOCALEDIR=$(PREFIX)/share/locale
 
 MAKE=make
 FLEX=flex
@@ -24,7 +25,8 @@ all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) $(CFLAGS) $(INC) ./main.c ./log.c ./parser.y.c ./lexer.l.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./gettext.c ./log.c ./parser.y.c ./lexer.l.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(MAKE) -C ./po
 
 install:
 	test -d "$(DESTDIR)$(PREFIX)/bin" || mkdir -p "$(DESTDIR)$(PREFIX)/bin"
@@ -33,10 +35,12 @@ install:
 	test -d "$(DESTDIR)$(PREFIX)/share/man/man1" || mkdir -p "$(DESTDIR)$(PREFIX)/share/man/man1"
 	cp ./man/efind.1 $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
 	gzip $(DESTDIR)$(PREFIX)/share/man/man1/efind.1 -f
+	LOCALEDIR=$(LOCALEDIR) $(MAKE) -C ./po install
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/efind
 	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/efind.1.gz
+	LOCALEDIR=$(LOCALEDIR) $(MAKE) -C ./po uninstall
 
 tarball:
 	cd .. && \
@@ -60,3 +64,4 @@ clean:
 	rm -f ./lexer.l.h ./lexer.l.c ./parser.y.h ./parser.y.c ./efind
 	rm -fr ./doc
 	rm -f ./tags
+	$(MAKE) -C ./po clean
