@@ -1,3 +1,8 @@
+2017-08-15 v0.3.0
+	* FEATURE: --order-by option
+	* FEATURE: gettext support
+	* FEATURE: german translation
+
 2017-07-16 v0.2.2
 	* FEATURE: --show-blacklist option to print blacklisted extensions
 	* CHANGE: replaced libavcall with libffi

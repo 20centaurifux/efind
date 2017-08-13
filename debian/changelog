@@ -1,3 +1,10 @@
+efind (0.3-0) unstable; urgency=low
+  * --order-by option
+  * gettext support
+  * german translation
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sun, 13 Aug 2017 13:03:42 +0100
+
 efind (0.2-2) unstable; urgency=low
   * --show-blacklist option
   * replaced libavcall with libffi

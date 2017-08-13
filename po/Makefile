@@ -12,17 +12,14 @@ all:
 	@echo "Finished"
 
 install:
-	@if [ -d $(LOCALEDIR) ]; then \
-		cp -r ./locale/* $(LOCALEDIR); \
-	fi
+	mkdir -p $(DESTDIR)$(LOCALEDIR)
+	cp -r ./locale/* $(DESTDIR)$(LOCALEDIR); \
 
 uninstall:
-	@if [ -d $(LOCALEDIR) ]; then \
-		for p in *.po; \
-		do \
-			rm -f $(LOCALEDIR)/$${p%.po}/LC_MESSAGES/$(PACKAGE_DOMAIN).mo; \
-		done \
-	fi
+	for p in *.po; \
+	do \
+		rm -f $(DESTDIR)$(LOCALEDIR)/$${p%.po}/LC_MESSAGES/$(PACKAGE_DOMAIN).mo; \
+	done
 
 clean:
 	rm -fr ./locale
