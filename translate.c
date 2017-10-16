@@ -891,6 +891,35 @@ _process_flag(TranslationCtx *ctx, ValueNode *node)
 }
 
 static bool
+_process_not(TranslationCtx *ctx, NotNode *node)
+{
+	bool success = false;
+
+	assert(ctx != NULL);
+	assert(node != NULL);
+
+	if(_translation_ctx_append_args(ctx, "!", NULL))
+	{
+		char *lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
+		char *rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
+		bool open = false;
+
+		if(node->expr->type == NODE_EXPRESSION)
+		{
+			_translation_ctx_append_arg(ctx, lparen);
+			open = true;
+		}
+
+		if((success = _process_node(ctx, ((NotNode *)node)->expr)) && open)
+		{
+			_translation_ctx_append_arg(ctx, rparen);
+		}
+	}
+
+	return success;
+}
+
+static bool
 _process_node(TranslationCtx *ctx, Node *node)
 {
 	assert(ctx != NULL);
@@ -909,6 +938,10 @@ _process_node(TranslationCtx *ctx, Node *node)
 		else if(node->type == NODE_VALUE && ((ValueNode *)node)->vtype == VALUE_FLAG)
 		{
 			return _process_flag(ctx, (ValueNode *)node);
+		}
+		else if(node->type == NODE_NOT)
+		{
+			return _process_not(ctx, (NotNode *)node);
 		}
 		else
 		{
