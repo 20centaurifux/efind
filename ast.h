@@ -173,6 +173,8 @@ typedef enum
 	NODE_TRUE,
 	/*! Node is of type ExpressionNode. */
 	NODE_EXPRESSION,
+	/*! Node is of type NotNode. */
+	NODE_NOT,
 	/*! Node is of type ConditionNode. */
 	NODE_CONDITION,
 	/*! Node is of type ValueNode. */
@@ -319,7 +321,8 @@ typedef struct
 
 /**
    @struct ExpressionNode
-   @brief Expression nodes combine two nodes with an operator. */
+   @brief Expression nodes combine two nodes with an operator.
+ */
 typedef struct
 {
 	/*! Base type. */
@@ -331,6 +334,18 @@ typedef struct
 	/*! A second node. */
 	Node *second;
 } ExpressionNode;
+
+/**
+   @struct NotNode
+   @brief not-operator node.
+ */
+typedef struct
+{
+	/*! Base type. */
+	Node padding;
+	/*! A node. */
+	Node *expr;
+} NotNode;
 
 /**
    @struct FuncNode
@@ -491,6 +506,16 @@ Node *ast_cond_node_new(Allocator *alloc, const YYLTYPE *locp, PropertyId prop, 
    Creates a new ExpressionNode from an Allocator.
  */
 Node *ast_expr_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorType op, Node *second);
+
+/**
+   @param alloc an Allocator
+   @param locp location information
+   @param expr a node
+   @return a new Node
+
+   Creates a new NodeNode from an Allocator.
+ */
+Node *ast_not_node_new(Allocator *alloc, const YYLTYPE *locp, Node *expr);
 
 /**
    @param alloc an Allocator

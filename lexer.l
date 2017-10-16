@@ -48,6 +48,7 @@ NUMBER			[-]?[0-9]+
 LPAREN			"("
 RPAREN			")"
 OPERATOR		or|and
+NOT_OPERATOR		not
 PROPERTY		name|iname|atime|ctime|mtime|size|group|gid|user|uid|type|regex|iregex|filesystem|fs
 FLAG			readable|writable|executable|empty
 INTERVAL		hours|hour|h|minutes|minute|m|days|day|d
@@ -70,6 +71,7 @@ COMMA			","
 \>			{ yylval->ivalue = CMP_GT; return TOKEN_CMP; }
 \<			{ yylval->ivalue = CMP_LT; return TOKEN_CMP; }
 {OPERATOR}		{ yylval->ivalue = ast_str_to_operator(yytext); return TOKEN_OPERATOR; }
+{NOT_OPERATOR}		{ return TOKEN_NOT_OPERATOR; }
 {PROPERTY}		{ yylval->ivalue = ast_str_to_property_id(yytext); return TOKEN_PROPERTY; }
 {FLAG}			{ yylval->ivalue = ast_str_to_flag(yytext); return TOKEN_FLAG; }
 {INTERVAL}		{ yylval->ivalue = ast_str_to_interval(yytext); return TOKEN_INTERVAL; }

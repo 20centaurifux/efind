@@ -171,6 +171,7 @@ void parser_result_free(ParserResult *result)
 %token TOKEN_RBRACE
 %token TOKEN_CMP
 %token TOKEN_OPERATOR
+%token TOKEN_NOT_OPERATOR
 %token TOKEN_PROPERTY
 %token TOKEN_FLAG
 %token TOKEN_COMMA
@@ -206,6 +207,7 @@ query:
 exprs:
     exprs operator term                         { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
     | term                                      { $$ = $1; }
+    | TOKEN_NOT_OPERATOR exprs                  { $$ = ast_not_node_new(ALLOC(scanner), &@1, $2); }
     ;
 
 term:
