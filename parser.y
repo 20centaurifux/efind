@@ -207,13 +207,13 @@ query:
 exprs:
     exprs operator term                         { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
     | term                                      { $$ = $1; }
-    | TOKEN_NOT_OPERATOR exprs                  { $$ = ast_not_node_new(ALLOC(scanner), &@1, $2); }
     ;
 
 term:
     TOKEN_LPAREN exprs TOKEN_RPAREN             { $$ = $2; }
     | cond                                      { $$ = $1; }
     | flag                                      { $$ = $1; }
+    | TOKEN_NOT_OPERATOR term                   { $$ = ast_not_node_new(ALLOC(scanner), &@1, $2); }
     ;
 
 cond:
