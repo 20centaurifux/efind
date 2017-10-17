@@ -513,7 +513,7 @@ Node *ast_expr_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, Oper
    @param expr a node
    @return a new Node
 
-   Creates a new NodeNode from an Allocator.
+   Creates a new NotNode from an Allocator.
  */
 Node *ast_not_node_new(Allocator *alloc, const YYLTYPE *locp, Node *expr);
 
