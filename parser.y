@@ -245,6 +245,7 @@ post_expr:
     post_term                                   { $$ = ast_compare_node_new(ALLOC(scanner), &@1, $1, CMP_EQ, ast_true_node_new(ALLOC(scanner), &@1)); }
     | post_term compare post_term               { $$ = ast_compare_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
     | TOKEN_LPAREN post_exprs TOKEN_RPAREN      { $$ = $2; }
+    | TOKEN_NOT_OPERATOR post_expr              { $$ = ast_not_node_new(ALLOC(scanner), &@1, $2); }
     ;
 
 post_term:
