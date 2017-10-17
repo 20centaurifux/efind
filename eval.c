@@ -308,6 +308,30 @@ _eval_compare_node(Node *node, EvalContext *ctx)
 }
 
 static EvalResult
+_eval_not_node(Node *node, EvalContext *ctx)
+{
+	EvalResult result;
+
+	assert(((NotNode *)node)->expr != NULL);
+
+	switch(_eval_node(((NotNode *)node)->expr, ctx))
+	{
+		case EVAL_RESULT_TRUE:
+			result = EVAL_RESULT_FALSE;
+			break;
+
+		case EVAL_RESULT_FALSE:
+			result = EVAL_RESULT_TRUE;
+			break;
+
+		default:
+			result = EVAL_RESULT_ABORTED;
+	}
+
+	return result;
+}
+
+static EvalResult
 _eval_node(Node *node, EvalContext *ctx)
 {
 	EvalResult result = EVAL_RESULT_ABORTED;
@@ -323,6 +347,9 @@ _eval_node(Node *node, EvalContext *ctx)
 			case NODE_COMPARE:
 				result = _eval_compare_node(node, ctx);
 				break;
+
+			case NODE_NOT:
+				result = _eval_not_node(node, ctx);
 
 			default:
 				FATALF("eval", "Unexpected node type: %#x", node->type);
