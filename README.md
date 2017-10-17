@@ -66,6 +66,9 @@ The following operators can be used to compare a file attribute to a value:
 | >=       | greater or equal |
 | <        | less than        |
 | <=       | less or equal    |
+| <=       | less or equal    |
+
+Use the not operator to test if an expression evaluates to logical false.
 
 A value must be of one of the data types listed below:
 
@@ -225,7 +228,3 @@ expression finds all documents in the current folder with a file size less or eq
   minute and second of the last file access, for example.
 * When printing an undefined escape sequence (e.g. "\P") only the character following the
   backslash is printed.
-
-## Planned features
-
-* not operator
