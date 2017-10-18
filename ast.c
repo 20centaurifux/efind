@@ -427,6 +427,21 @@ ast_expr_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorTy
 }
 
 Node *
+ast_not_node_new(Allocator *alloc, const YYLTYPE *locp, Node *expr)
+{
+	NotNode *node;
+
+	assert(expr != NULL);
+
+	TRACEF("parser", "new NotNode[%#x] (first=new Node(type=%#x))", NODE_NOT, expr->type);
+
+	node = node_new(alloc, locp, NotNode, NODE_NOT);
+	node->expr = expr;
+
+	return (Node *)node;
+}
+
+Node *
 ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args)
 {
 	FuncNode *node;
