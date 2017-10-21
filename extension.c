@@ -458,16 +458,16 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 int
 extension_manager_load_default(ExtensionManager *manager)
 {
-	const char *home;
 	int count = 0;
 
 	assert(manager != NULL);
 
 	DEBUG("extension", "Loading extensions from default directories.");
 
-	home = getenv("HOME");
+	/* load local extensions */
+	const char *home = getenv("HOME");
 
-	if(home)
+	if(home && *home)
 	{
 		char path[PATH_MAX];
 
@@ -484,9 +484,47 @@ extension_manager_load_default(ExtensionManager *manager)
 		DEBUG("extension", "Couldn't find home directory.");
 	}
 
+	/* load global extensions */
 	if(extension_manager_load_directory(manager, "/etc/efind/extensions", NULL))
 	{
 		++count;
+	}
+
+	/* load extensions from directories specified in EFIND_EXTENSION_PATH environment variable */
+	TRACE("extension", "Testing if EFIND_EXTENSION_PATH is set.");
+
+	char *dirs = utils_strdup(getenv("EFIND_EXTENSION_PATH"));
+
+	if(dirs)
+	{
+		TRACEF("extension", "EFIND_EXTENSION_PATH=%s", dirs);
+
+		char *rest = dirs;
+		char *path;
+
+		while((path = strtok_r(rest, ":", &rest)))
+		{
+			TRACEF("extension", "Found path: \"%s\"", path);
+
+			char *err = NULL;
+
+			if(extension_manager_load_directory(manager, path, &err))
+			{
+				if(count < INT_MAX)
+				{
+					++count;
+				}
+			}
+
+			if(err)
+			{
+				WARNING("extension", err);
+				free(err);
+				err = NULL;
+			}
+		}
+
+		free(dirs);
 	}
 
 	return count;
