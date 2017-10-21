@@ -78,7 +78,9 @@ SEARCH_ARGS = [[['--version'], None],
                [['mtime=4days and name=""'], []],
                [['mtime>96hours'], ["test-data/00/1M.0", "test-data/02/20M.2"]],
                [['atime>2days and user="%s"' % (id('-un'))], ["test-data/02/5kb.2"]],
-               [['atime>=24hours and readable and name="*2*"'], ["test-data/01/2G.1", "test-data/02/5kb.2"]]]
+               [['atime>=24hours and readable and name="*2*"'], ["test-data/01/2G.1", "test-data/02/5kb.2"]],
+               [['name_equals("test-data/02/5M.2") and (sub(17, 3) and add(192, 19))'], ["test-data/02/5M.2"]],
+               [['not size >= 1kb and not (sub(1, 1) or not add(100, 75))'], ["test-data/00/100b.0", "test-data/01/5b.1", "test-data/02/720b.2"]]]
 
 INVALID_SEARCH_ARGS = [['ctime>5bytes and writable'],
                        ['size=1G', '--order-by', random_string(8192)],

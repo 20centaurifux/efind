@@ -67,4 +67,4 @@ cleanup()
 	rm -fr ./test-data
 }
 
-generate_test_files && run_test && cleanup
+generate_test_files && EFIND_EXTENSION_PATH=./extensions run_test && cleanup
