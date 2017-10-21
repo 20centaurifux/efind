@@ -56,10 +56,12 @@ _py_set_python_path(void)
 
 		if(path && PyList_Check(path))
 		{
+			/* append global extension directory */
 			DEBUG("python", "Appending global extension directory to Python path: /etc/efind/extension");
 
 			PyList_Append(path, PyString_FromString("/etc/efind/extensions"));
 
+			/* append local extension directory */
 			const char *homedir = getenv("HOME");
 
 			if(homedir && *homedir)
@@ -77,6 +79,23 @@ _py_set_python_path(void)
 					PyList_Append(path, PyString_FromString(localpath));
 					free(localpath);
 				}
+			}
+
+			/* append directories specified in EFIND_EXTENSION_PATH environment variable */
+			char *dirs = utils_strdup(getenv("EFIND_EXTENSION_PATH"));
+
+			if(dirs)
+			{
+				char *rest = dirs;
+				char *dir;
+
+				while((dir = strtok_r(rest, ":", &rest)))
+				{
+					DEBUGF("python", "Appending extension directory to Python path: %s", dir);
+					PyList_Append(path, PyString_FromString(dir));
+				}
+
+				free(dirs);
 			}
 		}
 
