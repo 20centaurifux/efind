@@ -82,10 +82,12 @@ _py_set_python_path(void)
 			}
 
 			/* append directories specified in EFIND_EXTENSION_PATH environment variable */
-			char *dirs = utils_strdup(getenv("EFIND_EXTENSION_PATH"));
+			char *dirs = getenv("EFIND_EXTENSION_PATH");
 
-			if(dirs)
+			if(dirs && *dirs)
 			{
+				dirs = utils_strdup(dirs);
+
 				char *rest = dirs;
 				char *dir;
 

@@ -493,10 +493,12 @@ extension_manager_load_default(ExtensionManager *manager)
 	/* load extensions from directories specified in EFIND_EXTENSION_PATH environment variable */
 	TRACE("extension", "Testing if EFIND_EXTENSION_PATH is set.");
 
-	char *dirs = utils_strdup(getenv("EFIND_EXTENSION_PATH"));
+	char *dirs = getenv("EFIND_EXTENSION_PATH");
 
-	if(dirs)
+	if(dirs && *dirs)
 	{
+		dirs = utils_strdup(dirs);
+
 		TRACEF("extension", "EFIND_EXTENSION_PATH=%s", dirs);
 
 		char *rest = dirs;
