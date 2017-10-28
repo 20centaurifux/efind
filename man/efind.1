@@ -223,7 +223,7 @@ less than
 less or equal
 .RE
 
-Use the not operator to test if an expression evaluates to logical false.
+Use the \fBnot\fR operator to test if an expression evaluates to logical false.
 
 A value must be of one of the data types listed below:
 .RS
@@ -334,8 +334,19 @@ To show all blacklisted extensions type in
 .P
 .B efind --show-blacklist
 
-.SH EXIT STATUS
-.B \fBefind\fR exits with status 0 if all files are processed successfully.
+.SH ENVIRONMENT VARIABLES
+.IP "\fBEFIND_EXTENSION_PATH"
+A colon-separated list of directories in which efind searches for additional
+extensions.
+
+.SH FILES
+.IP "\fB~/.efind/extensions"
+local extension files
+.IP "\fB/etc/efind/extensions"
+global extension files
+.IP "\fB~/.efind/blacklist"
+wildcard patterns to prevent extensions from being loaded
+
 .SH EXAMPLES
 To find all MP3 and Ogg Vorbis files that were modified less than two days ago
 you could use the following expression:
@@ -363,10 +374,12 @@ Search results can be sorted with the --order-by option:
 
 .B efind . 'type=file' --max-depth=1 --order-by '-sp' | head -n10
 
-.SH FILES
-.IP "\fB~/.efind/extensions"
-local extension files
-.IP "\fB/etc/efind/extensions"
-global extension files
-.IP "\fB~/.efind/blacklist"
-wildcard patterns to prevent extensions from being loaded
+.SH EXIT STATUS
+.B \fBefind\fR exits with status 0 if all files are processed successfully.
+
+.SH SEE ALSO
+\fBfind\fP(1)
+
+.SH BUGS
+The best way to report a bug is to use the form at
+https://github.com/20centaurifux/efind/issues.
