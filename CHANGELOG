@@ -1,3 +1,8 @@
+2017-10-31 v0.3.1
+	* FEATURE: not-operator
+	* FEATURE: EFIND_EXTENSION_PATH environment variable for
+	           additional extension directories
+
 2017-08-15 v0.3.0
 	* FEATURE: --order-by option
 	* FEATURE: gettext support
