@@ -1,3 +1,10 @@
+efind (0.3-1) unstable; urgency=low
+  * not-operator
+  * EFIND_EXTENSION_PATH environment variable for additional extension
+    directories
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Tue, 31 Oct 2017 12:10:27 +0100
+
 efind (0.3-0) unstable; urgency=low
   * --order-by option
   * gettext support
