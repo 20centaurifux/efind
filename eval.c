@@ -350,6 +350,7 @@ _eval_node(Node *node, EvalContext *ctx)
 
 			case NODE_NOT:
 				result = _eval_not_node(node, ctx);
+				break;
 
 			default:
 				FATALF("eval", "Unexpected node type: %#x", node->type);
