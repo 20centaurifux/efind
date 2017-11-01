@@ -35,6 +35,7 @@
 #include <fcntl.h>
 #include <locale.h>
 #include <assert.h>
+#include <datatypes.h>
 
 #include "log.h"
 #include "search.h"
@@ -97,8 +98,8 @@ typedef struct
 	int32_t flags;
 	/*! Expression to translate. */
 	char *expr;
-	/*! Directory to search. */
-	char *dir;
+	/*! Directories to search. */
+	SList dirs;
 	/*! Directory search level limitation. */
 	int32_t max_depth;
 	/*! Dereference symbolic links. */
@@ -124,6 +125,39 @@ typedef struct
 	/*! Store and sort found files. */
 	FileList *files;
 } FoundArg;
+
+static void
+_options_init(Options *opts)
+{
+	memset(opts, 0, sizeof(Options));
+	slist_init(&opts->dirs, str_compare, &free, NULL);
+}
+
+static void
+_options_free(Options *opts)
+{
+	slist_free(&opts->dirs);
+
+	if(opts->expr)
+	{
+		free(opts->expr);
+	}
+
+	if(opts->regex_type)
+	{
+		free(opts->regex_type);
+	}
+
+	if(opts->printf)
+	{
+		free(opts->printf);
+	}
+
+	if(opts->orderby)
+	{
+		free(opts->orderby);
+	}
+}
 
 static Action
 _read_options(int argc, char *argv[], Options *opts)
@@ -156,12 +190,11 @@ _read_options(int argc, char *argv[], Options *opts)
 	assert(argv != NULL);
 	assert(opts != NULL);
 
-	memset(opts, 0, sizeof(Options));
-
 	opts->flags = FLAG_STDIN;
 	opts->max_depth = -1;
 
 	/* try to handle first two options as path & expression strings */
+	/*
 	if(argc >= 2 && argv[1][0] != '-')
 	{
 		if(argv[1][0] != '-')
@@ -177,6 +210,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		opts->flags &= ~FLAG_STDIN; 
 		++offset;
 	}
+	*/
 
 	/* read options */
 	while(action != ACTION_ABORT)
@@ -199,10 +233,7 @@ _read_options(int argc, char *argv[], Options *opts)
 				break;
 
 			case 'd':
-				if(!opts->dir)
-				{
-					opts->dir = utils_strdup(optarg);
-				}
+				slist_append(&opts->dirs, utils_strdup(optarg));
 				break;
 
 			case 'q':
@@ -301,10 +332,13 @@ _read_expr_from_stdin(void)
 	return expr;
 }
 
-static char *
-_autodetect_homedir(void)
+static bool
+_append_homedir(Options *opts)
 {
 	const char *envpath;
+	bool success = false;
+
+	assert(opts != NULL);
 
 	TRACE("startup", "Auto-detecting home directory.");
 
@@ -313,22 +347,23 @@ _autodetect_homedir(void)
 	if(envpath)
 	{
 		TRACEF("startup", "Found directory: %s", envpath);
-		return utils_strdup(envpath);
+		slist_append(&opts->dirs, utils_strdup(envpath));
+		success = true;
 	}
 	else
 	{
-		FATAL("startup", "Auto-detection failed, environment variable not set.");
+		FATAL("startup", "HOME environment variable not set.");
 	}
 
-	return NULL;
+	return success;
 }
 
 static bool
 _dir_is_valid(const char *path)
 {
-	assert(path != NULL);
-
 	struct stat sb;
+
+	assert(path != NULL);
 
 	TRACEF("startup", "Testing directory: %s", path);
 
@@ -340,6 +375,33 @@ _dir_is_valid(const char *path)
 	TRACEF("startup", "sb.st_mode: %#x", sb.st_mode);
 
 	return (sb.st_mode & S_IFMT) == S_IFDIR;
+}
+
+static const char *
+_find_invalid_search_dir(Options *opts)
+{
+	SListItem *item;
+	const char *dir = NULL;
+
+	assert(opts != NULL);
+
+	TRACE("startup", "Validating search directories.");
+
+	item = slist_head(&opts->dirs);
+
+	while(item && !dir)
+	{
+		char *path = (char *)slist_item_get_data(item);
+
+		if(!_dir_is_valid(path))
+		{
+			dir = path;
+		}
+
+		item = slist_item_next(item);
+	}
+
+	return dir;
 }
 
 static int32_t
@@ -393,7 +455,7 @@ _collect_cb(const char *path, void *user_data)
 {
 	FoundArg *arg = (FoundArg *)user_data;
 
-	file_list_append(arg->files, path);
+	file_list_append(arg->files, arg->dir, path);
 }
 
 static void
@@ -412,6 +474,7 @@ _exec_find(const Options *opts)
 	SearchOptions sopts;
 	FoundArg arg;
 	Callback cb = _file_cb;
+	SListItem *item;
 	bool success = false;
 
 	assert(opts != NULL);
@@ -420,7 +483,6 @@ _exec_find(const Options *opts)
 	TRACE("action", "Preparing file search.");
 
 	memset(&arg, 0, sizeof(FoundArg));
-	arg.dir = opts->dir;
 
 	/* parse printf format string */
 	if(opts->printf)
@@ -437,22 +499,24 @@ _exec_find(const Options *opts)
 		}
 	}
 
-	/* parse sort string */
+	/* test sort string */
 	if(opts->orderby)
 	{
-		DEBUGF("action", "Parsing sort string: %s", opts->orderby);
+		DEBUGF("action", "Testing sort string: %s", opts->orderby);
 
-		if(sort_string_test(opts->orderby) != -1)
-		{
-			arg.files = utils_new(1, FileList);
-			file_list_init(arg.files, opts->dir, opts->orderby);
-			cb = _collect_cb;
-		}
-		else
+		if(sort_string_test(opts->orderby) == -1)
 		{
 			DEBUG("action", "Parsing of sort string failed.");
 			fprintf(stderr, _("Couldn't parse sort string.\n"));
 			goto out;
+		}
+		else
+		{
+			arg.files = utils_new(1, FileList);
+
+			file_list_init(arg.files, opts->orderby);
+
+			cb = _collect_cb;
 		}
 	}
 
@@ -461,13 +525,43 @@ _exec_find(const Options *opts)
 
 	_build_search_options(opts, &sopts);
 
-	success = search_files_expr(opts->dir, opts->expr, _get_translation_flags(opts), &sopts, cb, _error_cb, &arg) >= 0;
+	item = slist_head(&opts->dirs);
+	success = true;
+
+	while(item && success)
+	{
+		const char *path = (const char *)slist_item_get_data(item);
+
+		assert(path != NULL);
+
+		TRACEF("startup", "Searching directory: \"%s\"", path);
+
+		arg.dir = path;
+
+		if(path)
+		{
+			success = search_files_expr(path, opts->expr, _get_translation_flags(opts), &sopts, cb, _error_cb, &arg) >= 0;
+		}
+		else
+		{
+			success = false;
+		}
+
+		item = slist_item_next(item);
+	}
 
 	/* sort files before printing search result */
 	if(success && arg.files)
 	{
 		file_list_sort(arg.files);
-		file_list_foreach(arg.files, _file_cb, &arg);
+
+		for(size_t i = 0; i < file_list_count(arg.files); ++i)
+		{
+			FileListEntry *entry = file_list_at(arg.files, i);
+
+			arg.dir = entry->info->cli;
+			_file_cb(entry->info->path, &arg);
+		}
 	}
 
 	TRACE("action", "Cleaning up file search.");
@@ -501,14 +595,34 @@ static bool
 _print_expr(const Options *opts)
 {
 	SearchOptions sopts;
-	bool success;
+	SListItem *item;
+	bool success = true;
 
 	assert(opts != NULL);
 	assert(opts->expr != NULL);
 
 	_build_search_options(opts, &sopts);
 
-	success = search_debug(stdout, stderr, opts->dir, opts->expr, _get_translation_flags(opts), &sopts);
+	item = slist_head(&opts->dirs);
+
+	while(item && success)
+	{
+		const char *path = (const char *)slist_item_get_data(item);
+
+		assert(path != NULL);
+	
+		if(path)
+		{
+			success = search_debug(stdout, stderr, path, opts->expr, _get_translation_flags(opts), &sopts);
+		}
+		else
+		{
+			success = false;
+		}
+
+		item = slist_item_next(item);
+	}
+
 	search_options_free(&sopts);
 
 	DEBUGF("action", "Action %#x finished with result %d.", ACTION_PRINT, success);
@@ -620,6 +734,7 @@ main(int argc, char *argv[])
 	gettext_init();
 
 	/* read command line options */
+	_options_init(&opts);
 	action = _read_options(argc, argv, &opts);
 
 	if(action == ACTION_ABORT)
@@ -643,17 +758,24 @@ main(int argc, char *argv[])
 	{
 		TRACE("startup", "Testing required options.");
 
-		/* autodetect home directory if path isn't specified */
-		if(!opts.dir)
+		/* autodetect home directory if no path has been specified */
+		if(!slist_count(&opts.dirs))
 		{
 			DEBUG("startup", "No directory specified, running auto-detection.");
-			opts.dir = _autodetect_homedir();
+
+			if(!_append_homedir(&opts))
+			{
+				fprintf(stderr, _("Couldn't detect home directory.\n"));
+				goto out;
+			}
 		}
 
-		/* test if directory is valid */
-		if(!_dir_is_valid(opts.dir))
+		/* test if search paths are valid */
+		const char *path = _find_invalid_search_dir(&opts);
+
+		if(path)
 		{
-			fprintf(stderr, _("The specified directory is invalid.\n"));
+			fprintf(stderr, _("The specified directory is invalid: \"%s\"\n"), path);
 			goto out;
 		}
 
@@ -718,31 +840,7 @@ main(int argc, char *argv[])
 	out:
 		/* cleanup */
 		INFO("shutdown", "Cleaning up.");
-
-		if(opts.expr)
-		{
-			free(opts.expr);
-		}
-
-		if(opts.dir)
-		{
-			free(opts.dir);
-		}
-
-		if(opts.regex_type)
-		{
-			free(opts.regex_type);
-		}
-
-		if(opts.printf)
-		{
-			free(opts.printf);
-		}
-
-		if(opts.orderby)
-		{
-			free(opts.orderby);
-		}
+		_options_free(&opts);
 
 	return result;
 }
