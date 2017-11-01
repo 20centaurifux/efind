@@ -211,13 +211,18 @@ file_info_clear(FileInfo *info)
 	if(info)
 	{
 		free(info->path);
-		free(info->cli);
+
+		if(info->dup_cli)
+		{
+			free(info->cli);
+		}
+
 		file_info_init(info);
 	}
 }
 
 bool
-file_info_get(FileInfo *info, const char *cli, const char *path)
+file_info_get(FileInfo *info, const char *cli, bool dup_cli, const char *path)
 {
 	int rc;
 	bool success = false;
@@ -238,7 +243,8 @@ file_info_get(FileInfo *info, const char *cli, const char *path)
 	{
 		if(strlen(cli) < PATH_MAX && strlen(path) < PATH_MAX)
 		{
-			info->cli = utils_strdup(cli);
+			info->cli = dup_cli ? utils_strdup(cli) : (char *)cli;
+			info->dup_cli = dup_cli;
 			info->path = utils_strdup(path);
 			info->sb = sb;
 			success = true;

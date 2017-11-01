@@ -140,6 +140,8 @@ file_list_init(FileList *list, const char *orderby)
 
 	memset(list, 0, sizeof(FileList));
 
+	slist_init(&list->clis, str_compare, free, NULL);
+
 	list->entries = utils_new(512, FileListEntry *);
 	list->size = 512;
 
@@ -186,6 +188,28 @@ file_list_init(FileList *list, const char *orderby)
 	}
 }
 
+static char *
+_file_list_dup_cli(FileList *list, const char *cli)
+{
+	char *dup;
+
+	assert(list != NULL);
+
+	SListItem *search = slist_find(&list->clis, NULL, cli);
+
+	if(search)
+	{
+		dup = (char *)slist_item_get_data(search);
+	}
+	else
+	{
+		dup = utils_strdup(cli);
+		slist_append(&list->clis, dup);
+	}
+
+	return dup;
+}
+
 static void
 _file_list_entry_free(FileListEntry *entry)
 {
@@ -196,7 +220,7 @@ _file_list_entry_free(FileListEntry *entry)
 }
 
 static FileListEntry *
-_file_list_entry_new(FileList *list, const char *cli)
+_file_list_entry_new(FileList *list)
 {
 	FileListEntry *entry;
 
@@ -216,14 +240,13 @@ _file_list_entry_new_from_path(FileList *list, const char *cli, const char *path
 	FileInfo info;
 
 	assert(list != NULL);
-	assert(cli != NULL);
 	assert(path != NULL);
 
 	file_info_init(&info);
 
-	if(file_info_get(&info, cli, path))
+	if(file_info_get(&info, _file_list_dup_cli(list, cli), false, path))
 	{
-		entry = _file_list_entry_new(list, cli);
+		entry = _file_list_entry_new(list);
 		entry->info = list->alloc->alloc(list->alloc);
 		memcpy(entry->info, &info, sizeof(FileInfo));
 	}
@@ -242,6 +265,8 @@ file_list_free(FileList *list)
 
 	if(list)
 	{
+		slist_free(&list->clis);
+
 		free(list->fields);
 		free(list->fields_asc);
 

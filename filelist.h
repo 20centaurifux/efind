@@ -48,6 +48,8 @@ typedef struct
  */
 struct _FileList
 {
+	/*! Command line arguments under which the files were found. */
+	SList clis;
 	/*! Fields the list should be sorted by. */
 	char *fields;
 	/*! Sort directions. */
