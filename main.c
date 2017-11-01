@@ -193,24 +193,18 @@ _read_options(int argc, char *argv[], Options *opts)
 	opts->flags = FLAG_STDIN;
 	opts->max_depth = -1;
 
-	/* try to handle first two options as path & expression strings */
-	/*
-	if(argc >= 2 && argv[1][0] != '-')
+	/* find first argument starting with `-' */
+	for(int i = 1; i < argc; ++i)
 	{
-		if(argv[1][0] != '-')
+		if(*argv[i] != '-')
 		{
-			opts->dir = utils_strdup(argv[1]);
 			++offset;
 		}
+		else
+		{
+			break;
+		}
 	}
-
-	if(argc >= 3 && argv[2][0] != '-')
-	{
-		opts->expr = utils_strdup(argv[2]);
-		opts->flags &= ~FLAG_STDIN; 
-		++offset;
-	}
-	*/
 
 	/* read options */
 	while(action != ACTION_ABORT)
@@ -296,6 +290,41 @@ _read_options(int argc, char *argv[], Options *opts)
 				action = ACTION_ABORT;
 		}
 	}
+
+	/* handle first options not starting with `-' as path(s) & expression */
+	if(offset)
+	{
+		if(offset == 1)
+		{
+			if(!slist_contains(&opts->dirs, argv[1]))
+			{
+				slist_append(&opts->dirs, utils_strdup(argv[1]));
+			}
+		}
+		else
+		{
+			int limit = offset;
+
+			if(opts->expr)
+			{
+				++limit;
+			}
+			else
+			{
+				opts->expr = utils_strdup(argv[offset]);
+				opts->flags &= ~FLAG_STDIN; 
+			}
+
+			for(int i = 1; i < limit; ++i)
+			{
+				if(!slist_contains(&opts->dirs, argv[i]))
+				{
+					slist_append(&opts->dirs, utils_strdup(argv[i]));
+				}
+			}
+		}
+	}
+
 
 	return action;
 }
@@ -775,7 +804,7 @@ main(int argc, char *argv[])
 
 		if(path)
 		{
-			fprintf(stderr, _("The specified directory is invalid: \"%s\"\n"), path);
+			fprintf(stderr, _("The specified directory is invalid: %s\n"), path);
 			goto out;
 		}
 
