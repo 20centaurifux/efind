@@ -198,7 +198,7 @@ _read_options(int argc, char *argv[], Options *opts)
 	{
 		if(*argv[i] != '-')
 		{
-			++offset;
+			offset++;
 		}
 		else
 		{
@@ -227,7 +227,10 @@ _read_options(int argc, char *argv[], Options *opts)
 				break;
 
 			case 'd':
-				slist_append(&opts->dirs, utils_strdup(optarg));
+				if(!slist_contains(&opts->dirs, argv[1]))
+				{
+					slist_append(&opts->dirs, utils_strdup(optarg));
+				}
 				break;
 
 			case 'q':
@@ -307,7 +310,7 @@ _read_options(int argc, char *argv[], Options *opts)
 
 			if(opts->expr)
 			{
-				++limit;
+				limit++;
 			}
 			else
 			{
