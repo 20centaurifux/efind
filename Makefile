@@ -58,6 +58,9 @@ tags:
 cppcheck:
 	$(CPPCHECK) --enable=all --std=c99 --force -j2 --template gcc *.h *.c
 
+pot:
+	xgettext --language=C --keyword=_ -o po/efind.pot *.c *.y
+
 clean:
 	$(MAKE) -C ./datatypes clean
 	rm -f ./*.o
