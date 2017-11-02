@@ -48,8 +48,8 @@ typedef struct
  */
 struct _FileList
 {
-	/*! Command line argument under which the files were found. */
-	char *cli;
+	/*! Command line arguments under which the files were found. */
+	SList clis;
 	/*! Fields the list should be sorted by. */
 	char *fields;
 	/*! Sort directions. */
@@ -84,12 +84,11 @@ const char *sort_string_pop(const char *str, char *field, bool *asc);
 
 /**
    @param list FileList instance to initialize
-   @param cli command line argument under which the files are found
    @param orderby sort string
 
    Initializes a FileList instance.
   */
-void file_list_init(FileList *list, const char *cli, const char *orderby);
+void file_list_init(FileList *list, const char *orderby);
 
 /**
    @param list FileList instance to free
@@ -100,12 +99,13 @@ void file_list_free(FileList *list);
 
 /**
    @param list FileList instance
+   @param cli command line argument under which the files are found
    @param path path to append to the FileList
    @return true on success
 
    Appends a path to a FileList instance.
   */
-bool file_list_append(FileList *list, const char *path);
+bool file_list_append(FileList *list, const char *cli, const char *path);
 
 /**
    @param list FileList instance
@@ -113,6 +113,8 @@ bool file_list_append(FileList *list, const char *path);
    Sorts a file list.
   */
 void file_list_sort(FileList *list);
+
+
 
 /**
    @param list FileList instance
@@ -122,6 +124,22 @@ void file_list_sort(FileList *list);
    Iterate over the list.
   */
 void file_list_foreach(FileList *list, Callback f, void *user_data);
+
+/**
+   @param list FileList instance
+   @return number of store files
+
+   Gets the number of stored files.
+  */
+#define file_list_count(list) list->count
+
+/**
+   @param list FileList instance
+   @return a FileListEntry
+
+   Gets a FileListEntry from the list.
+  */
+#define file_list_at(list, offset) list->entries[offset]
 
 #endif
 

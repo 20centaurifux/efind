@@ -2,14 +2,14 @@
 .SH NAME
 efind \- search for files in a directory hierarchy
 .SH SYNOPSIS
-\fBefind\fR [starting-point...] [expression] [options]
+\fBefind\fR [starting-points...] [expression] [options]
 .SH DESCRIPTION
 \fBefind\fR searches for files in a directory hierarchy. Basically it's a
 wrapper for find(1) providing an easier and more intuitive expression syntax.
 It can be extended by custom functions to filter search results.
 .SH OPTIONS
 .IP "\fB\-d, \-\-dir\fR=\fIdir"
-Starting-point of the search.
+Starting-point of the search (multiple directories are supported).
 .IP "\fB\-e, \-\-expr\fR=\fIexpr"
 Search expression.
 .IP "\fB\-L, \-\-follow"
@@ -351,7 +351,7 @@ wildcard patterns to prevent extensions from being loaded
 To find all MP3 and Ogg Vorbis files that were modified less than two days ago
 you could use the following expression:
 
-.B efind ~/music '(iname="*.mp3" or iname="*.ogg") and type=file and mtime<2 days'
+.B efind ~/music ~/Downloads '(iname="*.mp3" or iname="*.ogg") and type=file and mtime<2 days'
 
 With the taglib extension you can filter search results by audio tags and
 properties:
@@ -372,7 +372,7 @@ If not specified \fBefind\fR reads the expression from stdin:
 
 Search results can be sorted with the --order-by option:
 
-.B efind . 'type=file' --max-depth=1 --order-by '-sp' | head -n10
+.B efind ~/Documents ~/Downloads 'type=file' --max-depth=2 --order-by '-sp' | head -n10
 
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.

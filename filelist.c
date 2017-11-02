@@ -132,16 +132,16 @@ const char
 }
 
 void
-file_list_init(FileList *list, const char *cli, const char *orderby)
+file_list_init(FileList *list, const char *orderby)
 {
 	size_t item_size = sizeof(FileListEntry);
 
 	assert(list != NULL);
-	assert(cli != NULL);
 
 	memset(list, 0, sizeof(FileList));
 
-	list->cli = utils_strdup(cli);
+	slist_init(&list->clis, str_compare, free, NULL);
+
 	list->entries = utils_new(512, FileListEntry *);
 	list->size = 512;
 
@@ -188,6 +188,28 @@ file_list_init(FileList *list, const char *cli, const char *orderby)
 	}
 }
 
+static char *
+_file_list_dup_cli(FileList *list, const char *cli)
+{
+	char *dup;
+
+	assert(list != NULL);
+
+	SListItem *search = slist_find(&list->clis, NULL, cli);
+
+	if(search)
+	{
+		dup = (char *)slist_item_get_data(search);
+	}
+	else
+	{
+		dup = utils_strdup(cli);
+		slist_append(&list->clis, dup);
+	}
+
+	return dup;
+}
+
 static void
 _file_list_entry_free(FileListEntry *entry)
 {
@@ -212,7 +234,7 @@ _file_list_entry_new(FileList *list)
 }
 
 static FileListEntry *
-_file_list_entry_new_from_path(FileList *list, const char *path)
+_file_list_entry_new_from_path(FileList *list, const char *cli, const char *path)
 {
 	FileListEntry *entry = NULL;
 	FileInfo info;
@@ -222,7 +244,7 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 
 	file_info_init(&info);
 
-	if(file_info_get(&info, list->cli, path))
+	if(file_info_get(&info, _file_list_dup_cli(list, cli), false, path))
 	{
 		entry = _file_list_entry_new(list);
 		entry->info = list->alloc->alloc(list->alloc);
@@ -239,9 +261,12 @@ _file_list_entry_new_from_path(FileList *list, const char *path)
 void
 file_list_free(FileList *list)
 {
+	assert(list);
+
 	if(list)
 	{
-		free(list->cli);
+		slist_free(&list->clis);
+
 		free(list->fields);
 		free(list->fields_asc);
 
@@ -256,7 +281,7 @@ file_list_free(FileList *list)
 }
 
 bool
-file_list_append(FileList *list, const char *path)
+file_list_append(FileList *list, const char *cli, const char *path)
 {
 	FileListEntry *entry = NULL;
 	bool success = false;
@@ -283,7 +308,7 @@ file_list_append(FileList *list, const char *path)
 	}
 
 	/* append entry */
-	entry = _file_list_entry_new_from_path(list, path);
+	entry = _file_list_entry_new_from_path(list, cli, path);
 
 	if(entry)
 	{
@@ -357,17 +382,5 @@ file_list_sort(FileList *list)
 	DEBUG("filelist", "Sorting file list.");
 
 	qsort(list->entries, list->count, sizeof(FileListEntry *), &_file_list_compare_entries);
-}
-
-void
-file_list_foreach(FileList *list, Callback f, void *user_data)
-{
-	assert(list != NULL);
-	assert(f != NULL);
-
-	for(size_t i = 0; i < list->count; ++i)
-	{
-		f(list->entries[i]->info->path, user_data);
-	}
 }
 

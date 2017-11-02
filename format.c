@@ -234,7 +234,7 @@ format_write(const FormatParserResult *result, const char *arg, const char *file
 
 	file_info_init(&info);
 
-	if(file_info_get(&info, arg, filename))
+	if(file_info_get(&info, arg, false, filename))
 	{
 		SListItem *iter = slist_head(result->nodes);
 		success = true;
