@@ -14,25 +14,28 @@
 """
 import subprocess, os, random, string
 
+def join_args(args):
+    return ", ".join(map(repr, args))
+
 def test_search(argv, expected, success=True):
-	cmd = ["efind", "test-data"] + argv
+    cmd = ["efind", "test-data"] + argv
 
-	print("Running efind, argv=[%s]" % ", ".join(cmd[1:]))
+    print("Running efind, argv=[%s]" % join_args(cmd[1:]))
 
-	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	result = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
-	proc.wait()
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
+    proc.wait()
 
-	if not expected is None:
-		assert(set(result) == set(expected))
+    if not expected is None:
+        assert(set(result) == set(expected))
 
-	assert((success and proc.returncode == 0) or (not success and proc.returncode != 0))
+    assert((success and proc.returncode == 0) or (not success and proc.returncode != 0))
 
 def test_printf(path, printf):
     # run find:
     cmd = ["find", "./test-data", "-size", "+0", "-printf", printf]
 
-    print("Running find, argv=[%s]" % ", ".join(cmd[1:]))
+    print("Running find, argv=[%s]" % join_args(cmd[1:]))
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     find_result = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
@@ -41,13 +44,25 @@ def test_printf(path, printf):
     # run efind:
     cmd = ["efind", "./test-data", "size>=0", "--printf", printf]
 
-    print("Running efind, argv=[%s]" % ", ".join(cmd[1:]))
+    print("Running efind, argv=[%s]" % join_args(cmd[1:]))
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     efind_result = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
     proc.wait()
 
     assert(set(find_result) == set(efind_result))
+
+def test_multiple_dirs():
+    cmd = ["efind", "./test-data/00", "./test-data/02", "type=file", "--order-by", "-h", "--printf", "%h\n"]
+
+    print("Searching multiple directories, argv=[%s]" % join_args(cmd[1:]))
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
+    proc.wait()
+
+    assert(set(result[:6]) == set(["./test-data/02"]))
+    assert(set(result[6:]) == set(["./test-data/00"]))
 
 def id(arg):
 	proc = subprocess.Popen(["id", arg], stdout=subprocess.PIPE)
@@ -101,12 +116,14 @@ PRINTF_ARGS = ["%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n",
                random_string(2048) + "\n"]
 
 if __name__ == "__main__":
-	for argv, expected in SEARCH_ARGS:
-		test_search(argv, expected)
+    for argv, expected in SEARCH_ARGS:
+        test_search(argv, expected)
 
-	for argv in INVALID_SEARCH_ARGS:
-		test_search(argv, None, False)
+    for argv in INVALID_SEARCH_ARGS:
+        test_search(argv, None, False)
 
-        for arg in PRINTF_ARGS:
-            for dir in ["./test-data", "./test-data/", ".", "./"]:
-                test_printf(dir, arg)
+    for arg in PRINTF_ARGS:
+        for dir in ["./test-data", "./test-data/", ".", "./"]:
+            test_printf(dir, arg)
+
+    test_multiple_dirs()
