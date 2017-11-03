@@ -201,6 +201,27 @@ utils_trim(char *str)
 }
 
 bool
+utils_startswith(const char *str, const char *prefix)
+{
+	bool success = false;
+
+	assert(str != NULL);
+	assert(prefix != NULL);
+
+	if(str && prefix)
+	{
+		size_t n = strlen(prefix);
+
+		if(strlen(str) >= n)
+		{
+			success = !strncmp(str, prefix, n);
+		}
+	}
+
+	return success;
+}
+
+bool
 utils_int_add_checkoverflow(int a, int b, int *dst)
 {
 	bool overflow = true;
