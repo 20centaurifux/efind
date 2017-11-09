@@ -45,6 +45,7 @@
 #include "extension.h"
 #include "blacklist.h"
 #include "filelist.h"
+#include "format-fields.h"
 #include "gettext.h"
 #include "version.h"
 
@@ -507,6 +508,7 @@ _exec_find(const Options *opts)
 	FoundArg arg;
 	Callback cb = _file_cb;
 	SListItem *item;
+	char *orderby = NULL;
 	bool success = false;
 
 	assert(opts != NULL);
@@ -534,9 +536,13 @@ _exec_find(const Options *opts)
 	/* test sort string */
 	if(opts->orderby)
 	{
-		DEBUGF("action", "Testing sort string: %s", opts->orderby);
+		DEBUGF("action", "Preparing sort string: %s", opts->orderby);
 
-		if(sort_string_test(opts->orderby) == -1)
+		orderby = format_substitute(opts->orderby);
+
+		DEBUGF("action", "Testing sort string: %s", orderby);
+
+		if(sort_string_test(orderby) == -1)
 		{
 			DEBUG("action", "Parsing of sort string failed.");
 			fprintf(stderr, _("Couldn't parse sort string.\n"));
@@ -546,7 +552,7 @@ _exec_find(const Options *opts)
 		{
 			arg.files = utils_new(1, FileList);
 
-			file_list_init(arg.files, opts->orderby);
+			file_list_init(arg.files, orderby);
 
 			cb = _collect_cb;
 		}
@@ -610,12 +616,17 @@ out:
 		format_parser_result_free(arg.fmt);
 	}
 
-	TRACE("action", "Cleaning up file list.");
+	TRACE("action", "Cleaning up file list & sort options.");
 
 	if(arg.files)
 	{
 		file_list_free(arg.files);
 		free(arg.files);
+	}
+
+	if(orderby)
+	{
+		free(orderby);
 	}
 
 	DEBUGF("action", "Action %#x finished with result=%d.", ACTION_EXEC, success);

@@ -22,22 +22,13 @@
 #ifndef FORMAT_FIELDS_H
 #define FORMAT_FIELDS_H
 
-enum
-{
-	/*! No flags. */
-	FORMAT_FIELDS_FLAG_NONE     = 0,
-	/*! Field names are enclosed in brackets. */
-	FORMAT_FIELDS_FLAG_BRACKETS = 1
-};
-
 /**
    @param str format string
-   @param flags substitution flags
    @return a newly-allocated string
 
    Substitutes format characters for field names.
  */
-char *format_substitute(const char *str, int flags);
+char *format_substitute(const char *str);
 
 /**
    @param name field name to map

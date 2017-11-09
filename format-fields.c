@@ -38,13 +38,13 @@ static const char *_FIELD_NAMES[] =
 };
 
 char *
-format_substitute(const char *str, int flags)
+format_substitute(const char *str)
 {
 	char *fmt = NULL;
 
 	assert(str != NULL);
 
-	DEBUG("format", "Substituting field characters for field names.");
+	DEBUG("format", "Replacing field names.");
 
 	if(str)
 	{
@@ -57,14 +57,9 @@ format_substitute(const char *str, int flags)
 		{
 			for(size_t i = 0; i < sizeof(_FIELD_NAMES) / sizeof(char *); i++)
 			{
-				const char *name = _FIELD_NAMES[i];
-				char buffer[32] = {'\0'};
+				char name[32] = {'\0'};
 
-				if(flags & FORMAT_FIELDS_FLAG_BRACKETS)
-				{
-					snprintf(buffer, sizeof(buffer) - 1, "{%s}", _FIELD_NAMES[i]);
-					name = buffer;
-				}
+				snprintf(name, sizeof(name) - 1, "{%s}", _FIELD_NAMES[i]);
 
 				if(utils_startswith(ptr, name))
 				{
