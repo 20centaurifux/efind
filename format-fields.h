@@ -39,5 +39,13 @@ enum
  */
 char *format_substitute(const char *str, int flags);
 
+/**
+   @param name field name to map
+   @return mapped field character or \0 when not succeeded
+
+   Maps a field name to a field character.
+ */
+char format_map_field_name(const char *name);
+
 #endif
 

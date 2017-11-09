@@ -84,3 +84,22 @@ format_substitute(const char *str, int flags)
 	return fmt;
 }
 
+char
+format_map_field_name(const char *name)
+{
+	assert(name != NULL);
+
+	if(name)
+	{
+		for(size_t i = 0; i < sizeof(_FIELD_NAMES) / sizeof(char *); i++)
+		{
+			if(!strcmp(_FIELD_NAMES[i], name))
+			{
+				return _FIELD_CHARS[i];
+			}
+		}
+	}
+
+	return '\0';
+}
+

@@ -81,11 +81,11 @@ typedef struct
 		/*! Length of the format string to scan. */
 		size_t len;
 		/*! Format string to scan. */
-		const char *fmt;
+		char *fmt;
 		/*! Pointer to first processed character of a token. */
-		const char *start;
+		char *start;
 		/*! Pointer to last processed character if a token. */
-		const char *tail;
+		char *tail;
 		/*! Custom allocator for lexer states. */
 		Allocator *alloc;
 		/*! A list of found tokens. */
