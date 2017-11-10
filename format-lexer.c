@@ -356,7 +356,7 @@ _format_lexer_step_field_name(FormatLexerResult *result)
 
 	assert(result != NULL);
 
-	if(isalpha(*result->ctx.tail))
+	if(isalpha(*result->ctx.tail) || *result->ctx.tail == '-')
 	{
 		++result->ctx.tail;
 	}
@@ -396,13 +396,16 @@ _format_lexer_step_field_name(FormatLexerResult *result)
 		else
 		{
 			FATALF("format", "Couldn't map field name: \"%s\"", name);
+
 			success = false;
 		}
 	}
 	else
 	{
 		FATALF("format", "Unexpected character: '%c'", *result->ctx.tail);
+
 		success = false;
+		_format_lexer_pop(result);
 	}
 
 	return success;
