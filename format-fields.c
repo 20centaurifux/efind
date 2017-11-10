@@ -32,8 +32,8 @@ static const char *_FIELD_CHARS = "AbCDfFgGhHiklmMnpsSTuU";
 static const char *_FIELD_NAMES[] =
 {
 	"atime", "blocks", "ctime", "device", "filename", "filesystem",
-	"group", "gid", "parent", "starting-point", "inode", "kb", "link",
-	"permissions-octal", "permissions", "hardlinks", "path", "bytes",
+	"group", "gid", "directory", "starting-point", "inode", "kb", "link",
+	"permission-bits", "permissions", "hardlinks", "path", "bytes",
 	"sparseness", "mtime", "username", "uid"
 };
 
