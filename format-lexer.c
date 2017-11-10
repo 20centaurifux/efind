@@ -375,7 +375,7 @@ _format_lexer_step_field_name(FormatLexerResult *result)
 		{
 			/* substitute mapped character to field name in format buffer */
 			result->ctx.len -= result->ctx.tail - result->ctx.start;
-			strcpy(result->ctx.start, result->ctx.tail);
+			memmove(result->ctx.start, result->ctx.tail, result->ctx.len - (result->ctx.start - result->ctx.fmt) + 1);
 
 			*result->ctx.start = field;
 
