@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "format-lexer.h"
+#include "format-fields.h"
 #include "log.h"
 #include "utils.h"
 #include "gettext.h"
@@ -36,7 +37,8 @@ typedef enum
 	FORMAT_LEXER_STATE_WIDTH,
 	FORMAT_LEXER_STATE_PRECISION,
 	FORMAT_LEXER_STATE_DATE_ATTR,
-	FORMAT_LEXER_STATE_ESCAPE_SEQ
+	FORMAT_LEXER_STATE_ESCAPE_SEQ,
+	FORMAT_LEXER_STATE_FIELD_NAME
 } FormatLexerState;
 
 typedef enum
@@ -69,10 +71,10 @@ _format_lexer_init(FormatLexerResult *result, const char *format)
 		stack_init(&result->ctx.state, &direct_compare, NULL, result->ctx.alloc);
 		slist_init(&result->ctx.token, &direct_compare, NULL, result->ctx.alloc);
 
-		result->ctx.fmt = format;
-		result->ctx.tail = format;
-		result->ctx.start = format;
-		result->ctx.len = strlen(format);
+		result->ctx.fmt = utils_strdup(format);
+		result->ctx.tail = result->ctx.fmt;
+		result->ctx.start = result->ctx.tail;
+		result->ctx.len = strlen(result->ctx.fmt);
 
 		success = true;
 	}
@@ -251,6 +253,10 @@ _format_lexer_step_field(FormatLexerResult *result)
 		_format_lexer_found_token(result, FORMAT_TOKEN_FLAG);
 		++result->ctx.tail;
 	}
+	else if(*result->ctx.tail == '{')
+	{
+		_format_lexer_push(result, FORMAT_LEXER_STATE_FIELD_NAME, 1);
+	}
 	else if(strchr(ATTRIBUTES, *result->ctx.tail))
 	{
 		_format_lexer_found_token(result, FORMAT_TOKEN_ATTRIBUTE);
@@ -343,6 +349,68 @@ _format_lexer_step_date_attr(FormatLexerResult *result)
 	}
 }
 
+static bool
+_format_lexer_step_field_name(FormatLexerResult *result)
+{
+	bool success = true;
+
+	assert(result != NULL);
+
+	if(isalpha(*result->ctx.tail) || *result->ctx.tail == '-')
+	{
+		++result->ctx.tail;
+	}
+	else if(*result->ctx.tail == '}')
+	{
+		char name[FORMAT_TEXT_BUFFER_MAX] = {0};
+		char field;
+
+		memcpy(name, result->ctx.start + 1, result->ctx.tail - result->ctx.start - 1);
+
+		field = format_map_field_name(name);
+
+		TRACEF("format", "Found field name: \"%s\", mapped to field '%c'", name, field);
+
+		if(field)
+		{
+			/* substitute mapped character to field name in format buffer */
+			result->ctx.len -= result->ctx.tail - result->ctx.start;
+			memmove(result->ctx.start, result->ctx.tail, result->ctx.len - (result->ctx.start - result->ctx.fmt) + 1);
+
+			*result->ctx.start = field;
+
+			result->ctx.tail = result->ctx.start;
+			--result->ctx.start;
+
+			TRACEF("format",
+			       "Substituted '%c' for \"{%s}\", fmt=%s, len=%ld, start=%s, tail=%s",
+			       field,
+			       name,
+			       result->ctx.fmt,
+			       result->ctx.len,
+			       result->ctx.start,
+			       result->ctx.tail);
+
+			_format_lexer_pop(result);
+		}
+		else
+		{
+			FATALF("format", "Couldn't map field name: \"%s\"", name);
+
+			success = false;
+		}
+	}
+	else
+	{
+		FATALF("format", "Unexpected character: '%c'", *result->ctx.tail);
+
+		success = false;
+		_format_lexer_pop(result);
+	}
+
+	return success;
+}
+
 static FormatLexerStepResult
 _format_lexer_step(FormatLexerResult *result)
 {
@@ -382,6 +450,10 @@ _format_lexer_step(FormatLexerResult *result)
 
 		case FORMAT_LEXER_STATE_DATE_ATTR:
 			_format_lexer_step_date_attr(result);
+			break;
+
+		case FORMAT_LEXER_STATE_FIELD_NAME:
+			success = _format_lexer_step_field_name(result);
 			break;
 
 		default:
@@ -438,6 +510,7 @@ format_lexer_result_destroy(FormatLexerResult *result)
 			chunk_allocator_destroy((ChunkAllocator *)result->ctx.alloc);
 		}
 
+		free(result->ctx.fmt);
 		free(result);
 	}
 }

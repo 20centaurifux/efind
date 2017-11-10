@@ -113,6 +113,15 @@ size_t utils_strlcat(char *dst, const char *src, size_t size);
 size_t utils_trim(char *str);
 
 /**
+   @param str a 0-terminated string
+   @param prefix prefix to look for
+   @return true if string begins with the specified prefix.
+
+   Tests if a string starts with a prefix.
+ */
+bool utils_startswith(const char *str, const char *prefix);
+
+/**
    @param a first operand
    @param b second operand
    @param dst location to store sum of a and b

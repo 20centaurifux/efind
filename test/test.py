@@ -52,6 +52,27 @@ def test_printf(path, printf):
 
     assert(set(find_result) == set(efind_result))
 
+def test_printf_long(path, long_arg, short_arg):
+    # field names:
+    cmd = ["efind", path, "size>=0", "--printf", long_arg]
+
+    print("Running efind, argv=[%s]" % join_args(cmd[1:]))
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    a = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
+    proc.wait()
+
+    cmd = ["efind", path, "size>=0", "--printf", short_arg]
+
+    # field characters:
+    print("Running efind, argv=[%s]" % join_args(cmd[1:]))
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    b = filter(lambda l: l != "", str(proc.stdout.read()).split("\n"))
+    proc.wait()
+
+    assert(set(a) == set(b))
+
 def test_multiple_dirs():
     cmd = ["efind", "./test-data/00", "./test-data/02", "type=file", "--order-by", "-h", "--printf", "%h\n"]
 
@@ -82,9 +103,9 @@ SEARCH_ARGS = [[['--version'], None],
                [['size>0', '--print', '--quote'], None],
                [['size=720', '-L'], ["test-data/02/720b.2"]],
                [['size>=720 and size<=5k and type=file'], ["test-data/00/1kb.0", "test-data/00/5kb.0", "test-data/02/5kb.2", "test-data/02/720b.2"]],
-               [['size<100b and type=file', '--order-by', 'P-fGu'], ["test-data/01/5b.1"]],
+               [['size<100b and type=file', '--order-by', 'P-{filename}G{username}'], ["test-data/01/5b.1"]],
                [['type=file and size<=100b and group="%s"' % (id('-gn'))], ["test-data/00/100b.0", "test-data/01/5b.1"]],
-               [['type=file and size=5M or (size>=1G and name="*.1")', '--order-by', '-psC-AF'], ["test-data/01/2G.1", "test-data/01/5M.1", "test-data/02/5M.2"]],
+               [['type=file and size=5M or (size>=1G and name="*.1")', '--order-by', '-ps{ctime}-A{filesystem}'], ["test-data/01/2G.1", "test-data/01/5M.1", "test-data/02/5M.2"]],
                [['size=1G and (readable or writable)'], ["test-data/00/1G.0", "test-data/02/1G.2"]],
                [['type=directory and iname="00" and gid=%s and readable' % (id('-g'))], ["test-data/00"]],
                [['--expr', 'type=directory and uid=%s' % (id('-u')), '--max-depth=0'], ["test-data"]],
@@ -115,6 +136,10 @@ PRINTF_ARGS = ["%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n",
                random_string(64),
                random_string(2048) + "\n"]
 
+PRINTF_LONG_ARGS = [["%{blocks} %20{path}%-#0P<%5{bytes}> USER: %{username} \x43\x052 USER ID: %{uid}\n", "%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n"],
+                    ["%{path} => %{ctime}a%{ctime}A%{ctime}b%{ctime}B%{ctime}d|%{mtime}D%{mtime}h%{mtime}j%{mtime}m\052\a\0532\n", "%p => %Ca%CA%Cb%CB%Cd|%TD%Th%Tj%Tm\052\a\0532\n"],
+                    ["FI{{%{path}}}LE %{blocks} %% %20{path}%-#0P<%5{bytes}> USER: %0500{username}\tUSER ID: %{uid}\n", "FI{{%p}}LE %b %% %20p%-#0P<%5s> USER: %0500u\tUSER ID: %U\n"]]
+
 if __name__ == "__main__":
     for argv, expected in SEARCH_ARGS:
         test_search(argv, expected)
@@ -125,5 +150,9 @@ if __name__ == "__main__":
     for arg in PRINTF_ARGS:
         for dir in ["./test-data", "./test-data/", ".", "./"]:
             test_printf(dir, arg)
+
+    for arg in PRINTF_LONG_ARGS:
+        for dir in ["./test-data", "./test-data/", ".", "./"]:
+            test_printf_long(dir, arg[0], arg[1])
 
     test_multiple_dirs()

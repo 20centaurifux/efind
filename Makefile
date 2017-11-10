@@ -25,7 +25,7 @@ all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./gettext.c ./log.c ./parser.y.c ./lexer.l.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./gettext.c ./log.c ./parser.y.c ./lexer.l.c ./format-fields.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c -o ./efind $(LDFLAGS) $(LIBS)
 	$(MAKE) -C ./po
 
 install:

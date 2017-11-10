@@ -173,11 +173,14 @@ file_list_init(FileList *list, const char *orderby)
 
 				const char *rest = sort_string_pop(orderby, list->fields, list->fields_asc);
 
+				TRACEF("filelist", "Found field '%c', ascending=%d.", *list->fields, *list->fields_asc);
+
 				while(rest)
 				{
-					TRACEF("filelist", "Found field '%c', ascending=%d.", list->fields[offset], list->fields_asc[offset]);
 					++offset;
 					rest = sort_string_pop(rest, &list->fields[offset], &list->fields_asc[offset]);
+
+					TRACEF("filelist", "Found field '%c', ascending=%d.", list->fields[offset], list->fields_asc[offset]);
 				}
 			}
 		}
