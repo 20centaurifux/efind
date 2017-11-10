@@ -51,7 +51,7 @@ The character whose ASCII code is NN (hex).
 Any other character following a `\e' is printed.
 .IP %%
 A literal percent sign.
-.IP %A\fIk\fP
+.IP "%A\fIk\fP, %{atime}\fIk\fP"
 File's last access time in the format specified by \fIk\fR or in the format
 returned by the C `ctime' function.
 .RS
@@ -119,57 +119,57 @@ last two digits of year (00..99)
 .IP Y
 year (1970...)
 .RE
-.IP %b
+.IP "%b, %{blocks}"
 The amount of disk space used for this file in 512-byte blocks.
-.IP %C\fIk\fP
+.IP "%C\fIk\fP, %{ctime}\fIk\fP"
 File's last status change time in the format specified by \fIk\fR,
 which is the same as for %A.
-.IP %D
+.IP "%D, %{device}"
 The device number on which the file exists (the st_dev field of struct
 stat) in decimal.
-.IP %f
+.IP "%f, %{filename}"
 File's name with any leading directories removed (only the last element).
-.IP %F
+.IP "%F, %{filesystem}"
 Type of the filesystem the file is on.
-.IP %g
+.IP "%g, %{group}"
 File's group name, or numeric group ID if the group has no name.
-.IP %G
+.IP "%G, %{gid}"
 File's numeric group ID.
-.IP %h
+.IP "%h, %{directory}"
 Leading directories of file's name (all but the last element).
 If the file name contains no slashes (since it is in the current
 directory) the %h specifier expands to `.'.
-.IP %H
+.IP "%H, %{starting-point}"
 Starting-point under which file was found.
-.IP %i
+.IP "%i, %{inode}"
 File's inode number (in decimal).
-.IP %k
+.IP "%k, %{kb}"
 The amount of disk space used for this file in 1K blocks.
-.IP %l
+.IP "%l, %{link}"
 Object of symbolic link (empty string if file is not a symbolic link).
-.IP %m
+.IP "%m, %{permissions-bits}"
 File's permission bits (in octal).
-.IP %M
+.IP "%M, %{permissions}"
 File's permissions (in symbolic form, as for
 .BR ls ).
-.IP %n
+.IP "%n, %{hardlinks}"
 Number of hard links to file.
-.IP %p
+.IP "%p, %{path}"
 File's name.
 .IP %P
 File's name with the name of the starting-point under which
 it was found removed.
-.IP %s
+.IP "%s, %{bytes}"
 File's size in bytes.
-.IP %S
+.IP "%S, %{sparseness}"
 File's sparseness. If the file size is zero, the value printed is
 undefined.
-.IP %T\fIk\fP
+.IP "%T\fIk\fP, %{mtime}\fIk\fP"
 File's last modification time in the format specified by \fIk\fR,
 which is the same as for %A.
-.IP %u
+.IP "%u, %{username}"
 File's user name, or numeric user ID if the user has no name.
-.IP %U
+.IP "%U, %{uid}"
 File's numeric user ID.
 .IP "\fB\-\-order-by\fR=\fIfields"
 Fields to sort search result by. The same field names as in the --printf
@@ -373,6 +373,10 @@ If not specified \fBefind\fR reads the expression from stdin:
 Search results can be sorted with the --order-by option:
 
 .B efind ~/Documents ~/Downloads 'type=file' --max-depth=2 --order-by '-sp' | head -n10
+
+Alternatively you can use descriptive field names in the --order-by option:
+
+.B efind ~/Documents ~/Downloads 'type=file' -order-by '-{bytes}{path}'
 
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.
