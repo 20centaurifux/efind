@@ -33,7 +33,7 @@ def test_search(argv, expected, success=True):
 
 def test_printf(path, printf):
     # run find:
-    cmd = ["find", "./test-data", "-size", "+0", "-printf", printf]
+    cmd = ["find", dir, "-size", "+0", "-printf", printf]
 
     print("Running find, argv=[%s]" % join_args(cmd[1:]))
 
@@ -42,7 +42,7 @@ def test_printf(path, printf):
     proc.wait()
 
     # run efind:
-    cmd = ["efind", "./test-data", "size>=0", "--printf", printf]
+    cmd = ["efind", dir, "size>=0", "--printf", printf]
 
     print("Running efind, argv=[%s]" % join_args(cmd[1:]))
 
