@@ -48,10 +48,11 @@ format_substitute(const char *str)
 
 	if(str)
 	{
-		TRACEF("format", "Processing format string: \"%s\"", str);
+		TRACEF("format", "Processing format string: %s", str);
 
 		fmt = utils_strdup(str);
 		char *ptr = fmt;
+		size_t fmt_len = strlen(fmt);
 
 		while(*ptr)
 		{
@@ -68,7 +69,8 @@ format_substitute(const char *str)
 					size_t len = strlen(name);
 
 					*ptr = _FIELD_CHARS[i];
-					strcpy(ptr + 1, ptr + len);
+					fmt_len -= len - 1;
+					memmove(ptr + 1, ptr + len, fmt_len - (ptr - fmt));
 				}
 			}
 

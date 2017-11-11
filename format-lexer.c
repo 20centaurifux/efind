@@ -369,7 +369,7 @@ _format_lexer_step_field_name(FormatLexerResult *result)
 
 		field = format_map_field_name(name);
 
-		TRACEF("format", "Found field name: \"%s\", mapped to field '%c'", name, field);
+		TRACEF("format", "Found long field name: %s, mapped to field '%c'", name, field);
 
 		if(field)
 		{
@@ -395,7 +395,7 @@ _format_lexer_step_field_name(FormatLexerResult *result)
 		}
 		else
 		{
-			FATALF("format", "Couldn't map field name: \"%s\"", name);
+			FATALF("format", "Couldn't map field name: %s", name);
 
 			success = false;
 		}

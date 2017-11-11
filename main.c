@@ -220,11 +220,8 @@ _read_options(int argc, char *argv[], Options *opts)
 		switch(opt)
 		{
 			case 'e':
-				if(!opts->expr)
-				{
-					opts->expr = utils_strdup(optarg);
-					opts->flags &= ~FLAG_STDIN; 
-				}
+				opts->expr = utils_strdup(optarg);
+				opts->flags &= ~FLAG_STDIN; 
 				break;
 
 			case 'd':
@@ -300,6 +297,7 @@ _read_options(int argc, char *argv[], Options *opts)
 	{
 		if(offset == 1)
 		{
+			/* only one option found => append it to directory list */
 			if(!slist_contains(&opts->dirs, argv[1]))
 			{
 				slist_append(&opts->dirs, utils_strdup(argv[1]));
@@ -307,6 +305,7 @@ _read_options(int argc, char *argv[], Options *opts)
 		}
 		else
 		{
+			/* any option before offset is handled as directory if expression is not set */
 			int limit = offset;
 
 			if(opts->expr)
@@ -418,7 +417,7 @@ _find_invalid_search_dir(Options *opts)
 
 	assert(opts != NULL);
 
-	TRACE("startup", "Validating search directories.");
+	TRACE("startup", "Validating starting-points.");
 
 	item = slist_head(&opts->dirs);
 
@@ -533,7 +532,7 @@ _exec_find(const Options *opts)
 		}
 	}
 
-	/* test sort string */
+	/* convert & test sort string */
 	if(opts->orderby)
 	{
 		DEBUGF("action", "Preparing sort string: %s", opts->orderby);
@@ -551,9 +550,7 @@ _exec_find(const Options *opts)
 		else
 		{
 			arg.files = utils_new(1, FileList);
-
 			file_list_init(arg.files, orderby);
-
 			cb = _collect_cb;
 		}
 	}
