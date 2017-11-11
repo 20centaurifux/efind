@@ -409,7 +409,7 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 						{
 							int len = snprintf(msg, sizeof(msg), _("Couldn't load extension \"%s\"."), filename);
 
-							if(len > 0 && (size_t)len < sizeof(msg))
+							if(err && len > 0 && (size_t)len < sizeof(msg))
 							{
 								*err = strdup(msg);
 							}
