@@ -49,119 +49,702 @@
 #include "gettext.h"
 #include "version.h"
 
-/**
-   @enum Action
-   @brief Available applicatio actions.
- */
+/*! @cond INTERNAL */
 typedef enum
 {
-	/*! Abort program. */
 	ACTION_ABORT,
-	/*! Translate expression & execute find. */
 	ACTION_EXEC,
-	/*! Translate & print expression. */
 	ACTION_PRINT,
-	/*! Show help and quit. */
 	ACTION_PRINT_HELP,
-	/*! Show version and quit. */
 	ACTION_PRINT_VERSION,
-	/*! Show extensions and quit. */
 	ACTION_LIST_EXTENSIONS,
-	/*! Show blacklisted files and quit. */
 	ACTION_SHOW_BLACKLIST
 } Action;
 
-/**
-   @enum Flags
-   @brief Application flags.
- */
 typedef enum
 {
-	/*! No flags. */
 	FLAG_NONE   = 0,
-	/*! Read expression from stdin. */
 	FLAG_STDIN  = 1,
-	/*! Quote special terminal characters. */
 	FLAG_QUOTE  = 2
 } Flags;
 
-/**
-   @struct Options
-   @brief Application options.
- */
 typedef struct
 {
-	/*! Log level. */
 	LogLevel log_level;
-	/*! Enable colored log messages. */
 	bool log_color;
-	/*! Flags. */
 	int32_t flags;
-	/*! Expression to translate. */
 	char *expr;
-	/*! Directories to search. */
 	SList dirs;
-	/*! Directory search level limitation. */
 	int32_t max_depth;
-	/*! Dereference symbolic links. */
 	bool follow;
-	/*! Regular expression type. */
 	char *regex_type;
-	/*! Print format on stdout. */
 	char *printf;
-	/*! Sort string. */
 	char *orderby;
 } Options;
 
-/**
-   @struct FoundArg
-   @brief Additional callback arguments.
- */
 typedef struct
 {
-	/*! Starting point of the search. */
 	const char *dir;
-	/*! Optional parsed format string. */
 	FormatParserResult *fmt;
-	/*! Store and sort found files. */
 	FileList *files;
 } FoundArg;
+/*! @endcond */
 
 static void
-_options_init(Options *opts)
+_show_blacklist(void)
 {
-	memset(opts, 0, sizeof(Options));
-	slist_init(&opts->dirs, str_compare, &free, NULL);
+	Blacklist *blacklist;
+
+	blacklist = blacklist_new();
+	blacklist_load_default(blacklist);
+
+	ListItem *iter = blacklist_head(blacklist);
+
+	while(iter)
+	{
+		printf("%s\n", (char *)list_item_get_data(iter));
+		iter = list_item_next(iter);
+	}
+
+	blacklist_destroy(blacklist);
 }
 
 static void
-_options_free(Options *opts)
+_list_extensions(void)
 {
-	slist_free(&opts->dirs);
+	ExtensionManager *manager;
 
-	if(opts->expr)
+	manager = extension_manager_new();
+
+	if(manager)
 	{
-		free(opts->expr);
+		int count = extension_manager_load_default(manager);
+
+		if(count)
+		{
+			extension_manager_export(manager, stdout);
+		}
+		else
+		{
+			printf(_("No extensions loaded.\n"));
+		}
+
+		extension_manager_destroy(manager);
 	}
+	else
+	{
+		FATAL("action", "Creation of ExpressionManager instance failed.");
+		fprintf(stderr, _("Couldn't load extensions.\n"));
+	}
+}
+
+static void
+_print_version(const char *name)
+{
+	assert(name != NULL);
+
+	printf(_("%s %d.%d.%d (%s)\nWebsite: %s\n(C) %s %s <%s>\nThis program is released under the terms of the %s (%s)\n"),
+	       name, EFIND_VERSION_MAJOR, EFIND_VERSION_MINOR, EFIND_VERSION_PATCH, EFIND_VERSION_CODE_NAME,
+	       EFIND_WEBSITE,
+	       EFIND_COPYRIGHT_DATE, EFIND_AUTHOR_NAME, EFIND_AUTHOR_EMAIL,
+	       EFIND_LICENSE_NAME, EFIND_LICENSE_URL);
+}
+
+static void
+_print_help(const char *name)
+{
+	assert(name != NULL);
+
+	printf(_("Usage: %s [options]\n"), name);
+	printf(_("       %s [path] [options]\n"), name);
+	printf(_("       %s [path] [expression] [options]\n\n"), name);
+	printf(_("  -e, --expr          expression to evaluate when finding files\n"));
+	printf(_("  -q, --quote         quote special characters in translated expression\n"));
+	printf(_("  -d, --dir           directory to search (multiple directories are possible)\n"));
+	printf(_("  -L, --follow        follow symbolic links\n"));
+	printf(_("  --regex-type type   set regular expression type; see manpage\n"));
+	printf(_("  --printf format     print format on standard output; see manpage\n"));
+	printf(_("  --order-by fields   fields to order search result by; see manpage\n"));
+	printf(_("  --max-depth levels  maximum search depth\n"));
+	printf(_("  -p, --print         don't search files but print expression to stdout\n"));
+	printf(_("  --list-extensions   show a list of installed extensions\n"));
+	printf(_("  --show-blacklist    show blacklisted extensions\n"));
+	printf(_("  --log-level level   set the log level (0-6)\n"));
+	printf(_("  --enable-log-color  enable colored log messages\n"));
+	printf(_("  -v, --version       show version and exit\n"));
+	printf(_("  -h, --help          display this help and exit\n"));
+}
+
+static void
+_build_search_options(const Options *opts, SearchOptions *sopts)
+{
+	assert(opts != NULL);
+	assert(sopts != NULL);
+
+	memset(sopts, 0, sizeof(SearchOptions));
+
+	sopts->max_depth = opts->max_depth;
+	sopts->follow = opts->follow;
 
 	if(opts->regex_type)
 	{
-		free(opts->regex_type);
+		sopts->regex_type = utils_strdup(opts->regex_type);
 	}
+}
+
+static int32_t
+_get_translation_flags(const Options *opts)
+{
+	assert(opts != NULL);
+
+	return (opts->flags & FLAG_QUOTE) ? TRANSLATION_FLAG_QUOTE : TRANSLATION_FLAG_NONE;
+}
+
+static bool
+_print_expr(const Options *opts)
+{
+	SearchOptions sopts;
+	SListItem *item;
+	bool success = true;
+
+	assert(opts != NULL);
+	assert(opts->expr != NULL);
+
+	_build_search_options(opts, &sopts);
+
+	item = slist_head(&opts->dirs);
+
+	while(item && success)
+	{
+		const char *path = (const char *)slist_item_get_data(item);
+
+		assert(path != NULL);
+	
+		if(path)
+		{
+			success = search_debug(stdout, stderr, path, opts->expr, _get_translation_flags(opts), &sopts);
+		}
+		else
+		{
+			success = false;
+		}
+
+		item = slist_item_next(item);
+	}
+
+	search_options_free(&sopts);
+
+	DEBUGF("action", "Action %#x finished with result %d.", ACTION_PRINT, success);
+
+	return success;
+}
+
+static void
+_file_cb(const char *path, void *user_data)
+{
+	FoundArg *arg = (FoundArg *)user_data;
+
+	assert(path != NULL);
+	assert(arg != NULL);
+
+	if(path)
+	{
+		if(arg->fmt)
+		{
+			assert(arg->dir != NULL);
+			assert(arg->fmt->success == true);
+
+			format_write(arg->fmt, arg->dir, path, stdout);
+		}
+		else
+		{
+			printf("%s\n", path);
+		}
+	}
+}
+
+static void
+_collect_cb(const char *path, void *user_data)
+{
+	FoundArg *arg = (FoundArg *)user_data;
+
+	assert(path != NULL);
+	assert(arg != NULL);
+	assert(arg->files != NULL);
+	assert(arg->dir != NULL);
+
+	file_list_append(arg->files, arg->dir, path);
+}
+
+static void
+_error_cb(const char *msg, void *user_data)
+{
+	if(msg)
+	{
+		fputs(msg, stderr);
+		fputc('\n', stderr);
+	}
+}
+
+static void
+_sort_and_print_files(FoundArg *arg)
+{
+	assert(arg != NULL);
+	assert(arg->files != NULL);
+
+	file_list_sort(arg->files);
+
+	for(size_t i = 0; i < file_list_count(arg->files); ++i)
+	{
+		FileListEntry *entry = file_list_at(arg->files, i);
+
+		arg->dir = entry->info->cli;
+		_file_cb(entry->info->path, arg);
+	}
+}
+
+static bool
+_search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, FoundArg *arg)
+{
+	SListItem *item;
+	bool success = true;
+
+	item = slist_head(&opts->dirs);
+
+	while(item && success)
+	{
+		const char *path = (const char *)slist_item_get_data(item);
+
+		assert(path != NULL);
+
+		TRACEF("startup", "Searching directory: \"%s\"", path);
+
+		arg->dir = path;
+
+		if(path)
+		{
+			success = search_files_expr(path, opts->expr, _get_translation_flags(opts), sopts, cb, _error_cb, arg) >= 0;
+		}
+		else
+		{
+			success = false;
+		}
+
+		item = slist_item_next(item);
+	}
+
+	return success;
+}
+
+/*! @cond INTERNAL */
+#define COLLECT_AND_SORT_FILES(arg) (arg.files != NULL)
+/*! @endcond */
+
+static bool
+_parse_printf_arg(const Options *opts, FoundArg *arg)
+{
+	bool success = true;
 
 	if(opts->printf)
 	{
-		free(opts->printf);
+		DEBUGF("action", "Parsing format string: %s", opts->printf);
+
+		arg->fmt = format_parse(opts->printf);
+
+		if(!arg->fmt->success)
+		{
+			DEBUG("action", "Parsing of format string failed.");
+			fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
+			success = false;
+		}
 	}
+
+	return success;
+}
+
+static bool
+_parse_orderby_arg(const Options *opts, FoundArg *arg)
+{
+	bool success = true;
 
 	if(opts->orderby)
 	{
-		free(opts->orderby);
+		DEBUGF("action", "Preparing sort string: %s", opts->orderby);
+
+		char *orderby = format_substitute(opts->orderby);
+
+		DEBUGF("action", "Testing sort string: %s", orderby);
+
+		if(sort_string_test(orderby) == -1)
+		{
+			DEBUG("action", "Parsing of sort string failed.");
+			fprintf(stderr, _("Couldn't parse sort string.\n"));
+			success = false;
+		}
+		else
+		{
+			arg->files = utils_new(1, FileList);
+			file_list_init(arg->files, orderby);
+		}
+
+		free(orderby);
+	}
+
+	return success;
+}
+
+static bool
+_exec_find(const Options *opts)
+{
+	SearchOptions sopts;
+	FoundArg arg;
+	Callback cb = _file_cb;
+	bool success = false;
+
+	assert(opts != NULL);
+	assert(opts->expr != NULL);
+
+	TRACE("action", "Preparing file search.");
+
+	memset(&arg, 0, sizeof(FoundArg));
+
+	if(_parse_printf_arg(opts, &arg) && _parse_orderby_arg(opts, &arg))
+	{
+		TRACE("startup", "Starting file search.");
+
+		if(COLLECT_AND_SORT_FILES(arg))
+		{
+			cb = _collect_cb;
+		}
+
+		_build_search_options(opts, &sopts);
+
+		success = _search_dirs(opts, &sopts, cb, &arg);
+
+		if(success && COLLECT_AND_SORT_FILES(arg))
+		{
+			_sort_and_print_files(&arg);
+		}
+
+		TRACE("action", "Cleaning up file search.");
+		search_options_free(&sopts);
+	}
+
+	TRACE("action", "Cleaning up format parser.");
+
+	if(arg.fmt)
+	{
+		format_parser_result_free(arg.fmt);
+	}
+
+	TRACE("action", "Cleaning up file list & sort options.");
+
+	if(arg.files)
+	{
+		file_list_free(arg.files);
+		free(arg.files);
+	}
+
+	DEBUGF("action", "Action %#x finished with result=%d.", ACTION_EXEC, success);
+
+	return success;
+}
+
+static int
+_run_action(Action action, char argc, char **argv, const Options *opts)
+{
+	int result = EXIT_FAILURE;
+
+	DEBUGF("startup", "Running action: %#x", action);
+
+	switch(action)
+	{
+		case ACTION_EXEC:
+			if(_exec_find(opts))
+			{
+				result = EXIT_SUCCESS;
+			}
+			break;
+
+		case ACTION_PRINT:
+			if(_print_expr(opts))
+			{
+				result = EXIT_SUCCESS;
+			}
+			break;
+
+		case ACTION_PRINT_HELP:
+			_print_help(*argv);
+			result = EXIT_SUCCESS;
+			break;
+
+		case ACTION_PRINT_VERSION:
+			_print_version(*argv);
+			result = EXIT_SUCCESS;
+			break;
+
+		case ACTION_LIST_EXTENSIONS:
+			_list_extensions();
+			result = EXIT_SUCCESS;
+			break;
+
+		case ACTION_SHOW_BLACKLIST:
+			_show_blacklist();
+			result = EXIT_SUCCESS;
+			break;
+
+		default:
+			result = EXIT_FAILURE;
+	}
+
+	return result;
+}
+
+static bool
+_test_expr_is_not_empty(Options *opts)
+{
+	bool success = true;
+
+	if(!opts->expr || !opts->expr[0])
+	{
+		fprintf(stderr, _("Expression cannot be empty.\n"));
+		success = false;
+	}
+
+	return success;
+}
+
+static bool
+_dir_is_valid(const char *path)
+{
+	struct stat sb;
+
+	assert(path != NULL);
+
+	TRACEF("startup", "Testing directory: %s", path);
+
+	if(stat(path, &sb))
+	{
+		return false;
+	}
+
+	TRACEF("startup", "sb.st_mode: %#x", sb.st_mode);
+
+	return (sb.st_mode & S_IFMT) == S_IFDIR;
+}
+
+static const char *
+_find_invalid_search_dir(Options *opts)
+{
+	SListItem *item;
+	const char *dir = NULL;
+
+	assert(opts != NULL);
+
+	TRACE("startup", "Validating starting-points.");
+
+	item = slist_head(&opts->dirs);
+
+	while(item && !dir)
+	{
+		char *path = (char *)slist_item_get_data(item);
+
+		if(!_dir_is_valid(path))
+		{
+			dir = path;
+		}
+
+		item = slist_item_next(item);
+	}
+
+	return dir;
+}
+
+static bool
+_search_dirs_are_empty(const Options *opts)
+{
+	assert(opts != NULL);
+
+	return slist_count(&opts->dirs) == 0;
+}
+
+static bool
+_test_search_dirs_are_valid(Options *opts)
+{
+	bool success = true;
+	const char *path = _find_invalid_search_dir(opts);
+
+	if(path)
+	{
+		fprintf(stderr, _("The specified directory is invalid: %s\n"), path);
+		success = false;
+	}
+
+	return success;
+}
+
+static bool
+_validate_options(Options *opts)
+{
+	assert(opts != NULL);
+
+	TRACE("startup", "Testing required options.");
+
+	return !_search_dirs_are_empty(opts) && _test_search_dirs_are_valid(opts) && _test_expr_is_not_empty(opts);
+}
+
+static bool
+_append_homedir(Options *opts)
+{
+	const char *envpath;
+	bool success = false;
+
+	assert(opts != NULL);
+
+	TRACE("startup", "Auto-detecting home directory.");
+
+	envpath = getenv("HOME");
+
+	if(envpath)
+	{
+		TRACEF("startup", "Found directory: %s", envpath);
+		slist_append(&opts->dirs, utils_strdup(envpath));
+		success = true;
+	}
+	else
+	{
+		FATAL("startup", "HOME environment variable not set.");
+	}
+
+	return success;
+}
+
+static bool
+_append_missing_homedir(Options *opts)
+{
+	bool success = true;
+
+	assert(opts != NULL);
+
+	if(_search_dirs_are_empty(opts))
+	{
+		DEBUG("startup", "No directory specified, running auto-detection.");
+
+		if(!_append_homedir(opts))
+		{
+			fprintf(stderr, _("Couldn't detect home directory.\n"));
+			success = false;
+		}
+	}
+
+	return success;
+}
+
+static char *
+_read_expr_from_stdin(void)
+{
+	char *expr = (char *)utils_malloc(PARSER_MAX_EXPRESSION_LENGTH);
+	ssize_t bytes;
+	size_t read = PARSER_MAX_EXPRESSION_LENGTH;
+	
+	bytes = getline(&expr, &read, stdin);
+
+	TRACEF("startup", "getline() called: result=%ld, buffer size=%ld", bytes, read);
+
+	if(bytes <= 0)
+	{
+		FATALF("startup", "getline() failed with result %ld.", bytes);
+
+		if(bytes == -1)
+		{
+			perror("getline()");
+		}
+
+		free(expr);
+		expr = NULL;
+	}
+	else
+	{
+		/* delete newline character */
+		expr[bytes - 1] = '\0';
+	}
+
+	return expr;
+}
+
+static void
+_read_missing_expr_from_stdin(Options *opts)
+{
+	assert(opts != NULL);
+
+	if(opts->flags & FLAG_STDIN)
+	{
+		DEBUG("startup", "No expression specified, reading from standard input.");
+		opts->expr = _read_expr_from_stdin();
+	}
+}
+
+static void
+_append_single_search_dir(char *argv[], Options *opts)
+{
+	assert(argv != NULL);
+	assert(opts != NULL);
+
+	if(!slist_contains(&opts->dirs, argv[1]))
+	{
+		slist_append(&opts->dirs, utils_strdup(argv[1]));
+	}
+}
+
+static void
+_append_multiple_search_dirs(char *argv[], int offset, Options *opts)
+{
+	int limit = offset;
+
+	assert(argv != NULL);
+	assert(opts != NULL);
+
+	/* handle all arguments as directories if expression is already set */
+	if(opts->expr)
+	{
+		limit++;
+	}
+	else
+	{
+		opts->expr = utils_strdup(argv[offset]);
+		opts->flags &= ~FLAG_STDIN; 
+	}
+
+	for(int i = 1; i < limit; ++i)
+	{
+		if(!slist_contains(&opts->dirs, argv[i]))
+		{
+			slist_append(&opts->dirs, utils_strdup(argv[i]));
+		}
+	}
+}
+
+static void
+_append_search_dirs_and_expr_from_argv(char *argv[], int offset, Options *opts)
+{
+	assert(argv != NULL);
+	assert(opts != NULL);
+
+	if(offset)
+	{
+		if(offset == 1)
+		{
+			_append_single_search_dir(argv, opts);
+		}
+		else
+		{
+			_append_multiple_search_dirs(argv, offset, opts);
+		}
 	}
 }
 
 static Action
-_read_options(int argc, char *argv[], Options *opts)
+_get_opt(int argc, char *argv[], int offset, Options *opts)
 {
 	static struct option long_options[] =
 	{
@@ -183,31 +766,13 @@ _read_options(int argc, char *argv[], Options *opts)
 		{ 0, 0, 0, 0 }
 	};
 
-	int index = 0;
-	int offset = 0;
 	Action action = ACTION_EXEC;
+	int index = 0;
 
 	assert(argc >= 1);
 	assert(argv != NULL);
 	assert(opts != NULL);
 
-	opts->flags = FLAG_STDIN;
-	opts->max_depth = -1;
-
-	/* find first argument starting with `-' */
-	for(int i = 1; i < argc; ++i)
-	{
-		if(*argv[i] != '-')
-		{
-			offset++;
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	/* read options */
 	while(action != ACTION_ABORT)
 	{
 		int opt = getopt_long(argc - offset, argv + offset, "e:d:qpvhL", long_options, &index);
@@ -292,465 +857,108 @@ _read_options(int argc, char *argv[], Options *opts)
 		}
 	}
 
-	/* handle first options not starting with `-' as path(s) & expression */
-	if(offset)
+	return action;
+}
+
+static int
+_index_of_first_option(int argc, char *argv[])
+{
+	int index = 0;
+
+	assert(argc >= 1);
+	assert(argv != NULL);
+
+	for(int i = 1; i < argc; ++i)
 	{
-		if(offset == 1)
+		if(*argv[i] != '-')
 		{
-			/* only one option found => append it to directory list */
-			if(!slist_contains(&opts->dirs, argv[1]))
-			{
-				slist_append(&opts->dirs, utils_strdup(argv[1]));
-			}
+			index++;
 		}
 		else
 		{
-			/* any option before offset is handled as directory if expression is not set */
-			int limit = offset;
-
-			if(opts->expr)
-			{
-				limit++;
-			}
-			else
-			{
-				opts->expr = utils_strdup(argv[offset]);
-				opts->flags &= ~FLAG_STDIN; 
-			}
-
-			for(int i = 1; i < limit; ++i)
-			{
-				if(!slist_contains(&opts->dirs, argv[i]))
-				{
-					slist_append(&opts->dirs, utils_strdup(argv[i]));
-				}
-			}
+			break;
 		}
 	}
 
+	return index;
+}
+
+static Action
+_read_options(int argc, char *argv[], Options *opts)
+{
+	assert(argc >= 1);
+	assert(argv != NULL);
+	assert(opts != NULL);
+
+	opts->flags = FLAG_STDIN;
+	opts->max_depth = -1;
+
+	int offset = _index_of_first_option(argc, argv);
+	Action action = _get_opt(argc, argv, offset, opts);
+
+	if(action != ACTION_ABORT)
+	{
+		_append_search_dirs_and_expr_from_argv(argv, offset, opts);
+	}
 
 	return action;
 }
 
-static char *
-_read_expr_from_stdin(void)
-{
-	char *expr = (char *)utils_malloc(PARSER_MAX_EXPRESSION_LENGTH);
-	ssize_t bytes;
-	size_t read = PARSER_MAX_EXPRESSION_LENGTH;
-	
-	bytes = getline(&expr, &read, stdin);
-
-	TRACEF("startup", "getline() called: result=%ld, buffer size=%ld", bytes, read);
-
-	if(bytes <= 0)
-	{
-		FATALF("startup", "getline() failed with result %ld.", bytes);
-
-		if(bytes == -1)
-		{
-			perror("getline()");
-		}
-
-		free(expr);
-		expr = NULL;
-	}
-	else
-	{
-		/* delete newline character */
-		expr[bytes - 1] = '\0';
-	}
-
-	return expr;
-}
-
-static bool
-_append_homedir(Options *opts)
-{
-	const char *envpath;
-	bool success = false;
-
-	assert(opts != NULL);
-
-	TRACE("startup", "Auto-detecting home directory.");
-
-	envpath = getenv("HOME");
-
-	if(envpath)
-	{
-		TRACEF("startup", "Found directory: %s", envpath);
-		slist_append(&opts->dirs, utils_strdup(envpath));
-		success = true;
-	}
-	else
-	{
-		FATAL("startup", "HOME environment variable not set.");
-	}
-
-	return success;
-}
-
-static bool
-_dir_is_valid(const char *path)
-{
-	struct stat sb;
-
-	assert(path != NULL);
-
-	TRACEF("startup", "Testing directory: %s", path);
-
-	if(stat(path, &sb))
-	{
-		return false;
-	}
-
-	TRACEF("startup", "sb.st_mode: %#x", sb.st_mode);
-
-	return (sb.st_mode & S_IFMT) == S_IFDIR;
-}
-
-static const char *
-_find_invalid_search_dir(Options *opts)
-{
-	SListItem *item;
-	const char *dir = NULL;
-
-	assert(opts != NULL);
-
-	TRACE("startup", "Validating starting-points.");
-
-	item = slist_head(&opts->dirs);
-
-	while(item && !dir)
-	{
-		char *path = (char *)slist_item_get_data(item);
-
-		if(!_dir_is_valid(path))
-		{
-			dir = path;
-		}
-
-		item = slist_item_next(item);
-	}
-
-	return dir;
-}
-
-static int32_t
-_get_translation_flags(const Options *opts)
+static void
+_options_init(Options *opts)
 {
 	assert(opts != NULL);
 
-	return (opts->flags & FLAG_QUOTE) ? TRANSLATION_FLAG_QUOTE : TRANSLATION_FLAG_NONE;
+	memset(opts, 0, sizeof(Options));
+	slist_init(&opts->dirs, str_compare, &free, NULL);
 }
 
 static void
-_build_search_options(const Options *opts, SearchOptions *sopts)
+_options_free(Options *opts)
 {
 	assert(opts != NULL);
-	assert(sopts != NULL);
 
-	memset(sopts, 0, sizeof(SearchOptions));
+	slist_free(&opts->dirs);
 
-	sopts->max_depth = opts->max_depth;
-	sopts->follow = opts->follow;
+	if(opts->expr)
+	{
+		free(opts->expr);
+	}
 
 	if(opts->regex_type)
 	{
-		sopts->regex_type = utils_strdup(opts->regex_type);
+		free(opts->regex_type);
 	}
-}
 
-static void
-_file_cb(const char *path, void *user_data)
-{
-	FoundArg *arg = (FoundArg *)user_data;
-
-	if(path)
-	{
-		if(arg->fmt)
-		{
-			assert(arg->dir != NULL);
-			assert(arg->fmt->success == true);
-
-			format_write(arg->fmt, arg->dir, path, stdout);
-		}
-		else
-		{
-			printf("%s\n", path);
-		}
-	}
-}
-
-static void
-_collect_cb(const char *path, void *user_data)
-{
-	FoundArg *arg = (FoundArg *)user_data;
-
-	file_list_append(arg->files, arg->dir, path);
-}
-
-static void
-_error_cb(const char *msg, void *user_data)
-{
-	if(msg)
-	{
-		fputs(msg, stderr);
-		fputc('\n', stderr);
-	}
-}
-
-static bool
-_exec_find(const Options *opts)
-{
-	SearchOptions sopts;
-	FoundArg arg;
-	Callback cb = _file_cb;
-	SListItem *item;
-	char *orderby = NULL;
-	bool success = false;
-
-	assert(opts != NULL);
-	assert(opts->expr != NULL);
-
-	TRACE("action", "Preparing file search.");
-
-	memset(&arg, 0, sizeof(FoundArg));
-
-	/* parse printf format string */
 	if(opts->printf)
 	{
-		DEBUGF("action", "Parsing format string: %s", opts->printf);
-
-		arg.fmt = format_parse(opts->printf);
-
-		if(!arg.fmt->success)
-		{
-			DEBUG("action", "Parsing of format string failed.");
-			fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
-			goto out;
-		}
+		free(opts->printf);
 	}
 
-	/* convert & test sort string */
 	if(opts->orderby)
 	{
-		DEBUGF("action", "Preparing sort string: %s", opts->orderby);
-
-		orderby = format_substitute(opts->orderby);
-
-		DEBUGF("action", "Testing sort string: %s", orderby);
-
-		if(sort_string_test(orderby) == -1)
-		{
-			DEBUG("action", "Parsing of sort string failed.");
-			fprintf(stderr, _("Couldn't parse sort string.\n"));
-			goto out;
-		}
-		else
-		{
-			arg.files = utils_new(1, FileList);
-			file_list_init(arg.files, orderby);
-			cb = _collect_cb;
-		}
+		free(opts->orderby);
 	}
-
-	/* search files */
-	TRACE("startup", "Starting file search.");
-
-	_build_search_options(opts, &sopts);
-
-	item = slist_head(&opts->dirs);
-	success = true;
-
-	while(item && success)
-	{
-		const char *path = (const char *)slist_item_get_data(item);
-
-		assert(path != NULL);
-
-		TRACEF("startup", "Searching directory: \"%s\"", path);
-
-		arg.dir = path;
-
-		if(path)
-		{
-			success = search_files_expr(path, opts->expr, _get_translation_flags(opts), &sopts, cb, _error_cb, &arg) >= 0;
-		}
-		else
-		{
-			success = false;
-		}
-
-		item = slist_item_next(item);
-	}
-
-	/* sort files before printing search result */
-	if(success && arg.files)
-	{
-		file_list_sort(arg.files);
-
-		for(size_t i = 0; i < file_list_count(arg.files); ++i)
-		{
-			FileListEntry *entry = file_list_at(arg.files, i);
-
-			arg.dir = entry->info->cli;
-			_file_cb(entry->info->path, &arg);
-		}
-	}
-
-	TRACE("action", "Cleaning up file search.");
-
-	/* cleanup search options */
-	search_options_free(&sopts);
-
-out:
-	/* cleanup */
-	TRACE("action", "Cleaning up format parser.");
-
-	if(arg.fmt)
-	{
-		format_parser_result_free(arg.fmt);
-	}
-
-	TRACE("action", "Cleaning up file list & sort options.");
-
-	if(arg.files)
-	{
-		file_list_free(arg.files);
-		free(arg.files);
-	}
-
-	if(orderby)
-	{
-		free(orderby);
-	}
-
-	DEBUGF("action", "Action %#x finished with result=%d.", ACTION_EXEC, success);
-
-	return success;
 }
 
-static bool
-_print_expr(const Options *opts)
+static void
+_set_log_options(const Options *opts)
 {
-	SearchOptions sopts;
-	SListItem *item;
-	bool success = true;
-
 	assert(opts != NULL);
-	assert(opts->expr != NULL);
 
-	_build_search_options(opts, &sopts);
-
-	item = slist_head(&opts->dirs);
-
-	while(item && success)
+	if(opts->log_level)
 	{
-		const char *path = (const char *)slist_item_get_data(item);
-
-		assert(path != NULL);
-	
-		if(path)
-		{
-			success = search_debug(stdout, stderr, path, opts->expr, _get_translation_flags(opts), &sopts);
-		}
-		else
-		{
-			success = false;
-		}
-
-		item = slist_item_next(item);
+		log_set_verbosity(opts->log_level);
 	}
 
-	search_options_free(&sopts);
-
-	DEBUGF("action", "Action %#x finished with result %d.", ACTION_PRINT, success);
-
-	return success;
+	log_enable_color(opts->log_color);
 }
 
 static void
-_print_help(const char *name)
+_set_locale(void)
 {
-	assert(name != NULL);
-
-	printf(_("Usage: %s [options]\n"), name);
-	printf(_("       %s [path] [options]\n"), name);
-	printf(_("       %s [path] [expression] [options]\n\n"), name);
-	printf(_("  -e, --expr          expression to evaluate when finding files\n"));
-	printf(_("  -q, --quote         quote special characters in translated expression\n"));
-	printf(_("  -d, --dir           directory to search (multiple directories are possible)\n"));
-	printf(_("  -L, --follow        follow symbolic links\n"));
-	printf(_("  --regex-type type   set regular expression type; see manpage\n"));
-	printf(_("  --printf format     print format on standard output; see manpage\n"));
-	printf(_("  --order-by fields   fields to order search result by; see manpage\n"));
-	printf(_("  --max-depth levels  maximum search depth\n"));
-	printf(_("  -p, --print         don't search files but print expression to stdout\n"));
-	printf(_("  --list-extensions   show a list of installed extensions\n"));
-	printf(_("  --show-blacklist    show blacklisted extensions\n"));
-	printf(_("  --log-level level   set the log level (0-6)\n"));
-	printf(_("  --enable-log-color  enable colored log messages\n"));
-	printf(_("  -v, --version       show version and exit\n"));
-	printf(_("  -h, --help          display this help and exit\n"));
-}
-
-static void
-_print_version(const char *name)
-{
-	printf(_("%s %d.%d.%d (%s)\nWebsite: %s\n(C) %s %s <%s>\nThis program is released under the terms of the %s (%s)\n"),
-	       name, EFIND_VERSION_MAJOR, EFIND_VERSION_MINOR, EFIND_VERSION_PATCH, EFIND_VERSION_CODE_NAME,
-	       EFIND_WEBSITE,
-	       EFIND_COPYRIGHT_DATE, EFIND_AUTHOR_NAME, EFIND_AUTHOR_EMAIL,
-	       EFIND_LICENSE_NAME, EFIND_LICENSE_URL);
-}
-
-static void
-_list_extensions(void)
-{
-	ExtensionManager *manager;
-
-	manager = extension_manager_new();
-
-	if(manager)
-	{
-		int count = extension_manager_load_default(manager);
-
-		if(count)
-		{
-			extension_manager_export(manager, stdout);
-		}
-		else
-		{
-			printf(_("No extensions loaded.\n"));
-		}
-
-		extension_manager_destroy(manager);
-	}
-	else
-	{
-		FATAL("action", "Creation of ExpressionManager instance failed.");
-		fprintf(stderr, _("Couldn't load extensions.\n"));
-	}
-}
-
-static void
-_show_blacklist(void)
-{
-	Blacklist *blacklist;
-
-	blacklist = blacklist_new();
-	blacklist_load_default(blacklist);
-
-	ListItem *iter = blacklist_head(blacklist);
-
-	while(iter)
-	{
-		fprintf(stdout, "%s\n", (char *)list_item_get_data(iter));
-		iter = list_item_next(iter);
-	}
-
-	blacklist_destroy(blacklist);
+	setlocale(LC_ALL, "");
+	gettext_init();
 }
 
 /**
@@ -767,120 +975,45 @@ main(int argc, char *argv[])
 	Options opts;
 	int result = EXIT_FAILURE;
 
-	/* set locale */
-	setlocale(LC_ALL, "");
-
-	/* initialize gettext */
-	gettext_init();
-
-	/* read command line options */
+	_set_locale();
 	_options_init(&opts);
+
 	action = _read_options(argc, argv, &opts);
 
-	if(action == ACTION_ABORT)
+	if(action != ACTION_ABORT)
 	{
-		printf(_("Try '%s --help' for more information.\n"), argv[0]);
-		goto out;
-	}
+		_set_log_options(&opts);
 
-	/* set verbosity */
-	if(opts.log_level)
-	{
-		log_set_verbosity(opts.log_level);
-	}
+		INFOF("startup", "%s started successfully.", *argv);
 
-	log_enable_color(opts.log_color);
+		bool valid = true;
 
-	INFOF("startup", "%s started successfully.", *argv);
-
-	/* validate options */
-	if(action == ACTION_EXEC || action == ACTION_PRINT)
-	{
-		TRACE("startup", "Testing required options.");
-
-		/* autodetect home directory if no path has been specified */
-		if(!slist_count(&opts.dirs))
+		if(action == ACTION_EXEC || action == ACTION_PRINT)
 		{
-			DEBUG("startup", "No directory specified, running auto-detection.");
+			_read_missing_expr_from_stdin(&opts);
 
-			if(!_append_homedir(&opts))
+			if(_append_missing_homedir(&opts))
 			{
-				fprintf(stderr, _("Couldn't detect home directory.\n"));
-				goto out;
+				valid = _validate_options(&opts);
+			}
+			else
+			{
+				valid = false;
 			}
 		}
 
-		/* test if search paths are valid */
-		const char *path = _find_invalid_search_dir(&opts);
-
-		if(path)
+		if(valid)
 		{
-			fprintf(stderr, _("The specified directory is invalid: %s\n"), path);
-			goto out;
-		}
-
-		/* read expression from stdin */
-		if(opts.flags & FLAG_STDIN)
-		{
-			DEBUG("startup", "No expression specified, reading from standard input.");
-			opts.expr = _read_expr_from_stdin();
-		}
-
-		/* test if expression is empty */
-		if(!opts.expr || !opts.expr[0])
-		{
-			fprintf(stderr, _("Expression cannot be empty.\n"));
-			goto out;
+			result = _run_action(action, argc, argv, &opts);
 		}
 	}
-
-	/* start desired action */
-	DEBUGF("startup", "Running action: %#x", action);
-
-	switch(action)
+	else
 	{
-		case ACTION_EXEC:
-			if(_exec_find(&opts))
-			{
-				result = EXIT_SUCCESS;
-			}
-			break;
-
-		case ACTION_PRINT:
-			if(_print_expr(&opts))
-			{
-				result = EXIT_SUCCESS;
-			}
-			break;
-
-		case ACTION_PRINT_HELP:
-			_print_help(*argv);
-			result = EXIT_SUCCESS;
-			break;
-
-		case ACTION_PRINT_VERSION:
-			_print_version(*argv);
-			result = EXIT_SUCCESS;
-			break;
-
-		case ACTION_LIST_EXTENSIONS:
-			_list_extensions();
-			result = EXIT_SUCCESS;
-			break;
-
-		case ACTION_SHOW_BLACKLIST:
-			_show_blacklist();
-			result = EXIT_SUCCESS;
-			break;
-
-		default:
-			result = EXIT_FAILURE;
+		printf(_("Try '%s --help' for more information.\n"), *argv);
 	}
 
-	out:
-		/* cleanup */
-		INFO("shutdown", "Cleaning up.");
-		_options_free(&opts);
+	INFO("shutdown", "Cleaning up.");
+	_options_free(&opts);
 
 	return result;
 }
