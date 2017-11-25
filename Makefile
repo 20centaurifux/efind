@@ -19,7 +19,7 @@ CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE 
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.2.0.a -lm
 INC=-I./datatypes
 
-VERSION=0.3.1
+VERSION=0.3.2
 
 all:
 	$(MAKE) -C ./datatypes
