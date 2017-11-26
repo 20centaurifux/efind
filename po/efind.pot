@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: efind 0.3.1 VERSION\n"
+"Project-Id-Version: efind 0.3.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-02 21:23+0100\n"
+"POT-Creation-Date: 2017-11-26 11:23+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dl-ext-backend.c:93 eval.c:155
+#: dl-ext-backend.c:93 eval.c:182
 #, c-format
 msgid "Function `%s' not found.\n"
 msgstr ""
@@ -28,7 +28,7 @@ msgid ""
 "Stack overflow in function `%s', more than %d arguments are not supported.\n"
 msgstr ""
 
-#: eval.c:160
+#: eval.c:187
 #, c-format
 msgid ""
 "Function `%s' has a different signature, please check specified arguments.\n"
@@ -58,22 +58,22 @@ msgstr ""
 msgid "Found unexpected character in sort string: '%c'.\n"
 msgstr ""
 
-#: filelist.c:186 main.c:542
+#: filelist.c:189 main.c:381
 #, c-format
 msgid "Couldn't parse sort string.\n"
 msgstr ""
 
-#: filelist.c:353 filelist.c:360
+#: filelist.c:356 filelist.c:363
 #, c-format
 msgid "Couldn't read attribute from file %s.\n"
 msgstr ""
 
-#: format-lexer.c:193
+#: format-lexer.c:195
 #, c-format
 msgid "Missing text after '%%'.\n"
 msgstr ""
 
-#: format-lexer.c:230
+#: format-lexer.c:232
 #, c-format
 msgid "Invalid escape sequence.\n"
 msgstr ""
@@ -98,108 +98,17 @@ msgstr ""
 msgid "Couldn't retrieve real path from file: %s\n"
 msgstr ""
 
-#: main.c:529
+#: main.c:129
 #, c-format
-msgid "Couldn't parse format string: %s\n"
+msgid "No extensions loaded.\n"
 msgstr ""
 
-#: main.c:670
+#: main.c:137
 #, c-format
-msgid "Usage: %s [options]\n"
+msgid "Couldn't load extensions.\n"
 msgstr ""
 
-#: main.c:671
-#, c-format
-msgid "       %s [path] [options]\n"
-msgstr ""
-
-#: main.c:672
-#, c-format
-msgid ""
-"       %s [path] [expression] [options]\n"
-"\n"
-msgstr ""
-
-#: main.c:673
-#, c-format
-msgid "  -e, --expr          expression to evaluate when finding files\n"
-msgstr ""
-
-#: main.c:674
-#, c-format
-msgid ""
-"  -q, --quote         quote special characters in translated expression\n"
-msgstr ""
-
-#: main.c:675
-#, c-format
-msgid ""
-"  -d, --dir           directory to search (multiple directories are "
-"possible)\n"
-msgstr ""
-
-#: main.c:676
-#, c-format
-msgid "  -L, --follow        follow symbolic links\n"
-msgstr ""
-
-#: main.c:677
-#, c-format
-msgid "  --regex-type type   set regular expression type; see manpage\n"
-msgstr ""
-
-#: main.c:678
-#, c-format
-msgid "  --printf format     print format on standard output; see manpage\n"
-msgstr ""
-
-#: main.c:679
-#, c-format
-msgid "  --order-by fields   fields to order search result by; see manpage\n"
-msgstr ""
-
-#: main.c:680
-#, c-format
-msgid "  --max-depth levels  maximum search depth\n"
-msgstr ""
-
-#: main.c:681
-#, c-format
-msgid ""
-"  -p, --print         don't search files but print expression to stdout\n"
-msgstr ""
-
-#: main.c:682
-#, c-format
-msgid "  --list-extensions   show a list of installed extensions\n"
-msgstr ""
-
-#: main.c:683
-#, c-format
-msgid "  --show-blacklist    show blacklisted extensions\n"
-msgstr ""
-
-#: main.c:684
-#, c-format
-msgid "  --log-level level   set the log level (0-6)\n"
-msgstr ""
-
-#: main.c:685
-#, c-format
-msgid "  --enable-log-color  enable colored log messages\n"
-msgstr ""
-
-#: main.c:686
-#, c-format
-msgid "  -v, --version       show version and exit\n"
-msgstr ""
-
-#: main.c:687
-#, c-format
-msgid "  -h, --help          display this help and exit\n"
-msgstr ""
-
-#: main.c:693
+#: main.c:146
 #, c-format
 msgid ""
 "%s %d.%d.%d (%s)\n"
@@ -208,42 +117,138 @@ msgid ""
 "This program is released under the terms of the %s (%s)\n"
 msgstr ""
 
-#: main.c:717
+#: main.c:158
 #, c-format
-msgid "No extensions loaded.\n"
+msgid "Usage: %s [options]\n"
 msgstr ""
 
-#: main.c:725
+#: main.c:159
 #, c-format
-msgid "Couldn't load extensions.\n"
+msgid "       %s [path] [options]\n"
 msgstr ""
 
-#: main.c:774
+#: main.c:160
 #, c-format
-msgid "Try '%s --help' for more information.\n"
+msgid ""
+"       %s [path] [expression] [options]\n"
+"\n"
 msgstr ""
 
-#: main.c:800
+#: main.c:161
 #, c-format
-msgid "Couldn't detect home directory.\n"
+msgid "  -e, --expr          expression to evaluate when finding files\n"
 msgstr ""
 
-#: main.c:810
+#: main.c:162
 #, c-format
-msgid "The specified directory is invalid: %s\n"
+msgid ""
+"  -q, --quote         quote special characters in translated expression\n"
 msgstr ""
 
-#: main.c:824
+#: main.c:163
+#, c-format
+msgid ""
+"  -d, --dir           directory to search (multiple directories are "
+"possible)\n"
+msgstr ""
+
+#: main.c:164
+#, c-format
+msgid "  -L, --follow        follow symbolic links\n"
+msgstr ""
+
+#: main.c:165
+#, c-format
+msgid "  --regex-type type   set regular expression type; see manpage\n"
+msgstr ""
+
+#: main.c:166
+#, c-format
+msgid "  --printf format     print format on standard output; see manpage\n"
+msgstr ""
+
+#: main.c:167
+#, c-format
+msgid "  --order-by fields   fields to order search result by; see manpage\n"
+msgstr ""
+
+#: main.c:168
+#, c-format
+msgid "  --max-depth levels  maximum search depth\n"
+msgstr ""
+
+#: main.c:169
+#, c-format
+msgid ""
+"  -p, --print         don't search files but print expression to stdout\n"
+msgstr ""
+
+#: main.c:170
+#, c-format
+msgid "  --list-extensions   show a list of installed extensions\n"
+msgstr ""
+
+#: main.c:171
+#, c-format
+msgid "  --show-blacklist    show blacklisted extensions\n"
+msgstr ""
+
+#: main.c:172
+#, c-format
+msgid "  --log-level level   set the log level (0-6)\n"
+msgstr ""
+
+#: main.c:173
+#, c-format
+msgid "  --enable-log-color  enable colored log messages\n"
+msgstr ""
+
+#: main.c:174
+#, c-format
+msgid "  -v, --version       show version and exit\n"
+msgstr ""
+
+#: main.c:175
+#, c-format
+msgid "  -h, --help          display this help and exit\n"
+msgstr ""
+
+#: main.c:357
+#, c-format
+msgid "Couldn't parse format string: %s\n"
+msgstr ""
+
+#: main.c:510
 #, c-format
 msgid "Expression cannot be empty.\n"
 msgstr ""
 
-#: search.c:92
+#: main.c:579
+#, c-format
+msgid "The specified directory is invalid: %s\n"
+msgstr ""
+
+#: main.c:635
+#, c-format
+msgid "Couldn't detect home directory.\n"
+msgstr ""
+
+#: main.c:1012
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr ""
+
+#: search.c:88
+#, c-format
+msgid "Evaluation aborted.\n"
+msgstr ""
+
+#: search.c:93
 #, c-format
 msgid "Couldn't evaluate expression, no extensions loaded.\n"
 msgstr ""
 
-#: search.c:358
+#: search.c:359
 #, c-format
 msgid "Couldn't find `find' executable.\n"
 msgstr ""
