@@ -85,6 +85,7 @@ _search_evaluate_post_exprs(const char *filename, void *user_data)
 			if(result == EVAL_RESULT_ABORTED)
 			{
 				TRACE("search", "Evaluation aborted.");
+				fprintf(stderr, _("Evaluation aborted.\n"));
 			}
 		}
 		else

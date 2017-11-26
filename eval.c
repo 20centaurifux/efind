@@ -64,33 +64,21 @@ _eval_set_fn_arg_from_value_node(ExtensionCallbackArgs *args, uint32_t offset, V
 	return success;
 }
 
+static bool _eval_func_node(Node *node, EvalContext *ctx, int *fn_result);
+
 static bool
-_eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
+_eval_build_args_from_node(EvalContext *ctx, FuncNode *fn, int *argc, ExtensionCallbackArgs *args)
 {
-	int argc = 0;
-	FuncNode *fn;
-	ExtensionCallbackArgs* args;
-	int result;
 	bool success = true;
 
-	assert(node != NULL);
-	assert(fn_result != NULL);
-
-	fn = (FuncNode *)node;
-
-	TRACEF("eval", "Evaluating function `%s'.", fn->name);
-
-	*fn_result = 0;
-	args = extension_callback_args_new(FN_STACK_SIZE);
-
-	/* build argument list */
 	if(fn->args)
 	{
-		/* count & validate arguments */
 		Node *iter = fn->args;
 
 		while(iter && success)
 		{
+			Node *next = NULL;
+
 			if(iter->type == NODE_EXPRESSION)
 			{
 				ExpressionNode *expr = (ExpressionNode *)iter;
@@ -100,18 +88,20 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 					FATALF("eval", "Couldn't compile argument list, operator %#x not supported.", expr->op);
 					success = false;
 				}
+				else if(expr->first->type == NODE_VALUE)
+				{
+					success = _eval_set_fn_arg_from_value_node(args, *argc, (ValueNode *)expr->first);
+				}
 				else if(expr->first->type == NODE_FUNC)
 				{
+					int result = 0;
+
 					success = _eval_func_node(expr->first, ctx, &result);
 
 					if(success)
 					{
-						extension_callback_args_set_integer(args, argc, result);
+						extension_callback_args_set_integer(args, *argc, result);
 					}
-				}
-				else if(expr->first->type == NODE_VALUE)
-				{
-					success = _eval_set_fn_arg_from_value_node(args, argc, (ValueNode *)expr->first);
 				}
 				else
 				{
@@ -119,14 +109,22 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 					success = false;
 				}
 
-				++argc;
-				iter = expr->second;
+				next = expr->second;
+			}
+			else if(iter->type == NODE_FUNC)
+			{
+				int result = 0;
+
+				success = _eval_func_node(iter, ctx, &result);
+
+				if(success)
+				{
+					extension_callback_args_set_integer(args, *argc, result);
+				}
 			}
 			else if(iter->type == NODE_VALUE)
 			{
-				success = _eval_set_fn_arg_from_value_node(args, argc, (ValueNode *)iter);
-				++argc;
-				iter = NULL;
+				success = _eval_set_fn_arg_from_value_node(args, *argc, (ValueNode *)iter);
 			}
 			else
 			{
@@ -134,15 +132,44 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 				success = false;
 			}
 
-			if(argc == FN_STACK_SIZE)
+			if(success)
 			{
-				fprintf(stderr, _("Stack overflow in function `%s', more than %d arguments are not supported.\n"), fn->name, FN_STACK_SIZE);
+				if(*argc == FN_STACK_SIZE - 1)
+				{
+					fprintf(stderr, _("Stack overflow in function `%s', more than %d arguments are not supported.\n"), fn->name, FN_STACK_SIZE);
+					success = false;
+				}
+				else
+				{
+					++(*argc);
+				}
+
+				iter = next;
 			}
 		}
 	}
+	
+	return success;
+}
 
-	/* invoke function */
-	if(success)
+static bool
+_eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
+{
+	bool success = false;
+
+	assert(node != NULL);
+	assert(fn_result != NULL);
+
+	FuncNode *fn = (FuncNode *)node;
+
+	TRACEF("eval", "Evaluating function `%s'.", fn->name);
+
+	*fn_result = 0;
+
+	int argc = 0;
+	ExtensionCallbackArgs *args = extension_callback_args_new(FN_STACK_SIZE);
+
+	if(_eval_build_args_from_node(ctx, fn, &argc, args))
 	{
 		ExtensionCallbackStatus status = extension_manager_test_callback(ctx->extensions, fn->name, argc, args->types);
 
@@ -162,10 +189,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 		}
 	}
 
-	if(args)
-	{
-		extension_callback_args_free(args);
-	}
+	extension_callback_args_free(args);
 
 	return success;
 }
