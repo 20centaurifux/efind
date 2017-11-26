@@ -1,3 +1,8 @@
+2017-??-?? v0.3.2
+	* FEATURE: support multiple starting points
+	* FEATURE: allow user-friendly field names
+	* FIX: allow filter functions as first function arguments
+
 2017-10-31 v0.3.1
 	* FEATURE: not-operator
 	* FEATURE: EFIND_EXTENSION_PATH environment variable for
