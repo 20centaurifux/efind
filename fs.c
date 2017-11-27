@@ -51,11 +51,11 @@ fs_map_load(void)
 	FSMap *map = NULL;
 	FILE *fp;
 
-	/* store available mount points in array */
 	fp = setmntent("/proc/mounts", "r");
 
 	if(fp)
 	{
+		/* store available mount points in array */
 		map = utils_new(1, FSMap);
 		map->mps = utils_new(32, MountPoint *);
 		map->size = 32;

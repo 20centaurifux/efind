@@ -220,6 +220,53 @@ _format_write_date(time_t time, ssize_t width, ssize_t precision, int flags, con
 	}
 }
 
+static bool
+_format_write_attr_node(const FormatParserResult *result, const FormatNodeBase *node, FileInfo *info, FILE *out)
+{
+	bool success = true;
+	FileAttr attr;
+
+	if(file_info_get_attr(info, &attr, ((FormatAttrNode*)node)->attr))
+	{
+		if(attr.flags & FILE_ATTR_FLAG_STRING)
+		{
+			_format_write_string(file_attr_get_string(&attr), node->width, node->precision, node->flags, out);
+		}
+		else if(attr.flags & FILE_ATTR_FLAG_INTEGER)
+		{
+			if(((FormatAttrNode *)node)->attr == 'm')
+			{
+				_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "o", out);
+			}
+			else
+			{
+				_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "d", out);
+			}
+		}
+		else if(attr.flags & FILE_ATTR_FLAG_LLONG)
+		{
+			_format_write_number(file_attr_get_llong(&attr), node->width, node->precision, node->flags, "lld", out);
+		}
+		else if(attr.flags & FILE_ATTR_FLAG_TIME)
+		{
+			_format_write_date(file_attr_get_time(&attr), node->width, node->precision, node->flags, ((FormatAttrNode *)node)->format, out);
+		}
+		else if(attr.flags & FILE_ATTR_FLAG_DOUBLE)
+		{
+			_format_write_double(file_attr_get_double(&attr), node->width, node->precision, node->flags, out);
+		}
+		else
+		{
+			FATALF("format", "Couldn't read attribute type from flags: %#x", attr.flags);
+			success = false;
+		}
+
+		file_attr_free(&attr);
+	}
+
+	return success;
+}
+
 bool
 format_write(const FormatParserResult *result, const char *arg, const char *filename, FILE *out)
 {
@@ -249,45 +296,7 @@ format_write(const FormatParserResult *result, const char *arg, const char *file
 			}
 			else if(node->type_id == FORMAT_NODE_ATTR)
 			{
-				FileAttr attr;
-
-				if(file_info_get_attr(&info, &attr, ((FormatAttrNode*)node)->attr))
-				{
-					if(attr.flags & FILE_ATTR_FLAG_STRING)
-					{
-						_format_write_string(file_attr_get_string(&attr), node->width, node->precision, node->flags, out);
-					}
-					else if(attr.flags & FILE_ATTR_FLAG_INTEGER)
-					{
-						if(((FormatAttrNode *)node)->attr == 'm')
-						{
-							_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "o", out);
-						}
-						else
-						{
-							_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "d", out);
-						}
-					}
-					else if(attr.flags & FILE_ATTR_FLAG_LLONG)
-					{
-						_format_write_number(file_attr_get_llong(&attr), node->width, node->precision, node->flags, "lld", out);
-					}
-					else if(attr.flags & FILE_ATTR_FLAG_TIME)
-					{
-						_format_write_date(file_attr_get_time(&attr), node->width, node->precision, node->flags, ((FormatAttrNode *)node)->format, out);
-					}
-					else if(attr.flags & FILE_ATTR_FLAG_DOUBLE)
-					{
-						_format_write_double(file_attr_get_double(&attr), node->width, node->precision, node->flags, out);
-					}
-					else
-					{
-						FATALF("format", "Couldn't read attribute type from flags: %#x", attr.flags);
-						success = false;
-					}
-
-					file_attr_free(&attr);
-				}
+				success = _format_write_attr_node(result, node, &info, out);
 			}
 			else
 			{

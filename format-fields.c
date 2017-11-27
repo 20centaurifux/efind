@@ -27,6 +27,10 @@
 #include "utils.h"
 #include "log.h"
 
+/*! @cond INTERNAL */
+#define MAX_FIELD_NAME 32
+/*! @endcond */
+
 static const char *_FIELD_CHARS = "AbCDfFgGhHiklmMnpsSTuU";
 
 static const char *_FIELD_NAMES[] =
@@ -58,9 +62,9 @@ format_substitute(const char *str)
 		{
 			for(size_t i = 0; i < sizeof(_FIELD_NAMES) / sizeof(char *); i++)
 			{
-				char name[32] = {'\0'};
+				char name[MAX_FIELD_NAME] = {'\0'};
 
-				snprintf(name, sizeof(name) - 1, "{%s}", _FIELD_NAMES[i]);
+				snprintf(name, MAX_FIELD_NAME, "{%s}", _FIELD_NAMES[i]);
 
 				if(utils_startswith(ptr, name))
 				{

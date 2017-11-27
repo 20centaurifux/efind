@@ -63,50 +63,6 @@ typedef struct
 /*! @endcond */
 
 static void
-_format_parser_ctx_init(FormatParserCtx *ctx)
-{
-	size_t item_size = sizeof(SListItem);
-
-	assert(ctx != NULL);
-
-	memset(ctx, 0, sizeof(FormatParserCtx));
-
- 	ctx->alloc = (Allocator *)chunk_allocator_new(item_size, 32);
-
-	stack_init(&ctx->state, &direct_compare, NULL, ctx->alloc);
-	ctx->nodes = slist_new(&direct_compare, &free, NULL);
-}
-
-static SList *
-_format_parser_ctx_detach_nodes(FormatParserCtx *ctx)
-{
-	SList *nodes;
-       
-	assert(ctx != NULL);
-
-	nodes = ctx->nodes;
-	ctx->nodes = NULL;
-
-	return nodes;
-}
-
-static void
-_format_parser_ctx_free(FormatParserCtx *ctx)
-{
-	if(ctx)
-	{
-		stack_free(&ctx->state);
-
-		if(ctx->nodes)
-		{
-			slist_destroy(ctx->nodes);
-		}
-
-		chunk_allocator_destroy((ChunkAllocator *)ctx->alloc);
-	}
-}
-
-static void
 _format_node_init(FormatNodeBase *node, FormatNodeType type_id, int32_t flags, ssize_t width, ssize_t precision)
 {
 	assert(node != NULL);
@@ -219,7 +175,7 @@ _format_parser_pop(FormatParserCtx *ctx)
 }
 
 static FormatParserStepResult
-_format_parser_begin_string(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_begin_string(FormatParserCtx *ctx, const FormatToken *token)
 {
 	assert(ctx != NULL);
 	assert(token != NULL);
@@ -231,7 +187,7 @@ _format_parser_begin_string(FormatParserCtx *ctx, FormatToken *token)
 }
 
 static FormatParserStepResult
-_format_parser_begin_width(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_begin_width(FormatParserCtx *ctx, const FormatToken *token)
 {
 	char str[128];
 
@@ -265,7 +221,7 @@ _format_parser_begin_width(FormatParserCtx *ctx, FormatToken *token)
 }
 
 static FormatParserStepResult
-_format_parser_begin_flags(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_begin_flags(FormatParserCtx *ctx, const FormatToken *token)
 {
 	assert(ctx != NULL);
 	assert(token != NULL);
@@ -276,7 +232,7 @@ _format_parser_begin_flags(FormatParserCtx *ctx, FormatToken *token)
 }
 
 static FormatParserStepResult
-_format_parser_begin_attribute(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_begin_attribute(FormatParserCtx *ctx, const FormatToken *token)
 {
 	assert(ctx != NULL);
 	assert(token != NULL);
@@ -288,7 +244,7 @@ _format_parser_begin_attribute(FormatParserCtx *ctx, FormatToken *token)
 }
 
 static FormatParserStepResult
-_format_parser_begin_date_attribute(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_begin_date_attribute(FormatParserCtx *ctx, const FormatToken *token)
 {
 	assert(ctx != NULL);
 	assert(token != NULL);
@@ -303,7 +259,7 @@ _format_parser_begin_date_attribute(FormatParserCtx *ctx, FormatToken *token)
 }
 
 static FormatParserStepResult
-_format_parser_step_none(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_step_none(FormatParserCtx *ctx, const FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_NEXT;
 
@@ -338,8 +294,135 @@ _format_parser_step_none(FormatParserCtx *ctx, FormatToken *token)
 	return result;
 }
 
+static void
+_format_parser_process_ascii_escape_seq(FormatParserCtx *ctx, const FormatToken *token)
+{
+	char buffer[4];
+	int base = 8;
+
+	memset(buffer, 0, 4);
+
+	if(token->text[1] == 'x')
+	{
+		base *= 2;
+	}
+
+	strncpy(buffer, token->text + (base / 8), token->len);
+	*ctx->tail = (char)strtol(buffer, NULL, base);
+	++ctx->tail;
+}
+
+static void
+_format_parser_process_non_ascii_escape_seq(FormatParserCtx *ctx, const FormatToken *token)
+{
+	assert(ctx != NULL);
+	assert(token != NULL);
+
+	char c = *(token->text + 1);
+
+	switch(c)
+	{
+		case 'a':
+			c = '\a';
+			break;
+
+		case 'b':
+			c = '\b';
+			break;
+
+		case 'f':
+			c = '\f';
+			break;
+
+		case 'n':
+			c = '\n';
+			break;
+
+		case 'r':
+			c = '\r';
+			break;
+
+		case 't':
+			c = '\t';
+			break;
+
+		case 'v':
+			c = '\v';
+			break;
+
+		case '0':
+			c = '\0';
+			break;
+
+		default:
+			break;
+	}
+
+	*ctx->tail = c;
+	++ctx->tail;
+}
+
 static FormatParserStepResult
-_format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_process_escape_seq(FormatParserCtx *ctx, const FormatToken *token)
+{
+	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_ABORT;
+
+	assert(ctx != NULL);
+	assert(token != NULL);
+
+	if(ctx->tail - ctx->buffer + 1 < FORMAT_TEXT_BUFFER_MAX)
+	{
+		result = FORMAT_PARSER_STEP_RESULT_NEXT;
+
+		assert(token->len >= 2 && *token->text == '\\');
+
+		if(token->len == 2 && !isdigit(token->text[1]))
+		{
+			_format_parser_process_non_ascii_escape_seq(ctx, token);
+		}
+		else if(token->len <= 4)
+		{
+			_format_parser_process_ascii_escape_seq(ctx, token);
+		}
+		else
+		{
+			fprintf(stderr, _("Unsupported escape sequence.\n"));
+		}
+	}
+	else
+	{
+		fprintf(stderr, _("String exceeds allowed maximum length.\n"));
+		result = FORMAT_PARSER_STEP_RESULT_ABORT;
+	}
+
+	return result;
+}
+
+static FormatParserStepResult
+_format_parser_process_string(FormatParserCtx *ctx, const FormatToken *token)
+{
+	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_ABORT;
+
+	assert(ctx != NULL);
+	assert(token != NULL);
+
+	if(ctx->tail - ctx->buffer + token->len < FORMAT_TEXT_BUFFER_MAX) 
+	{
+		strncat(ctx->tail, token->text, token->len);
+		ctx->tail += token->len;
+		result = FORMAT_PARSER_STEP_RESULT_NEXT;
+	}
+	else
+	{
+		fprintf(stderr, _("String exceeds allowed maximum length.\n"));
+		result = FORMAT_PARSER_STEP_RESULT_ABORT;
+	}
+
+	return result;
+}
+
+static FormatParserStepResult
+_format_parser_step_string(FormatParserCtx *ctx, const FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_CONTINUE;
 
@@ -348,97 +431,11 @@ _format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
 
 	if(token->type_id == FORMAT_TOKEN_STRING)
 	{
-		if(ctx->tail - ctx->buffer + token->len < FORMAT_TEXT_BUFFER_MAX) 
-		{
-			strncat(ctx->tail, token->text, token->len);
-			ctx->tail += token->len;
-			result = FORMAT_PARSER_STEP_RESULT_NEXT;
-		}
-		else
-		{
-			fprintf(stderr, _("String exceeds allowed maximum length.\n"));
-			result = FORMAT_PARSER_STEP_RESULT_ABORT;
-		}
+		result = _format_parser_process_string(ctx, token);
 	}
 	else if(token->type_id == FORMAT_TOKEN_ESCAPE_SEQ)
 	{
-		if(ctx->tail - ctx->buffer + 1 < FORMAT_TEXT_BUFFER_MAX)
-		{
-			result = FORMAT_PARSER_STEP_RESULT_NEXT;
-
-			assert(token->len >= 2 && *token->text == '\\');
-
-			if(token->len == 2 && !isdigit(token->text[1]))
-			{
-				char c = *(token->text + 1);
-
-				switch(c)
-				{
-					case 'a':
-						c = '\a';
-						break;
-
-					case 'b':
-						c = '\b';
-						break;
-
-					case 'f':
-						c = '\f';
-						break;
-
-					case 'n':
-						c = '\n';
-						break;
-
-					case 'r':
-						c = '\r';
-						break;
-
-					case 't':
-						c = '\t';
-						break;
-
-					case 'v':
-						c = '\v';
-						break;
-
-					case '0':
-						c = '\0';
-						break;
-
-					default:
-						break;
-				}
-
-				*ctx->tail = c;
-				++ctx->tail;
-			}
-			else if(token->len <= 4)
-			{
-				char buffer[4];
-				int base = 8;
-
-				memset(buffer, 0, 4);
-
-				if(token->text[1] == 'x')
-				{
-					base *= 2;
-				}
-
-				strncpy(buffer, token->text + (base / 8), token->len);
-				*ctx->tail = (char)strtol(buffer, NULL, base);
-				++ctx->tail;
-			}
-			else
-			{
-				fprintf(stderr, _("Unsupported escape sequence.\n"));
-			}
-		}
-		else
-		{
-			fprintf(stderr, _("String exceeds allowed maximum length.\n"));
-			result = FORMAT_PARSER_STEP_RESULT_ABORT;
-		}
+		result = _format_parser_process_escape_seq(ctx, token);
 	}
 	else
 	{
@@ -449,7 +446,74 @@ _format_parser_step_string(FormatParserCtx *ctx, FormatToken *token)
 }
 
 static FormatParserStepResult
-_format_parser_step_flag(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_process_flag(FormatParserCtx *ctx, const FormatToken *token)
+{
+	assert(ctx != NULL);
+	assert(token != NULL);
+	assert(token->len == 1);
+
+	int32_t flag = 0;
+
+	switch(*token->text)
+	{
+		case '-':
+			flag = FORMAT_PRINT_FLAG_MINUS;
+			break;
+
+		case '0':
+			flag = FORMAT_PRINT_FLAG_ZERO;
+			break;
+
+		case '#':
+			flag = FORMAT_PRINT_FLAG_HASH;
+			break;
+
+		case ' ':
+			flag = FORMAT_PRINT_FLAG_SPACE;
+			break;
+
+		case '+':
+			flag = FORMAT_PRINT_FLAG_PLUS;
+			break;
+
+		default:
+			FATALF("format", "Invalid flag: '%c'", *token->text);
+	}
+
+	ctx->flags |= flag;
+
+	return FORMAT_PARSER_STEP_RESULT_NEXT;
+}
+
+static FormatParserStepResult
+_format_parser_try_process_number(FormatParserCtx *ctx, const FormatToken *token)
+{
+	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_ABORT;
+
+	_format_parser_pop(ctx);
+
+	if(token->type_id == FORMAT_TOKEN_NUMBER)
+	{
+		result = _format_parser_begin_width(ctx, token);
+	}
+	else if(token->type_id == FORMAT_TOKEN_ATTRIBUTE)
+	{
+		result = _format_parser_begin_attribute(ctx, token);
+	}
+	else if(token->type_id == FORMAT_TOKEN_DATE_ATTRIBUTE)
+	{
+		result = _format_parser_begin_date_attribute(ctx, token);
+	}
+	else
+	{
+		result = FORMAT_PARSER_STEP_RESULT_ABORT;
+	}
+
+	return result;
+}
+
+static FormatParserStepResult
+_format_parser_step_flag(FormatParserCtx *ctx, const FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_ABORT;
 
@@ -458,66 +522,18 @@ _format_parser_step_flag(FormatParserCtx *ctx, FormatToken *token)
 
 	if(token->type_id == FORMAT_TOKEN_FLAG)
 	{
-		assert(token->len == 1);
-
-		int32_t flag = 0;
-
-		switch(*token->text)
-		{
-			case '-':
-				flag = FORMAT_PRINT_FLAG_MINUS;
-				break;
-
-			case '0':
-				flag = FORMAT_PRINT_FLAG_ZERO;
-				break;
-
-			case '#':
-				flag = FORMAT_PRINT_FLAG_HASH;
-				break;
-
-			case ' ':
-				flag = FORMAT_PRINT_FLAG_SPACE;
-				break;
-
-			case '+':
-				flag = FORMAT_PRINT_FLAG_PLUS;
-				break;
-
-			default:
-				FATALF("format", "Invalid flag: '%c'", *token->text);
-		}
-
-		ctx->flags |= flag;
-		result = FORMAT_PARSER_STEP_RESULT_NEXT;
+		result = _format_parser_process_flag(ctx, token);
 	}
 	else
 	{
-		_format_parser_pop(ctx);
-
-		if(token->type_id == FORMAT_TOKEN_NUMBER)
-		{
-			result = _format_parser_begin_width(ctx, token);
-		}
-		else if(token->type_id == FORMAT_TOKEN_ATTRIBUTE)
-		{
-			result = _format_parser_begin_attribute(ctx, token);
-		}
-		else if(token->type_id == FORMAT_TOKEN_DATE_ATTRIBUTE)
-		{
-			result = _format_parser_begin_date_attribute(ctx, token);
-		}
-		else
-		{
-			result = FORMAT_PARSER_STEP_RESULT_ABORT;
-		}
+		result = _format_parser_try_process_number(ctx, token);
 	}
 
 	return result;
 }
 
 static FormatParserStepResult
-_format_parser_step_width(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_step_width(FormatParserCtx *ctx, const FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_NEXT;
 
@@ -543,7 +559,7 @@ _format_parser_step_width(FormatParserCtx *ctx, FormatToken *token)
 }
 
 static FormatParserStepResult
-_format_parser_step_date_attribute(FormatParserCtx *ctx, FormatToken *token)
+_format_parser_step_date_attribute(FormatParserCtx *ctx, const FormatToken *token)
 {
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_CONTINUE;
 
@@ -579,8 +595,6 @@ _format_parse(FormatParserCtx *ctx, FormatLexerResult *lexer)
 	assert(ctx != NULL);
 	assert(lexer != NULL);
 	assert(lexer->success == true);
-
-	assert(ctx != NULL);
 
 	stack_push(&ctx->state, (void *)FORMAT_PARSER_STATE_NONE);
 	_format_parser_reset_cache(ctx);
@@ -641,12 +655,60 @@ _format_parse(FormatParserCtx *ctx, FormatLexerResult *lexer)
 	return success;
 }
 
+static void
+_format_parser_ctx_init(FormatParserCtx *ctx)
+{
+	size_t item_size = sizeof(SListItem);
+
+	assert(ctx != NULL);
+
+	memset(ctx, 0, sizeof(FormatParserCtx));
+
+ 	ctx->alloc = (Allocator *)chunk_allocator_new(item_size, 32);
+
+	stack_init(&ctx->state, &direct_compare, NULL, ctx->alloc);
+	ctx->nodes = slist_new(&direct_compare, &free, NULL);
+}
+
+static SList *
+_format_parser_ctx_detach_nodes(FormatParserCtx *ctx)
+{
+	SList *nodes;
+       
+	assert(ctx != NULL);
+
+	nodes = ctx->nodes;
+	ctx->nodes = NULL;
+
+	return nodes;
+}
+
+static void
+_format_parser_ctx_free(FormatParserCtx *ctx)
+{
+	assert(ctx != NULL);
+
+	if(ctx)
+	{
+		stack_free(&ctx->state);
+
+		if(ctx->nodes)
+		{
+			slist_destroy(ctx->nodes);
+		}
+
+		chunk_allocator_destroy((ChunkAllocator *)ctx->alloc);
+	}
+}
+
 FormatParserResult *
 format_parse(const char *fmt)
 {
 	FormatLexerResult *lexer;
 	FormatParserCtx ctx;
 	FormatParserResult *result;
+
+	assert(fmt != NULL);
 
 	DEBUGF("format", "Parsing format string: %s", fmt);
 
@@ -678,6 +740,8 @@ format_parse(const char *fmt)
 void
 format_parser_result_free(FormatParserResult *result)
 {
+	assert(result != NULL);
+
 	if(result)
 	{
 		if(result->nodes)
