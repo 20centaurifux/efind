@@ -684,6 +684,21 @@ _read_missing_expr_from_stdin(Options *opts)
 	}
 }
 
+static bool
+_prepare_processing(Options *opts)
+{
+	bool success = false;
+
+	_read_missing_expr_from_stdin(opts);
+
+	if(_append_missing_homedir(opts))
+	{
+		success = _validate_options(opts);
+	}
+
+	return success;
+}
+
 static void
 _append_single_search_dir(char *argv[], Options *opts)
 {
@@ -961,6 +976,10 @@ _set_locale(void)
 	gettext_init();
 }
 
+/*! @cond INTERNAL */
+#define ACTION_IS_PROCESSING_EXPRESSION(action) action == ACTION_EXEC || action == ACTION_PRINT
+/*! @endcond */
+
 /**
    @param argc number of arguments
    @param argv argument vector
@@ -986,29 +1005,20 @@ main(int argc, char *argv[])
 
 		INFOF("startup", "%s started successfully.", *argv);
 
-		bool valid = true;
+		bool run = true;
 
-		if(action == ACTION_EXEC || action == ACTION_PRINT)
+		if(ACTION_IS_PROCESSING_EXPRESSION(action))
 		{
-			_read_missing_expr_from_stdin(&opts);
-
-			if(_append_missing_homedir(&opts))
-			{
-				valid = _validate_options(&opts);
-			}
-			else
-			{
-				valid = false;
-			}
+			run = _prepare_processing(&opts);
 		}
 
-		if(valid)
+		if(run)
 		{
 			result = _run_action(action, argc, argv, &opts);
 		}
 	}
 	else
-	{
+	{ 
 		printf(_("Try '%s --help' for more information.\n"), *argv);
 	}
 
