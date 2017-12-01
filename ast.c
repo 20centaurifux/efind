@@ -80,6 +80,14 @@ ast_str_to_property_id(const char *str)
 		{
 			id = PROP_INAME;
 		}
+		else if(!strcmp(str, "regex"))
+		{
+			id = PROP_REGEX;
+		}
+		else if(!strcmp(str, "iregex"))
+		{
+			id = PROP_IREGEX;
+		}
 		else if(!strcmp(str, "atime"))
 		{
 			id = PROP_ATIME;
