@@ -51,20 +51,53 @@ generate_test_files()
 	touch -d "now - 6 days" -m ./test-data/02/20M.2
 	touch -d "now - 2 days" -a ./test-data/01/2G.1
 	touch -d "now - 5 days" -a ./test-data/02/5kb.2
+
+	# create symlinks:
+	mkdir ./test-links
+	ln -s ../test-data/00 ./test-links/00
+	ln -s ../test-data/02 ./test-links/02
+}
+
+build_extensions()
+{
+	make -C ./extensions
 }
 
 run_test()
 {
+	local script_arg=$1
+
 	# run Python script:
 	echo "Running test suite."
-        $PYTHON ./test.py
+        $PYTHON ./test.py $script_arg
 }
 
 cleanup()
 {
 	# delete generated test files:
 	echo "Deleting test files."
-	rm -fr ./test-data
+	rm -fr ./test-data ./test-links
+
+	# cleanup extensions:
+	make -C ./extensions clean
 }
 
-generate_test_files && EFIND_EXTENSION_PATH=./extensions run_test && cleanup
+function run_testsuite()
+{
+	local script_arg=$1
+
+	generate_test_files && build_extensions && run_test $script_arg && cleanup
+}
+
+case "$1" in
+	full)
+		run_testsuite
+		;;
+	without-chroot)
+		run_testsuite --without-chroot
+		;;
+	*)
+		echo $"Usage: $0 {full|without-chroot}"
+		exit 1
+		;;
+esac
