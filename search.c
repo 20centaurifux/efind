@@ -478,7 +478,14 @@ _search_parent_process(pid_t pid, int outfds[2], int errfds[2], ParserResult *re
 		{
 			if(WIFEXITED(child_status) && status == PROCESS_STATUS_OK)
 			{
-				status = PROCESS_STATUS_FINISHED;
+				if(child_status)
+				{
+					status = PROCESS_STATUS_ERROR;
+				}
+				else
+				{
+					status = PROCESS_STATUS_FINISHED;
+				}
 			}
 		}
 		else if(rc == -1)
