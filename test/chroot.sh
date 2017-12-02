@@ -78,17 +78,6 @@ function install_blacklist()
 	echo "Installed new blacklist."
 }
 
-function append_to_blacklist()
-{
-	local path=$1
-
-	if [ ! -d "$path/root/.efind" ]; then
-		mkdir "$path/root/.efind"
-	fi
-
-	echo $1 >> "$path/root/.efind/blacklist"
-}
-
 function test_settings()
 {
 	if [[ -z "$BINARY" ]]; then
