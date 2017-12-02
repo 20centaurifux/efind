@@ -85,11 +85,6 @@ function test_settings()
 		exit 1
 	fi
 
-	if [[ -z "$BINARY" ]]; then
-		echo "'efind' binary not found."
-		exit 1
-	fi
-
 	if [[ -z "$1" ]]; then
 		echo "Path to chroot directory can't be empty.'"
 		exit 1
