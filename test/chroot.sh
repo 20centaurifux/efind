@@ -1,90 +1,137 @@
-#!/bin/sh
+#!/bin/bash
+#
+#  efind test suite.
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License v3 as published by
+#  the Free Software Foundation.
+#
+#  This program is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+#  General Public License v3 for more details.
 
-CHROOT=./chroot
-BINARY=../efind
+set -e
+
+BINARY=$(which efind)
 
 function install_binary()
 {
+	local path=$1
+
 	echo "Installing efind in chroot."
 
-	cp "$BINARY" "$CHROOT/usr/bin"
+	cp "$BINARY" "$path/usr/bin"
 }
 
 function install_etc()
 {
+	local path=$1
+
 	echo "Installing /etc/efind in chroot."
 
-	mkdir -p "$CHROOT/etc/efind/extensions"
+	mkdir -p "$path/etc/efind/extensions"
 }
 
 function uninstall()
 {
+	local path=$1
+
 	echo "Removing efind from chroot."
 
-	rm -f "$CHROOT/usr/bin/efind"
-	rm -fr "$CHROOT/etc/efind"
-	rm -fr "$CHROOT/root/.efind"
+	rm -f "$path/usr/bin/efind"
+	rm -fr "$path/etc/efind"
+	rm -fr "$path/root/.efind"
 }
 
 function install_extension()
 {
-	local filename=$1
-	local location=$2
+	local path=$1
+	local filename=$2
+	local location=$3
 	local dst="/etc/efind/extensions"
 
 	if [ "$location" == "--local" ]; then
 		dst="/root/.efind/extensions"
 	fi
 
-	if [ ! -d "$CHROOT$dst" ]; then
-		mkdir -p "$CHROOT$dst"
+	if [ ! -d "$path$dst" ]; then
+		mkdir -p "$path$dst"
 	fi
 
-	cp "./extensions/$filename" "$CHROOT$dst/"
+	cp "./extensions/$filename" "$path$dst/"
 
 	echo "Installed extension '$filename' in directory '$dst'."
 }
 
 function install_blacklist()
 {
-	local filename=$1
+	local path=$1
+	local filename=$2
 
-	if [ ! -d "$CHROOT/root/.efind" ]; then
-		mkdir -p "$CHROOT/root/.efind"
+	if [ ! -d "$path/root/.efind" ]; then
+		mkdir -p "$path/root/.efind"
 	fi
 
-	cp "./$filename" "$CHROOT/root/.efind/blacklist"
+	cp "./$filename" "$path/root/.efind/blacklist"
 
 	echo "Installed new blacklist."
 }
 
 function append_to_blacklist()
 {
-	if [ ! -d "$CHROOT/root/.efind" ]; then
-		mkdir "$CHROOT/root/.efind"
+	local path=$1
+
+	if [ ! -d "$path/root/.efind" ]; then
+		mkdir "$path/root/.efind"
 	fi
 
-	echo $1 >> "$CHROOT/root/.efind/blacklist"
+	echo $1 >> "$path/root/.efind/blacklist"
 }
 
-case "$1" in
+function test_settings()
+{
+	if [[ -z "$BINARY" ]]; then
+		echo "'efind' binary not found."
+		exit 1
+	fi
+
+	if [[ -z "$BINARY" ]]; then
+		echo "'efind' binary not found."
+		exit 1
+	fi
+
+	if [[ -z "$1" ]]; then
+		echo "Path to chroot directory can't be empty.'"
+		exit 1
+	fi
+
+	if [[ ! -d "$1" ]]; then
+		echo "Path to chroot directory is invalid."
+		exit 1
+	fi
+}
+
+test_settings $1
+
+case "$2" in
 	install-binary)
-		install_binary
+		install_binary $1
 		;;
 	install-etc)
-		install_etc
+		install_etc $1
 		;;
 	install-blacklist)
-		install_blacklist $2
+		install_blacklist $1 $3
 		;;
 	uninstall)
-		uninstall
+		uninstall $1
 		;;
 	install-extension)
-		install_extension $2 $3
+		install_extension $1 $3 $4
 		;;
 	*)
-		echo $"Usage: $0 {install-binary|install-etc|install_extension|install-blacklist|uninstall}"
+		echo "No valid action specified. Supported actions are: install-binary|install-etc|install-extension|install-blacklist|uninstall"
 		exit 1
 		;;
 esac

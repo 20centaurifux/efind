@@ -11,6 +11,8 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 #  General Public License v3 for more details.
 
+set -e
+
 PYTHON=/usr/bin/python2
 
 generate_test_files()
@@ -44,14 +46,6 @@ generate_test_files()
 		truncate ./test-data/02/1G.2 -s1G
 	fi
 
-	# set timestamps:
-	find ./test-data -exec touch {} \;
-	touch -d "now - 5 days" -m ./test-data/00/1M.0
-	touch -d "now - 3 days" -m ./test-data/01/15kb.1
-	touch -d "now - 6 days" -m ./test-data/02/20M.2
-	touch -d "now - 2 days" -a ./test-data/01/2G.1
-	touch -d "now - 5 days" -a ./test-data/02/5kb.2
-
 	# create symlinks:
 	mkdir ./test-links
 	ln -s ../test-data/00 ./test-links/00
@@ -63,13 +57,24 @@ build_extensions()
 	make -C ./extensions
 }
 
-run_test()
+run_testsuite()
 {
-	local script_arg=$1
-
-	# run Python script:
 	echo "Running test suite."
-        $PYTHON ./test.py $script_arg
+
+	if [ -v CHROOT_PATH ]; then
+		if [ -d $CHROOT_PATH ]; then
+			$PYTHON ./testsuite.py --with-chroot $CHROOT_PATH
+		else
+			echo "Aborting... chroot directory '$CHROOT_PATH' not found." & exit 1
+		fi
+	else
+		$PYTHON ./testsuite.py
+	fi
+}
+
+run()
+{
+	generate_test_files && build_extensions && run_testsuite && cleanup
 }
 
 cleanup()
@@ -82,22 +87,16 @@ cleanup()
 	make -C ./extensions clean
 }
 
-function run_testsuite()
-{
-	local script_arg=$1
-
-	generate_test_files && build_extensions && run_test $script_arg && cleanup
-}
-
 case "$1" in
-	full)
-		run_testsuite
+	""|tests)
+		run
 		;;
-	without-chroot)
-		run_testsuite --without-chroot
+	cleanup)
+		cleanup
 		;;
 	*)
-		echo $"Usage: $0 {full|without-chroot}"
+		echo "Usage: ${0} {tests|cleanup}"
 		exit 1
 		;;
+
 esac

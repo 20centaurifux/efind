@@ -13,7 +13,8 @@
 	General Public License v3 for more details.
 """
 from testhelpers import *
-import unittest, random, os, os.path, shutil, sys, stat
+from getopt import getopt
+import unittest, inspect, random, os, os.path, shutil, sys, stat
 
 class InvalidArgs(unittest.TestCase):
     def test_invalid_args(self):
@@ -24,16 +25,16 @@ class InvalidArgs(unittest.TestCase):
 
 class PrintInfo(unittest.TestCase):
     def test_print_version(self):
-        self.__run_long_and_short_option__("--version", "-v")
-        self.__run_long_and_short_option__("--version", "-v", optional_args=self.__make_log_level_argv__())
-        self.__run_long_and_short_option__("--version", "-v", optional_args=self.__make_log_level_argv_with_color__())
+        self.__run_long_and_short_option("--version", "-v")
+        self.__run_long_and_short_option("--version", "-v", optional_args=self.__make_log_level_argv())
+        self.__run_long_and_short_option("--version", "-v", optional_args=self.__make_log_level_argv_with_color())
 
     def test_print_help(self):
-        self.__run_long_and_short_option__("--help", "-h")
-        self.__run_long_and_short_option__("--help", "-h", optional_args=self.__make_log_level_argv__())
-        self.__run_long_and_short_option__("--help", "-h", optional_args=self.__make_log_level_argv_with_color__())
+        self.__run_long_and_short_option("--help", "-h")
+        self.__run_long_and_short_option("--help", "-h", optional_args=self.__make_log_level_argv())
+        self.__run_long_and_short_option("--help", "-h", optional_args=self.__make_log_level_argv_with_color())
 
-    def __run_long_and_short_option__(self, arg_long, arg_short, optional_args=[]):
+    def __run_long_and_short_option(self, arg_long, arg_short, optional_args=[]):
         returncode, output_long = run_executable_and_split_output("efind", [arg_long] + optional_args)
         assert(returncode == 0)
 
@@ -42,13 +43,13 @@ class PrintInfo(unittest.TestCase):
 
         assert_sequence_equality(output_long, output_short)
 
-    def __make_log_level_argv__(self):
+    def __make_log_level_argv(self):
         return ["--log-level=%d" % random.randint(0, 6)]
 
-    def __make_log_level_argv_with_color__(self):
-        return ["--enable-log-color"] + self.__make_log_level_argv__()
+    def __make_log_level_argv_with_color(self):
+        return ["--enable-log-color"] + self.__make_log_level_argv()
 
-class AttributeTester():
+class AttributeTester:
     def __init__(self, search_dir):
         self.__search_dir = search_dir
 
@@ -94,8 +95,8 @@ class AttributeTester():
         returncode, _ = run_executable("efind", [self.__search_dir, '%s' % attr])
         assert(returncode ==  expected_code)
 
-class AssertSearch():
-    def __assert_search__(self, args, expected_files):
+class AssertSearch:
+    def assert_search(self, args, expected_files):
         returncode, output = run_executable_and_split_output("efind", args)
 
         assert(returncode == 0)
@@ -103,10 +104,10 @@ class AssertSearch():
 
 class FileNameAttributes(unittest.TestCase, AssertSearch):
     def test_name(self):
-        self.__assert_search__(['./test-data', 'name="*720b.2*"'], ["./test-data/02/720b.2"])
+        self.assert_search(['./test-data', 'name="*720b.2*"'], ["./test-data/02/720b.2"])
 
     def test_iname(self):
-        self.__assert_search__(['./test-data', 'iname="*2?m*"'], ["./test-data/00/20M.0", "./test-data/02/20M.2"])
+        self.assert_search(['./test-data', 'iname="*2?m*"'], ["./test-data/00/20M.0", "./test-data/02/20M.2"])
 
     def test_invalid_values(self):
         t = AttributeTester("./test-data")
@@ -127,33 +128,33 @@ class TimeAttributes(unittest.TestCase, AssertSearch):
 
         for offset in [-5, -3, -2]:
             self.__create_file("atime-%c" % chr(character), offset * interval, 0)
-            interval = self.__next_interval__(interval)
+            interval = self.__next_interval(interval)
             character += 1
 
         for offset in [-3, -2, -6]:
             self.__create_file("mtime-%c" % chr(character), 0, offset * interval)
-            interval = self.__next_interval__(interval)
+            interval = self.__next_interval(interval)
             character += 1
 
     def tearDown(self):
         shutil.rmtree("./test-time")
 
     def test_atime(self):
-        self.__assert_search__(['./test-time', 'atime>=5 minutes and atime<1hour"'], ['./test-time/atime-a'])
-        self.__assert_search__(['./test-time', 'atime>=3 hours and atime<1day"'], ['./test-time/atime-b'])
-        self.__assert_search__(['./test-time', 'atime>=2 days'], ['./test-time/atime-c'])
+        self.assert_search(['./test-time', 'atime>=5 minutes and atime<1hour"'], ['./test-time/atime-a'])
+        self.assert_search(['./test-time', 'atime>=3 hours and atime<1day"'], ['./test-time/atime-b'])
+        self.assert_search(['./test-time', 'atime>=2 days'], ['./test-time/atime-c'])
 
     def test_mtime(self):
-        self.__assert_search__(['./test-time', 'mtime<=4 minutes and mtime>1minute"'], ['./test-time/mtime-d'])
-        self.__assert_search__(['./test-time', 'mtime<=3 hours and mtime>1hour"'], ['./test-time/mtime-e'])
-        self.__assert_search__(['./test-time', 'mtime<=7 days and mtime>1day"'], ['./test-time/mtime-f'])
+        self.assert_search(['./test-time', 'mtime<=4 minutes and mtime>1minute"'], ['./test-time/mtime-d'])
+        self.assert_search(['./test-time', 'mtime<=3 hours and mtime>1hour"'], ['./test-time/mtime-e'])
+        self.assert_search(['./test-time', 'mtime<=7 days and mtime>1day"'], ['./test-time/mtime-f'])
 
     def test_ctime(self):
-        self.__assert_search__(['./test-time', 'type=file and ctime<=1minute and ctime<2hours and ctime<= 1day'],
+        self.assert_search(['./test-time', 'type=file and ctime<=1minute and ctime<2hours and ctime<= 1day'],
                                ['./test-time/atime-a', './test-time/atime-b', './test-time/atime-c',
                                 './test-time/mtime-d', './test-time/mtime-e', './test-time/mtime-f'])
 
-        self.__assert_search__(['./test-time', 'type=file and ctime<=0'], [])
+        self.assert_search(['./test-time', 'type=file and ctime<=0'], [])
 
     def test_invalid_values(self):
         t = AttributeTester("./test-data")
@@ -176,7 +177,7 @@ class TimeAttributes(unittest.TestCase, AssertSearch):
 
         os.utime(path, (atime, mtime))
 
-    def __next_interval__(self, interval):
+    def __next_interval(self, interval):
         if interval == 60:
             interval *= 60
         elif interval == 60 * 60:
@@ -188,30 +189,30 @@ class TimeAttributes(unittest.TestCase, AssertSearch):
 
 class RegexAttributes(unittest.TestCase, AssertSearch):
     def test_regex(self):
-        self.__assert_search__(['./test-data', 'regex="\./test.*M\.[1-2]"'],
-                               ["./test-data/01/5M.1", "./test-data/02/5M.2", "./test-data/02/20M.2"])
+        self.assert_search(['./test-data', 'regex="\./test.*M\.[1-2]"'],
+                             ["./test-data/01/5M.1", "./test-data/02/5M.2", "./test-data/02/20M.2"])
 
-        self.__assert_search__(['./test-data', 'regex="\./test.*M\.[1-2]"', '--regex-type', "emacs"],
-                               ["./test-data/01/5M.1", "./test-data/02/5M.2", "./test-data/02/20M.2"])
+        self.assert_search(['./test-data', 'regex="\./test.*M\.[1-2]"', '--regex-type', "emacs"],
+                             ["./test-data/01/5M.1", "./test-data/02/5M.2", "./test-data/02/20M.2"])
     def test_iregex(self):
-        self.__assert_search__(['./test-data', 'iregex="\./TEST.*m\.[1-2]"'],
-                               ["./test-data/01/5M.1", "./test-data/02/5M.2", "./test-data/02/20M.2"])
+        self.assert_search(['./test-data', 'iregex="\./TEST.*m\.[1-2]"'],
+                             ["./test-data/01/5M.1", "./test-data/02/5M.2", "./test-data/02/20M.2"])
 
-        self.__assert_search__(['./test-data', 'iregex="\./TEST.*m\.[1-2]"', '--regex-type', "emacs"],
-                               ["./test-data/01/5M.1", "./test-data/02/5M.2", "./test-data/02/20M.2"])
+        self.assert_search(['./test-data', 'iregex="\./TEST.*m\.[1-2]"', '--regex-type', "emacs"],
+                             ["./test-data/01/5M.1", "./test-data/02/5M.2", "./test-data/02/20M.2"])
 
     def test_regex_types(self):
         for regex_type in ["awk", "emacs", "gnu-awk", "egrep", "posix-awk", "posix-egrep", "posix-extended"]:
-            self.__assert_search__(['./test-data', 'regex="^\./test\-dat[a|b|c].*2+G\.[0-2]$"', '--regex-type', regex_type],
-                                   ["./test-data/01/2G.1"])
+            self.assert_search(['./test-data', 'regex="^\./test\-dat[a|b|c].*2+G\.[0-2]$"', '--regex-type', regex_type],
+                                 ["./test-data/01/2G.1"])
 
         for regex_type in ["ed", "grep", "sed", "posix-minimal-basic"]:
-            self.__assert_search__(['./test-data', 'regex="^\./test\-dat[a|b|c].*2+G\.[0-2]$"', '--regex-type', regex_type],
-                                   [])
+            self.assert_search(['./test-data', 'regex="^\./test\-dat[a|b|c].*2+G\.[0-2]$"', '--regex-type', regex_type],
+                                 [])
 
         for regex_type in ["awk", "ed", "egrep", "emacs", "grep", "gnu-awk", "posix-awk", "posix-egrep", "posix-extended", "posix-minimal-basic", "sed"]:
-            self.__assert_search__(['./test-data', 'regex=".*\.1"', '--regex-type', regex_type],
-                                   ["./test-data/01/2G.1", "./test-data/01/5M.1", "./test-data/01/15kb.1", "./test-data/01/5b.1", "./test-data/01/10kb.1"])
+            self.assert_search(['./test-data', 'regex=".*\.1"', '--regex-type', regex_type],
+                                 ["./test-data/01/2G.1", "./test-data/01/5M.1", "./test-data/01/15kb.1", "./test-data/01/5b.1", "./test-data/01/10kb.1"])
 
     def test_unsupported_regex_type(self):
         returncode, _ = run_executable_and_split_output("efind", ['./test-data', 'regex=".*\.1"', '--regex-type', random_string()])
@@ -229,50 +230,50 @@ class RegexAttributes(unittest.TestCase, AssertSearch):
 
 class FileSizeAttribute(unittest.TestCase, AssertSearch):
     def test_nounit(self):
-        self.__assert_search__(['./test-data', 'type=file and size<1'], [])
+        self.assert_search(['./test-data', 'type=file and size<1'], [])
 
-        self.__assert_search__(['./test-data', 'type=file and size>5 and size<1000'],
-                               ["./test-data/00/100b.0", "./test-data/02/720b.2"])
+        self.assert_search(['./test-data', 'type=file and size>5 and size<1000'],
+                             ["./test-data/00/100b.0", "./test-data/02/720b.2"])
 
-        self.__assert_search__(['./test-data', 'type=file and size=5'],
-                               ["./test-data/01/5b.1"])
+        self.assert_search(['./test-data', 'type=file and size=5'],
+                             ["./test-data/01/5b.1"])
 
     def test_byte(self):
-        self.__assert_search__(['./test-data', 'type=file and size=720b'],
-                               ["./test-data/02/720b.2"])
+        self.assert_search(['./test-data', 'type=file and size=720b'],
+                             ["./test-data/02/720b.2"])
 
-        self.__assert_search__(['./test-data', 'type=file and size>=720byte and size<=1024 bytes'],
-                               ["./test-data/00/1kb.0", "./test-data/02/720b.2"])
+        self.assert_search(['./test-data', 'type=file and size>=720byte and size<=1024 bytes'],
+                             ["./test-data/00/1kb.0", "./test-data/02/720b.2"])
 
     def test_kilobyte(self):
-        self.__assert_search__(['./test-data', 'type=file and size=1kb'],
-                               ["./test-data/00/1kb.0"])
+        self.assert_search(['./test-data', 'type=file and size=1kb'],
+                             ["./test-data/00/1kb.0"])
 
-        self.__assert_search__(['./test-data', 'type=file and size>=1k and size <= 5 kilobytes'],
-                               ["./test-data/00/5kb.0", "./test-data/00/1kb.0", "./test-data/02/5kb.2"])
+        self.assert_search(['./test-data', 'type=file and size>=1k and size <= 5 kilobytes'],
+                             ["./test-data/00/5kb.0", "./test-data/00/1kb.0", "./test-data/02/5kb.2"])
 
-        self.__assert_search__(['./test-data', 'type=file and size =1kilobyte'],
-                               ["./test-data/00/1kb.0"])
+        self.assert_search(['./test-data', 'type=file and size =1kilobyte'],
+                             ["./test-data/00/1kb.0"])
 
     def test_megabyte(self):
-        self.__assert_search__(['./test-data', 'type=file and size=1M'],
-                               ["./test-data/00/1M.0"])
+        self.assert_search(['./test-data', 'type=file and size=1M'],
+                             ["./test-data/00/1M.0"])
 
-        self.__assert_search__(['./test-data',  'type=file and size>5mb and size <= 20megabytes'],
-                               ["./test-data/00/20M.0", "./test-data/02/20M.2"])
+        self.assert_search(['./test-data',  'type=file and size>5mb and size <= 20megabytes'],
+                             ["./test-data/00/20M.0", "./test-data/02/20M.2"])
 
-        self.__assert_search__(['./test-data',  'type=file and size>1 megabyte and size <= 5M'],
-                               ["./test-data/01/5M.1", "./test-data/02/5M.2"])
+        self.assert_search(['./test-data',  'type=file and size>1 megabyte and size <= 5M'],
+                             ["./test-data/01/5M.1", "./test-data/02/5M.2"])
 
     def test_gigabyte(self):
-        self.__assert_search__(['./test-data', 'type=file and size=1G'],
-                               ["./test-data/00/1G.0", "./test-data/02/1G.2"])
+        self.assert_search(['./test-data', 'type=file and size=1G'],
+                             ["./test-data/00/1G.0", "./test-data/02/1G.2"])
 
-        self.__assert_search__(['./test-data', 'type=file and size>1gigabyte and size <= 5 gb'],
-                               ["./test-data/01/2G.1"])
+        self.assert_search(['./test-data', 'type=file and size>1gigabyte and size <= 5 gb'],
+                             ["./test-data/01/2G.1"])
 
-        self.__assert_search__(['./test-data',  'type=file and size = 2 gigabytes'],
-                               ["./test-data/01/2G.1"])
+        self.assert_search(['./test-data',  'type=file and size = 2 gigabytes'],
+                             ["./test-data/01/2G.1"])
 
     def test_invalid_values(self):
         t = AttributeTester("./test-data")
@@ -284,18 +285,18 @@ class FileSizeAttribute(unittest.TestCase, AssertSearch):
 
 class FileGroupAttributes(unittest.TestCase, AssertSearch):
     def test_group(self):
-        self.__assert_search__(['test-data', 'group="%s" and name="*5M*.2"' % run_id("-gn")],
-                               ["test-data/02/5M.2"])
+        self.assert_search(['test-data', 'group="%s" and name="*5M*.2"' % run_id("-gn")],
+                             ["test-data/02/5M.2"])
 
         returncode, _ = run_executable("efind", ['test-data', 'group="%s"' % random_string()])
         assert(returncode == 1)
 
     def test_gid(self):
-        self.__assert_search__(['test-data', 'gid=%s and name="*20M*.2"' % run_id("-g")],
-                               ["test-data/02/20M.2"])
+        self.assert_search(['test-data', 'gid=%s and name="*20M*.2"' % run_id("-g")],
+                             ["test-data/02/20M.2"])
 
-        self.__assert_search__(['test-data', 'gid=%s and name="*20M*.2"' % random.randint(999999, 9999999)],
-                               [])
+        self.assert_search(['test-data', 'gid=%s and name="*20M*.2"' % random.randint(999999, 9999999)],
+                             [])
 
     def test_invalid_values(self):
         t = AttributeTester("./test-data")
@@ -311,17 +312,17 @@ class FileGroupAttributes(unittest.TestCase, AssertSearch):
 
 class FileUserAttributes(unittest.TestCase, AssertSearch):
     def test_user(self):
-        self.__assert_search__(['test-data', 'size=1G and user="%s"' % run_id("-un")],
-                               ["test-data/00/1G.0", "test-data/02/1G.2"])
+        self.assert_search(['test-data', 'size=1G and user="%s"' % run_id("-un")],
+                             ["test-data/00/1G.0", "test-data/02/1G.2"])
 
         returncode, _ = run_executable("efind", ['test-data', 'user="%s"' % random_string()])
         assert(returncode == 1)
 
     def test_uid(self):
-        self.__assert_search__(['test-data', 'size=1G and uid=%s' % run_id("-u")],
-                               ["test-data/00/1G.0", "test-data/02/1G.2"])
+        self.assert_search(['test-data', 'size=1G and uid=%s' % run_id("-u")],
+                             ["test-data/00/1G.0", "test-data/02/1G.2"])
 
-        self.__assert_search__(['test-data', 'uid=%d' % random.randint(99999, 9999999)], [])
+        self.assert_search(['test-data', 'uid=%d' % random.randint(99999, 9999999)], [])
 
     def test_invalid_values(self):
         t = AttributeTester("./test-data")
@@ -339,42 +340,42 @@ class FileFlags(unittest.TestCase, AssertSearch):
     def setUp(self):
         os.mkdir("./test-flags")
 
-        self.__make_empty_file__("empty")
+        self.__make_empty_file("empty")
 
-        with open(self.__build_filename__("not-empty"), "w") as f:
+        with open(self.__build_filename("not-empty"), "w") as f:
             f.write(random_string())
 
-        self.__make_empty_file__("readonly", 0400)
-        self.__make_empty_file__("writeonly", 0200)
-        self.__make_empty_file__("executable", 0100)
+        self.__make_empty_file("readonly", 0400)
+        self.__make_empty_file("writeonly", 0200)
+        self.__make_empty_file("executable", 0100)
 
     def tearDown(self):
         shutil.rmtree("./test-flags")
 
     def test_readable(self):
-        self.__assert_search__(['./test-flags', 'type=file and readable'],
-                               ["./test-flags/readonly", "./test-flags/not-empty", "./test-flags/empty"])
+        self.assert_search(['./test-flags', 'type=file and readable'],
+                             ["./test-flags/readonly", "./test-flags/not-empty", "./test-flags/empty"])
 
     def test_writable(self):
-        self.__assert_search__(['./test-flags', 'type=file and writable'],
-                               ["./test-flags/writeonly", "./test-flags/not-empty", "./test-flags/empty"])
+        self.assert_search(['./test-flags', 'type=file and writable'],
+                             ["./test-flags/writeonly", "./test-flags/not-empty", "./test-flags/empty"])
 
     def test_executable(self):
-        self.__assert_search__(['./test-flags', 'type=file and executable'],
-                               ["./test-flags/executable"])
+        self.assert_search(['./test-flags', 'type=file and executable'],
+                             ["./test-flags/executable"])
 
     def test_empty(self):
-        self.__assert_search__(['./test-flags', 'type=file and empty'],
-                               ["./test-flags/writeonly", "./test-flags/readonly", "./test-flags/executable", "./test-flags/empty"])
+        self.assert_search(['./test-flags', 'type=file and empty'],
+                             ["./test-flags/writeonly", "./test-flags/readonly", "./test-flags/executable", "./test-flags/empty"])
 
-        self.__assert_search__(['./test-flags', 'type=file and not empty'],
-                               ["./test-flags/not-empty"])
+        self.assert_search(['./test-flags', 'type=file and not empty'],
+                             ["./test-flags/not-empty"])
 
-    def __build_filename__(self, name):
+    def __build_filename(self, name):
         return os.path.join("./test-flags", name)
 
-    def __make_empty_file__(self, name, permissions=None):
-        path = self.__build_filename__(name)
+    def __make_empty_file(self, name, permissions=None):
+        path = self.__build_filename(name)
 
         open(path, "w").close()
 
@@ -383,28 +384,28 @@ class FileFlags(unittest.TestCase, AssertSearch):
 
 class FileTypeAttribute(unittest.TestCase, AssertSearch):
     def test_regular_file(self):
-        self.__assert_search__(["./test-data", "type=file and size=2G"],
-                               ["./test-data/01/2G.1"])
+        self.assert_search(["./test-data", "type=file and size=2G"],
+                             ["./test-data/01/2G.1"])
 
     def test_directory(self):
-        self.__assert_search__(["./test-data", "type=directory"],
-                               ["./test-data", "./test-data/00", "./test-data/01", "./test-data/02"])
+        self.assert_search(["./test-data", "type=directory"],
+                             ["./test-data", "./test-data/00", "./test-data/01", "./test-data/02"])
 
     def test_links(self):
-        self.__assert_search__(["./test-links", "type=link"],
-                               ["./test-links/00", "./test-links/02"])
+        self.assert_search(["./test-links", "type=link"],
+                             ["./test-links/00", "./test-links/02"])
 
     def test_block(self):
-        self.__assert_search__(["./test-data", "type=block"], [])
+        self.assert_search(["./test-data", "type=block"], [])
 
     def test_character(self):
-        self.__assert_search__(["./test-data", "type=character"], [])
+        self.assert_search(["./test-data", "type=character"], [])
 
     def test_pipe(self):
-        self.__assert_search__(["./test-data", "type=pipe"], [])
+        self.assert_search(["./test-data", "type=pipe"], [])
 
     def test_socket(self):
-        self.__assert_search__(["./test-data", "type=socket"], [])
+        self.assert_search(["./test-data", "type=socket"], [])
 
     def test_invalid_values(self):
         t = AttributeTester("./test-data")
@@ -417,7 +418,7 @@ class FileTypeAttribute(unittest.TestCase, AssertSearch):
 
 class FileSystemAttribute(unittest.TestCase, AssertSearch):
     def test_filesystem(self):
-        self.__assert_search__(['./test-data', 'filesystem="%s"' % random_string()], [])
+        self.assert_search(['./test-data', 'filesystem="%s"' % random_string()], [])
 
     def test_invalid_values(self):
         t = AttributeTester("./test-data")
@@ -430,32 +431,32 @@ class FileSystemAttribute(unittest.TestCase, AssertSearch):
 
 class SearchSingleDirectory(unittest.TestCase, AssertSearch):
     def test_search(self):
-        self.__assert_search__(['--expr', 'size=720', '--dir', 'test-data'],
-                               ["test-data/02/720b.2"])
+        self.assert_search(['--expr', 'size=720', '--dir', 'test-data'],
+                             ["test-data/02/720b.2"])
 
-        self.__assert_search__(['-e', 'size>=720 and size<=5k and type=file', '-d', './test-data'],
-                               ["./test-data/00/1kb.0", "./test-data/00/5kb.0", "./test-data/02/5kb.2", "./test-data/02/720b.2"])
+        self.assert_search(['-e', 'size>=720 and size<=5k and type=file', '-d', './test-data'],
+                             ["./test-data/00/1kb.0", "./test-data/00/5kb.0", "./test-data/02/5kb.2", "./test-data/02/720b.2"])
 
-        self.__assert_search__(['test-data', 'type=file and size<=100b and group="%s"' % (run_id('-gn'))],
-                               ["test-data/00/100b.0", "test-data/01/5b.1"])
+        self.assert_search(['test-data', 'type=file and size<=100b and group="%s"' % (run_id('-gn'))],
+                             ["test-data/00/100b.0", "test-data/01/5b.1"])
 
-        self.__assert_search__(['./test-data', '-e','type=file and size=5M or (size>=1G and name="*.1")'],
-                               ["./test-data/01/2G.1", "./test-data/01/5M.1", "./test-data/02/5M.2"])
+        self.assert_search(['./test-data', '-e','type=file and size=5M or (size>=1G and name="*.1")'],
+                             ["./test-data/01/2G.1", "./test-data/01/5M.1", "./test-data/02/5M.2"])
 
     def test_max_depth(self):
-        self.__assert_search__(['./test-data', '-e','size=5M or (size>=1G and name="*.1")', '--max-depth', '3'],
-                               ["./test-data/01/2G.1", "./test-data/01/5M.1", "./test-data/02/5M.2"])
+        self.assert_search(['./test-data', '-e','size=5M or (size>=1G and name="*.1")', '--max-depth', '3'],
+                             ["./test-data/01/2G.1", "./test-data/01/5M.1", "./test-data/02/5M.2"])
 
-        self.__assert_search__(['./test-data', '-e','size=5M or (size>=1G and name="*.1")', '--max-depth=1'], [])
+        self.assert_search(['./test-data', '-e','size=5M or (size>=1G and name="*.1")', '--max-depth=1'], [])
 
     def test_follow_links(self):
-        self.__assert_search__(['./test-links', '-e','size=5M or (size>=1G and name="*.1")', '-L'],
-                               ["./test-links/02/5M.2"])
+        self.assert_search(['./test-links', '-e','size=5M or (size>=1G and name="*.1")', '-L'],
+                             ["./test-links/02/5M.2"])
 
-        self.__assert_search__(['./test-links/', 'size=1G', '--follow'],
-                               ["./test-links/00/1G.0", "./test-links/02/1G.2"])
+        self.assert_search(['./test-links/', 'size=1G', '--follow'],
+                             ["./test-links/00/1G.0", "./test-links/02/1G.2"])
 
-        self.__assert_search__(['./test-links/', 'size=1G'], [])
+        self.assert_search(['./test-links/', 'size=1G'], [])
 
     def test_invalid_dir(self):
         length = 64
@@ -539,30 +540,51 @@ class SearchMultipleDirectories(unittest.TestCase):
         assert(returncode == 1)
 
 class ChangeRoot:
-    def __run_chroot_script__(self, args):
-        returncode, _ = run_executable("sudo", ["./chroot.sh"] + args)
-        assert(returncode == 0)
+    def run_chroot_script(self, args):
+        path = self.__get_chroot_path()
 
-    def __run_in_chroot__(self, cmd, args=[]):
-        return run_executable_and_split_output("sudo", ["chroot", "./chroot"] + [cmd] + args)
+        returncode, _ = run_executable("sudo", ['./chroot.sh', path] + args)
+
+        if returncode != 0:
+            raise AssertionError("chroot.sh failed")
+
+    def run_in_chroot(self, cmd, args=[]):
+        path = self.__get_chroot_path()
+
+        return run_executable_and_split_output("sudo", ["chroot", path] + [cmd] + args)
+
+    def __get_chroot_path(self):
+        path = None
+
+        options = parse_argv()
+
+        if "--with-chroot" in options:
+            path = options["--with-chroot"]
+
+            if not os.path.isdir(path):
+                raise Exception("chroot directory '%s' not found." % path)
+        else:
+                raise Exception("chroot directory not specified.")
+
+        return path
 
 class ListExtensions(unittest.TestCase, ChangeRoot):
     def setUp(self):
-        self.__run_chroot_script__(["install-binary"])
+        self.run_chroot_script(["install-binary"])
 
     def tearDown(self):
-        self.__run_chroot_script__(["uninstall"])
+        self.run_chroot_script(["uninstall"])
 
     def test_list_extensions_no_installed_no_etc(self):
-        returncode, output = self.__run_in_chroot__("efind", ["--list-extensions"])
+        returncode, output = self.run_in_chroot("efind", ["--list-extensions"])
 
         assert(returncode == 0)
         assert(len(output) == 1)
 
     def test_list_extensions_no_installed_with_etc(self):
-        self.__run_chroot_script__(["install-etc"])
+        self.run_chroot_script(["install-etc"])
 
-        returncode, output = self.__run_in_chroot__("efind", ["--list-extensions"])
+        returncode, output = self.run_in_chroot("efind", ["--list-extensions"])
 
         assert(returncode == 0)
         assert(len(output) == 0)
@@ -580,9 +602,9 @@ class ListExtensions(unittest.TestCase, ChangeRoot):
         self.__install_and_list_extension("c-test.so", "--global", self.__build_c_extension_description__)
 
     def __install_and_list_extension(self, filename, location, builder):
-        self.__run_chroot_script__(["install-extension", filename, location])
+        self.run_chroot_script(["install-extension", filename, location])
 
-        returncode, output = self.__run_in_chroot__("efind", ["--list-extensions"])
+        returncode, output = self.run_in_chroot("efind", ["--list-extensions"])
 
         assert(returncode == 0)
 
@@ -625,48 +647,63 @@ class EnvExtensionPath(unittest.TestCase):
 
 class Blacklist(unittest.TestCase, ChangeRoot):
     def setUp(self):
-        self.__run_chroot_script__(["install-binary"])
-        self.__run_chroot_script__(["install-extension", "c-test.so", "--global"])
-        self.__run_chroot_script__(["install-extension", "py-test.py", "--local"])
+        self.run_chroot_script(["install-binary"])
+        self.run_chroot_script(["install-extension", "c-test.so", "--global"])
+        self.run_chroot_script(["install-extension", "py-test.py", "--local"])
 
     def tearDown(self):
-        self.__run_chroot_script__(["uninstall"])
+        self.run_chroot_script(["uninstall"])
 
     def test_empty_blacklist(self):
-        self.__test_blacklist__(["/etc/efind/extensions/c-test.so", "/root/.efind/extensions/py-test.py"])
+        self.__test_blacklist(["/etc/efind/extensions/c-test.so", "/root/.efind/extensions/py-test.py"])
 
     def test_global_blacklist(self):
-        self.__run_chroot_script__(["install-blacklist", "blacklist-noetc"])
-        self.__test_blacklist__(["/root/.efind/extensions/py-test.py"], ["/etc/efind/extensions/c-test.so"])
+        self.run_chroot_script(["install-blacklist", "blacklist-noetc"])
+        self.__test_blacklist(["/root/.efind/extensions/py-test.py"], ["/etc/efind/extensions/c-test.so"])
 
     def test_local_blacklist(self):
-        self.__run_chroot_script__(["install-blacklist", "blacklist-nolocal"])
-        self.__test_blacklist__(["/etc/efind/extensions/c-test.so"], ["/root/.efind/extensions/py-test.py"])
+        self.run_chroot_script(["install-blacklist", "blacklist-nolocal"])
+        self.__test_blacklist(["/etc/efind/extensions/c-test.so"], ["/root/.efind/extensions/py-test.py"])
 
-    def __test_blacklist__(self, installed, blacklisted=[]):
-        returncode, output = self.__run_in_chroot__("efind", ["--list-extensions"])
-        output = self.__filter_output__(output)
+    def __test_blacklist(self, installed, blacklisted=[]):
+        returncode, output = self.run_in_chroot("efind", ["--list-extensions"])
+        output = self.__filter_output(output)
 
         assert(returncode == 0)
         assert_sequence_equality(output, installed)
 
-        returncode, output = self.__run_in_chroot__("efind", ["--show-blacklist"])
+        returncode, output = self.run_in_chroot("efind", ["--show-blacklist"])
  
         assert(returncode == 0)
         assert_sequence_equality(output, blacklisted)
 
-    def __filter_output__(self, output):
+    def __filter_output(self, output):
         return filter(lambda l: l[0] != '\t', output)
 
+def get_test_cases():
+    mod = sys.modules[__name__]
+
+    attrs = map(lambda k: getattr(mod, k), dir(mod))
+
+    return filter(lambda attr: inspect.isclass(attr) and issubclass(attr, unittest.TestCase), attrs)
+
+def parse_argv():
+    opts, _ = getopt(sys.argv[1:], [], ["with-chroot="])
+
+    return {k: v for k,v in opts}
+
 if __name__ == "__main__":
-    cases = [InvalidArgs, PrintInfo, TimeAttributes, RegexAttributes, FileNameAttributes,
-             FileSizeAttribute, FileFlags, FileTypeAttribute, FileSystemAttribute,
-             SearchSingleDirectory, SearchMultipleDirectories, ListExtensions, EnvExtensionPath,
-             Blacklist]
- 
-    if "--without-chroot" in sys.argv:
+    cases = get_test_cases()
+
+    options = parse_argv()
+
+    if not "--with-chroot" in options:
         cases = filter(lambda c: not issubclass(c, ChangeRoot), cases)
 
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+
     for case in cases:
-        suite = unittest.TestLoader().loadTestsFromTestCase(case)
-        unittest.TextTestRunner().run(suite)
+        suite.addTest(loader.loadTestsFromTestCase(case))
+
+    unittest.TextTestRunner().run(suite)
