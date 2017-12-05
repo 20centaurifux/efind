@@ -548,83 +548,72 @@ class SearchMultipleDirectories(unittest.TestCase):
 
         assert(returncode == 1)
 
-class ChangeRoot:
-    def run_chroot_script(self, args):
-        path = self.__get_chroot_path()
+class FakeDirTest(unittest.TestCase):
+    def __init__(self, name, **kwargs):
+        unittest.TestCase.__init__(self, name, **kwargs)
 
-        returncode, _ = run_executable("sudo", ['./chroot.sh', path] + args)
+        self.global_path = "./fake-dirs/libdir/efind/extensions"
+        self.local_path = "./fake-dirs/home/.efind/extensions"
 
-        if returncode != 0:
-            raise AssertionError("chroot.sh failed")
-
-    def run_in_chroot(self, cmd, args=[]):
-        path = self.__get_chroot_path()
-
-        return run_executable_and_split_output("sudo", ["chroot", path] + [cmd] + args)
-
-    def __get_chroot_path(self):
-        path = None
-
-        options = parse_argv()
-
-        if "--with-chroot" in options:
-            path = options["--with-chroot"]
-
-            if not os.path.isdir(path):
-                raise Exception("chroot directory '%s' not found." % path)
-        else:
-                raise Exception("chroot directory not specified.")
-
-        return path
-
-class ListExtensions(unittest.TestCase, ChangeRoot):
     def setUp(self):
-        self.run_chroot_script(["install-binary"])
+        self.__home = os.environ["HOME"]
+
+        os.mkdir("./fake-dirs")
+        os.makedirs("./fake-dirs/libdir/efind/extensions")
+        os.makedirs("./fake-dirs/home/.efind/extensions")
+
+        os.environ["EFIND_LIBDIR"] = "./fake-dirs/libdir"
+        os.environ["HOME"] = "./fake-dirs/home"
 
     def tearDown(self):
-        self.run_chroot_script(["uninstall"])
+        os.environ["HOME"] = self.__home
+        shutil.rmtree("./fake-dirs")
+        del os.environ["EFIND_LIBDIR"]
 
-    def test_list_extensions_no_installed_no_etc(self):
-        returncode, output = self.run_in_chroot("efind", ["--list-extensions"])
+    def copy_extension(self, filename, destination):
+        shutil.copy(os.path.join("./extensions", filename), destination)
+
+class ListExtensions(FakeDirTest):
+    def __init__(self, name, **kwargs):
+        FakeDirTest.__init__(self, name, **kwargs)
+
+    def _test_list_no_extensions(self):
+        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
 
         assert(returncode == 0)
         assert(len(output) == 1)
 
-    def test_list_extensions_no_installed_with_etc(self):
-        self.run_chroot_script(["install-etc"])
+    def test_list_local_installed_py_extension(self):
+        self.__install_and_list_extension("py-test.py", self.local_path, self.__build_py_extension_description)
 
-        returncode, output = self.run_in_chroot("efind", ["--list-extensions"])
+    def test_list_global_installed_py_extension(self):
+        self.__install_and_list_extension("py-test.py", self.global_path, self.__build_py_extension_description)
 
-        assert(returncode == 0)
-        assert(len(output) == 0)
+    def test_list_local_installed_so_extension(self):
+        self.__install_and_list_extension("c-test.so", self.local_path, self.__build_so_extension_description)
 
-    def test_list_locally_installed_py_extension(self):
-        self.__install_and_list_extension("py-test.py", "--local", self.__build_py_extension_description__)
+    def test_list_global_installed_so_extension(self):
+        self.__install_and_list_extension("c-test.so", self.global_path, self.__build_so_extension_description)
 
-    def test_list_globally_installed_py_extension(self):
-        self.__install_and_list_extension("py-test.py", "--global", self.__build_py_extension_description__)
+    def test_list_extensions(self):
+        self.copy_extension("c-test.so", self.global_path)
+        self.copy_extension("py-test.py", self.local_path)
 
-    def test_list_locally_installed_c_extension(self):
-        self.__install_and_list_extension("c-test.so", "--local", self.__build_c_extension_description__)
-
-    def test_list_globally_installed_c_extension(self):
-        self.__install_and_list_extension("c-test.so", "--global", self.__build_c_extension_description__)
-
-    def __install_and_list_extension(self, filename, location, builder):
-        self.run_chroot_script(["install-extension", filename, location])
-
-        returncode, output = self.run_in_chroot("efind", ["--list-extensions"])
+        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
 
         assert(returncode == 0)
+        assert_sequence_equality(output, self.__build_so_extension_description(self.global_path) +
+                                         self.__build_py_extension_description(self.local_path))
 
-        if location == "--global":
-            directory = "/etc/efind/extensions"
-        else:
-            directory = "/root/.efind/extensions"
+    def __install_and_list_extension(self, filename, destination, builder):
+        self.copy_extension(filename, destination)
 
-        assert_sequence_equality(output, builder(directory))
+        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
 
-    def __build_py_extension_description__(self, directory):
+        assert(returncode == 0)
+        assert_sequence_equality(output, builder(destination))
+
+    def __build_py_extension_description(self, directory):
         return ['%s/py-test.py' % directory,
                 '\tpy-test, version 0.1.0',
                 '\tefind test extension.',
@@ -632,13 +621,52 @@ class ListExtensions(unittest.TestCase, ChangeRoot):
                 '\tpy_name_equals(string)',
                 '\tpy_sub(integer, integer)']
 
-    def __build_c_extension_description__(self, directory):
+    def __build_so_extension_description(self, directory):
         return ['%s/c-test.so' % directory,
                 '\tc-test, version 0.1.0',
                 '\tefind test extension.',
                 '\tc_add(integer, integer)',
                 '\tc_name_equals(string)',
                 '\tc_sub(integer, integer)']
+
+class Blacklist(FakeDirTest):
+    def __init__(self, name, **kwargs):
+        FakeDirTest.__init__(self, name, **kwargs)
+
+        self.__so_file = os.path.join(self.global_path, "c-test.so")
+        self.__py_file = os.path.join(self.local_path, "py-test.py")
+
+    def setUp(self):
+        FakeDirTest.setUp(self)
+
+        self.copy_extension("c-test.so", self.global_path)
+        self.copy_extension("py-test.py", self.local_path)
+
+    def _test_empty_blacklist(self):
+        self.__test_blacklist([self.__so_file, self.__py_file])
+
+    def test_no_libdir(self):
+        shutil.copy("./blacklist-nolibdir", "./fake-dirs/home/.efind/blacklist")
+        self.__test_blacklist([self.__py_file], [self.__so_file])
+
+    def test_no_local(self):
+        shutil.copy("./blacklist-nolocal", "./fake-dirs/home/.efind/blacklist")
+        self.__test_blacklist([self.__so_file], [self.__py_file])
+
+    def __test_blacklist(self, installed, blacklisted=[]):
+        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
+        output = self.__filter_output(output)
+
+        assert(returncode == 0)
+        assert_sequence_equality(output, installed)
+
+        returncode, output = run_executable_and_split_output("efind", ["--show-blacklist"])
+ 
+        assert(returncode == 0)
+        assert_sequence_equality(output, blacklisted)
+
+    def __filter_output(self, output):
+        return filter(lambda l: l[0] != '\t', output)
 
 class EnvExtensionPath(unittest.TestCase):
     def setUp(self):
@@ -654,41 +682,6 @@ class EnvExtensionPath(unittest.TestCase):
         assert("./extensions/py-test.py" in output)
         assert("./extensions/c-test.so" in output)
 
-class Blacklist(unittest.TestCase, ChangeRoot):
-    def setUp(self):
-        self.run_chroot_script(["install-binary"])
-        self.run_chroot_script(["install-extension", "c-test.so", "--global"])
-        self.run_chroot_script(["install-extension", "py-test.py", "--local"])
-
-    def tearDown(self):
-        self.run_chroot_script(["uninstall"])
-
-    def test_empty_blacklist(self):
-        self.__test_blacklist(["/etc/efind/extensions/c-test.so", "/root/.efind/extensions/py-test.py"])
-
-    def test_global_blacklist(self):
-        self.run_chroot_script(["install-blacklist", "blacklist-noetc"])
-        self.__test_blacklist(["/root/.efind/extensions/py-test.py"], ["/etc/efind/extensions/c-test.so"])
-
-    def test_local_blacklist(self):
-        self.run_chroot_script(["install-blacklist", "blacklist-nolocal"])
-        self.__test_blacklist(["/etc/efind/extensions/c-test.so"], ["/root/.efind/extensions/py-test.py"])
-
-    def __test_blacklist(self, installed, blacklisted=[]):
-        returncode, output = self.run_in_chroot("efind", ["--list-extensions"])
-        output = self.__filter_output(output)
-
-        assert(returncode == 0)
-        assert_sequence_equality(output, installed)
-
-        returncode, output = self.run_in_chroot("efind", ["--show-blacklist"])
- 
-        assert(returncode == 0)
-        assert_sequence_equality(output, blacklisted)
-
-    def __filter_output(self, output):
-        return filter(lambda l: l[0] != '\t', output)
-
 def get_test_cases():
     mod = sys.modules[__name__]
 
@@ -696,18 +689,8 @@ def get_test_cases():
 
     return filter(lambda attr: inspect.isclass(attr) and issubclass(attr, unittest.TestCase), attrs)
 
-def parse_argv():
-    opts, _ = getopt(sys.argv[1:], [], ["with-chroot="])
-
-    return {k: v for k,v in opts}
-
 if __name__ == "__main__":
     cases = get_test_cases()
-
-    options = parse_argv()
-
-    if not "--with-chroot" in options:
-        cases = filter(lambda c: not issubclass(c, ChangeRoot), cases)
 
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()

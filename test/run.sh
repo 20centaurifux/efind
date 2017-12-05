@@ -60,16 +60,7 @@ build_extensions()
 run_testsuite()
 {
 	echo "Running test suite."
-
-	if [ -v CHROOT_PATH ]; then
-		if [ -d $CHROOT_PATH ]; then
-			$PYTHON ./testsuite.py --with-chroot $CHROOT_PATH
-		else
-			echo "Aborting... chroot directory '$CHROOT_PATH' not found." & exit 1
-		fi
-	else
-		$PYTHON ./testsuite.py
-	fi
+	$PYTHON ./testsuite.py
 }
 
 run()
@@ -79,11 +70,9 @@ run()
 
 cleanup()
 {
-	# delete generated test files:
 	echo "Deleting test files."
-	rm -fr ./test-data ./test-links
+	rm -fr ./test-data ./test-links ./fake-dirs
 
-	# cleanup extensions:
 	make -C ./extensions clean
 }
 

@@ -1,0 +1,2 @@
+./fake-dirs/libdir/efind/extensions/*.so
+#~/.efind/extensions/*

@@ -1,2 +1,2 @@
-#/etc/efind/extensions/*
+#./fake-dirs/libdir/efind/extensions/*.so
 ~/.efind/extensions/*
