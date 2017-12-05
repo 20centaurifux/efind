@@ -33,6 +33,7 @@
 #include "extension-interface.h"
 #include "log.h"
 #include "utils.h"
+#include "pathbuilder.h"
 
 typedef struct
 {
@@ -59,7 +60,16 @@ _py_set_python_path(void)
 			/* append global extension directory */
 			DEBUG("python", "Appending global extension directory to Python path: /etc/efind/extension");
 
-			PyList_Append(path, PyString_FromString("/etc/efind/extensions"));
+			char dir[PATH_MAX];
+
+			if(path_builder_global_extensions(dir, PATH_MAX))
+			{
+				PyList_Append(path, PyString_FromString(dir));
+			}
+			else
+			{
+				WARNING("python", "Couldn't build global extension path.");
+			}
 
 			/* append local extension directory */
 			const char *homedir = getenv("HOME");

@@ -26,6 +26,7 @@
 #include "blacklist.h"
 #include "log.h"
 #include "utils.h"
+#include "pathbuilder.h"
 
 #include <stdio.h>
 #include <glob.h>
@@ -37,7 +38,7 @@
 Blacklist *
 blacklist_new(void)
 {
-	return list_new(str_compare, free, NULL);	
+	return list_new(str_compare, free, NULL);
 }
 
 void
@@ -148,22 +149,19 @@ size_t
 blacklist_load_default(Blacklist *blacklist)
 {
 	size_t count = 0;
-	const char *home;
+	char path[PATH_MAX];
 
 	assert(blacklist != NULL);
 
 	DEBUG("blacklist", "Loading default blacklist.");
 
-	home = getenv("HOME");
-
-	if(home)
+	if(path_builder_blacklist(path, PATH_MAX))
 	{
-		char path[PATH_MAX];
-
-		if(utils_path_join(home, ".efind/blacklist", path, PATH_MAX))
-		{
-			count = blacklist_load(blacklist, path);
-		}
+		count = blacklist_load(blacklist, path);
+	}
+	else
+	{
+		WARNING("blacklist", "Couldn't build path to blacklist.");
 	}
 
 	return count;

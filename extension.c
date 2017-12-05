@@ -32,6 +32,7 @@
 #include "py-ext-backend.h"
 #include "blacklist.h"
 #include "utils.h"
+#include "pathbuilder.h"
 #include "gettext.h"
 
 /*! @cond INTERNAL */
@@ -455,42 +456,53 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 	return success;
 }
 
-int
-extension_manager_load_default(ExtensionManager *manager)
+static bool
+_extension_manager_load_local(ExtensionManager *manager)
 {
-	int count = 0;
+	char path[PATH_MAX];
+	bool success = false;
 
-	assert(manager != NULL);
-
-	DEBUG("extension", "Loading extensions from default directories.");
-
-	/* load local extensions */
-	const char *home = getenv("HOME");
-
-	if(home && *home)
+	if(path_builder_local_extensions(path, PATH_MAX))
 	{
-		char path[PATH_MAX];
-
-		if(utils_path_join(home, ".efind/extensions", path, PATH_MAX))
+		if(extension_manager_load_directory(manager, path, NULL))
 		{
-			if(extension_manager_load_directory(manager, path, NULL))
-			{
-				++count;
-			}
+			success = true;
 		}
 	}
 	else
 	{
-		DEBUG("extension", "Couldn't find home directory.");
+		WARNING("extension", "Couldn't build local extension path.");
 	}
 
-	/* load global extensions */
-	if(extension_manager_load_directory(manager, "/etc/efind/extensions", NULL))
+	return success;
+}
+
+static bool
+_extension_manager_load_global(ExtensionManager *manager)
+{
+	char path[PATH_MAX];
+	bool success = false;
+
+	if(path_builder_global_extensions(path, PATH_MAX))
 	{
-		++count;
+		if(extension_manager_load_directory(manager, path, NULL))
+		{
+			success = true;
+		}
+	}
+	else
+	{
+		WARNING("extension", "Couldn't build global extension path.");
 	}
 
-	/* load extensions from directories specified in EFIND_EXTENSION_PATH environment variable */
+	return success;
+}
+
+static int
+_extension_manager_load_env(ExtensionManager *manager)
+{
+	int count = 0;
+
 	TRACE("extension", "Testing if EFIND_EXTENSION_PATH is set.");
 
 	char *dirs = getenv("EFIND_EXTENSION_PATH");
@@ -514,7 +526,7 @@ extension_manager_load_default(ExtensionManager *manager)
 			{
 				if(count < INT_MAX)
 				{
-					++count;
+					count++;
 				}
 			}
 
@@ -528,6 +540,30 @@ extension_manager_load_default(ExtensionManager *manager)
 
 		free(dirs);
 	}
+
+	return count;
+}
+
+int
+extension_manager_load_default(ExtensionManager *manager)
+{
+	int count = 0;
+
+	assert(manager != NULL);
+
+	DEBUG("extension", "Loading extensions from default directories.");
+
+	if(_extension_manager_load_local(manager))
+	{
+		count++;
+	}
+
+	if(_extension_manager_load_global(manager))
+	{
+		count++;
+	}
+
+	count += _extension_manager_load_env(manager);
 
 	return count;
 }
