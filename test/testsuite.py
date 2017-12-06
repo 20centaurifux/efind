@@ -682,6 +682,41 @@ class EnvExtensionPath(unittest.TestCase):
         assert("./extensions/py-test.py" in output)
         assert("./extensions/c-test.so" in output)
 
+class PythonExtensions(unittest.TestCase, AssertSearch):
+    def setUp(self):
+        os.environ["EFIND_EXTENSION_PATH"] = "./extensions"
+
+    def tearDown(self):
+        del os.environ["EFIND_EXTENSION_PATH"]
+
+    def test_python(self):
+        folder = self.__list_folder("./test-data/00")
+        self.assert_search(['./test-data/00', 'py_add(19, 4)=23'], folder)
+
+        folder = self.__list_folder("./test-data/01")
+        self.assert_search(['./test-data/01', 'py_add(45, 2) >= 47 and py_sub(-5, 3) > -9'], folder)
+
+        folder = self.__list_folder("./test-data/02")
+        self.assert_search(['./test-data/02', 'py_add(100, 200) = py_sub(600, 300)'], folder)
+
+        self.assert_search(['./test-data', 'py_name_equals("./test-data/02/1G.2")'], ["./test-data/02/1G.2"])
+
+        expr = 'name="5kb.2" and (py_add(1, 1)=3 or py_sub ( 2 , 1) <0 ) or py_add(py_sub(100, 99), py_add (0, 1)) = 2'
+        self.assert_search(['./test-data', expr], ["./test-data/02/5kb.2"])
+
+    def test_python_invalid_args(self):
+        exprs = ['py_add(5, 1',
+                 'py_add(-1, 1)>0 or py_sub("%s")' % random_string(),
+                 'type=file or py_name_equals("%s")' % random_string(),
+                 'py_add(1, 2, 3) > py_sub(4, 3)']
+
+        for expr in exprs:
+            returncode, _ = run_executable('efind', ['./test-data', expr])
+            assert(returncode == 1)
+
+    def __list_folder(self, folder):
+        return map(lambda d: os.path.join(folder, d), os.listdir(folder)) + [folder]
+
 def get_test_cases():
     mod = sys.modules[__name__]
 
