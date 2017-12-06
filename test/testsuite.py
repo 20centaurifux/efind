@@ -577,11 +577,11 @@ class ListExtensions(FakeDirTest):
     def __init__(self, name, **kwargs):
         FakeDirTest.__init__(self, name, **kwargs)
 
-    def _test_list_no_extensions(self):
+    def test_list_no_extensions(self):
         returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
 
         assert(returncode == 0)
-        assert(len(output) == 1)
+        assert(len(output) == 0)
 
     def test_list_local_installed_py_extension(self):
         self.__install_and_list_extension("py-test.py", self.local_path, self.__build_py_extension_description)
