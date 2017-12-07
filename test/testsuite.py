@@ -14,7 +14,7 @@
 """
 from testhelpers import *
 from getopt import getopt
-import unittest, inspect, random, os, os.path, shutil, sys, stat
+import unittest, inspect, random, os, os.path, shutil, sys, stat, grp, pwd
 
 class InvalidArgs(unittest.TestCase):
     def test_invalid_args(self):
@@ -754,6 +754,170 @@ class CExtensions(unittest.TestCase, AssertSearch):
 
     def __list_folder(self, folder):
         return map(lambda d: os.path.join(folder, d), os.listdir(folder)) + [folder]
+
+class OrderBy(unittest.TestCase, AssertSearch):
+    def __init__(self, name, **kwargs):
+        unittest.TestCase.__init__(self, name, **kwargs)
+
+    def test_attributes_with_order_check(self):
+        for attr in self.__build_attr_list_with_valfn():
+            for name in attr["attrs"]:
+                self.__assert_attr_with_valfn(name, attr["valfn"])
+
+    def test_attributes_without_order_check(self):
+        for attr in self.__build_attr_list_without_valfn():
+            self.__assert_attr_without_valfn(attr)
+
+    def test_link_attribute(self):
+        self.__assert_link_attr("l")
+        self.__assert_link_attr("{link}")
+
+    def test_multiple_attributes(self):
+        def get_vals(filename):
+            attrs = os.stat(filename)
+
+            return [attrs[stat.ST_SIZE], attrs[stat.ST_ATIME], filename]
+
+        args = ["./test-data", "type=file", "--order-by", "-s{kb} -p"]
+
+        returncode, files = run_executable_and_split_output("efind", args)
+
+        assert(returncode == 0)
+        assert(len(files) > 1)
+
+        attrs = map(get_vals, files)
+
+        previous = attrs[0]
+
+        for vals in attrs[1:]:
+            assert(previous[0] >= vals[0])
+
+            if(previous[0] == vals[0]):
+                assert(previous[1] <= vals[1])
+
+                if(previous[1] == vals[1]):
+                    assert(previous[2] != vals[2])
+                    assert(previous[2] >= vals[2])
+
+            previous = vals
+
+    def _test_invalid_args(self):
+        for arg in ["+p", "P,d", random_string(2048), str(random.randint(9999, 9999999)), "{%s}" % random_string(792)]:
+            returncode, _ = run_executable_and_split_output("efind", ["./test-data", "./test-links", "type=file", "--order-by", arg])
+            
+            assert(returncode == 1)
+
+    def __build_attr_list_with_valfn(self):
+        def build_attr_with_valfn(attrs, valfn):
+            return {"attrs": attrs, "valfn": valfn}
+
+        def build_stat_valfn(id):
+            return lambda f: os.stat(f)[id]
+
+        def sparseness_valfn(filename):
+            attrs = os.stat(filename)
+
+            return float(attrs.st_blksize) / 8 * attrs.st_blocks / attrs.st_size;
+
+        def filename_without_starting_point_valfn(filename):
+            if filename.startswith("./test-data"):
+                return filename[12:]
+            elif filename.startswith("./test-links"):
+                return filename[13:]
+
+            return filename
+
+        def starting_point_valfn(filename):
+            if filename.startswith("./test-data"):
+                return "./test-data"
+            elif filename.startswith("./test-links"):
+                return "./test-links"
+
+            return None
+
+        attrs = []
+
+        attrs.append(build_attr_with_valfn(["A", "{atime}"], build_stat_valfn(stat.ST_ATIME)))
+        attrs.append(build_attr_with_valfn(["b", "{blocks}"], lambda f: os.stat(f).st_blocks))
+        attrs.append(build_attr_with_valfn(["C", "{ctime}"], build_stat_valfn(stat.ST_CTIME)))
+        attrs.append(build_attr_with_valfn(["D", "{device}"], build_stat_valfn(stat.ST_DEV)))
+        attrs.append(build_attr_with_valfn(["f", "{filename}"], os.path.basename))
+        attrs.append(build_attr_with_valfn(["g", "{group}"], lambda f: grp.getgrgid(os.stat(f)[stat.ST_GID])[0]))
+        attrs.append(build_attr_with_valfn(["G", "{gid}"], build_stat_valfn(stat.ST_GID)))
+        attrs.append(build_attr_with_valfn(["H", "{starting-point}"], starting_point_valfn))
+        attrs.append(build_attr_with_valfn(["h", "{directory}"], os.path.dirname))
+        attrs.append(build_attr_with_valfn(["s", "{bytes}"], build_stat_valfn(stat.ST_SIZE)))
+        attrs.append(build_attr_with_valfn(["i", "{inode}"], build_stat_valfn(stat.ST_INO)))
+        attrs.append(build_attr_with_valfn(["k", "{kb}"], lambda f: os.stat(f)[stat.ST_SIZE] / 1024))
+        attrs.append(build_attr_with_valfn(["m", "{permissions}"], build_stat_valfn(stat.ST_MODE)))
+        attrs.append(build_attr_with_valfn(["M", "{permission-bits}"], lambda f: oct(os.stat(f)[stat.ST_MODE])))
+        attrs.append(build_attr_with_valfn(["n", "{hardlinks}"], build_stat_valfn(stat.ST_NLINK)))
+        attrs.append(build_attr_with_valfn(["p", "{path}"], lambda f: f))
+        attrs.append(build_attr_with_valfn(["S", "{sparseness}"], sparseness_valfn))
+        attrs.append(build_attr_with_valfn(["T", "{mtime}"], build_stat_valfn(stat.ST_MTIME)))
+        attrs.append(build_attr_with_valfn(["U", "{uid}"], build_stat_valfn(stat.ST_UID)))
+        attrs.append(build_attr_with_valfn(["u", "{username}"], lambda f: pwd.getpwuid(os.stat(f)[stat.ST_UID])[0]))
+        attrs.append(build_attr_with_valfn(["P"], filename_without_starting_point_valfn))
+
+        return attrs
+
+    def __assert_attr_with_valfn(self, name, valfn):
+        files = self.__get_sorted_files(name)
+        self.__assert_order(files, valfn)
+
+        files = self.__get_sorted_files(name, asc=False)
+        self.__assert_order(files, valfn, asc=False)
+
+    def __get_sorted_files(self, attr, asc=True):
+        if asc:
+            orderby = attr
+        else:
+            orderby = "-%s" % attr
+
+        returncode, output = run_executable_and_split_output("efind", ["./test-data", "./test-links", "type=file", "-L", "--order-by", orderby])
+
+        assert(returncode == 0)
+
+        return output
+
+    def __build_attr_list_without_valfn(self):
+        return ["F", "{filesystem}"]
+
+    def __assert_attr_without_valfn(self, attr):
+        for a in [attr, "-%s" % attr]:
+            returncode, _ = run_executable_and_split_output("efind", ["./test-data", "./test-links", "type=file", "--order-by", "-%s" % attr])
+
+            assert(returncode == 0)
+
+    def __assert_link_attr(self, attr):
+        self.__sort_by_link_and_assert_order(attr)
+        self.__sort_by_link_and_assert_order(attr, asc=False)
+
+    def __sort_by_link_and_assert_order(self, attr, asc=True):
+        if asc:
+            orderby = attr
+        else:
+            orderby = "-%s" % attr
+
+        returncode, output = run_executable_and_split_output("efind", ["./test-links", "type=link", "--order-by", orderby])
+
+        assert(returncode == 0)
+
+        self.__assert_order(output, os.readlink, asc)
+
+    def __assert_order(self, files, valfn, asc=True):
+        previous = None
+
+        for file in files:
+            val = valfn(file)
+
+            if not previous is None:
+                if asc:
+                    assert(val >= previous)
+                else:
+                    assert(val <= previous)
+
+            previous = val
 
 def get_test_cases():
     mod = sys.modules[__name__]
