@@ -484,12 +484,15 @@ class SearchSingleDirectory(unittest.TestCase, AssertSearch):
 
 class SearchMultipleDirectories(unittest.TestCase):
     def test_search(self):
-        args = ["./test-data/00", "./test-data/02", "type=file", "--order-by", "-h", "--printf", "%h\n"]
+        args = ["./test-data/00", "./test-data/02", "type=file"]
         returncode, output = run_executable_and_split_output("efind", args)
 
         assert(returncode == 0)
-        assert(set(output[:6]) == set(["./test-data/02"]))
-        assert(set(output[6:]) == set(["./test-data/00"]))
+
+        output = sorted(map(lambda p: p[:14], output))
+
+        assert(set(output[:7]) == set(["./test-data/00"]))
+        assert(set(output[7:]) == set(["./test-data/02"]))
 
     def test_args_order(self):
         args = ["./test-data/00", "./test-data/01", "./test-data/02", "type=file"]
@@ -642,7 +645,7 @@ class Blacklist(FakeDirTest):
         self.copy_extension("c-test.so", self.global_path)
         self.copy_extension("py-test.py", self.local_path)
 
-    def _test_empty_blacklist(self):
+    def test_empty_blacklist(self):
         self.__test_blacklist([self.__so_file, self.__py_file])
 
     def test_no_libdir(self):
