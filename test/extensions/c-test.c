@@ -26,7 +26,7 @@ int
 c_add(const char *filename, int argc, void *argv[])
 {
 	int a = *((int *)argv[0]);
-	int b = *((int *)argv[0]);
+	int b = *((int *)argv[1]);
 
 	return a + b;
 }
@@ -35,7 +35,7 @@ int
 c_sub(const char *filename, int argc, void *argv[])
 {
 	int a = *((int *)argv[0]);
-	int b = *((int *)argv[0]);
+	int b = *((int *)argv[1]);
 
 	return a - b;
 }

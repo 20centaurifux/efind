@@ -689,7 +689,7 @@ class PythonExtensions(unittest.TestCase, AssertSearch):
     def tearDown(self):
         del os.environ["EFIND_EXTENSION_PATH"]
 
-    def test_python(self):
+    def test_extension(self):
         folder = self.__list_folder("./test-data/00")
         self.assert_search(['./test-data/00', 'py_add(19, 4)=23'], folder)
 
@@ -704,11 +704,46 @@ class PythonExtensions(unittest.TestCase, AssertSearch):
         expr = 'name="5kb.2" and (py_add(1, 1)=3 or py_sub ( 2 , 1) <0 ) or py_add(py_sub(100, 99), py_add (0, 1)) = 2'
         self.assert_search(['./test-data', expr], ["./test-data/02/5kb.2"])
 
-    def test_python_invalid_args(self):
+    def test_invalid_args(self):
         exprs = ['py_add(5, 1',
                  'py_add(-1, 1)>0 or py_sub("%s")' % random_string(),
                  'type=file or py_name_equals("%s")' % random_string(),
                  'py_add(1, 2, 3) > py_sub(4, 3)']
+
+        for expr in exprs:
+            returncode, _ = run_executable('efind', ['./test-data', expr])
+            assert(returncode == 1)
+
+    def __list_folder(self, folder):
+        return map(lambda d: os.path.join(folder, d), os.listdir(folder)) + [folder]
+
+class CExtensions(unittest.TestCase, AssertSearch):
+    def setUp(self):
+        os.environ["EFIND_EXTENSION_PATH"] = "./extensions"
+
+    def tearDown(self):
+        del os.environ["EFIND_EXTENSION_PATH"]
+
+    def test_extension(self):
+        folder = self.__list_folder("./test-data/00")
+        self.assert_search(['./test-data/00', 'c_add(-523, 58212)=57689'], folder)
+
+        folder = self.__list_folder("./test-data/01")
+        self.assert_search(['./test-data/01', 'c_add(913, 37) >= 950 and c_sub(-17, 987) > -1005'], folder)
+
+        folder = self.__list_folder("./test-data/02")
+        self.assert_search(['./test-data/02', 'c_add(23750235, 523597) = c_sub(24517089, 243257)'], folder)
+
+        self.assert_search(['./test-data', 'c_name_equals("./test-data/02/20M.2")'], ["./test-data/02/20M.2"])
+
+        expr = 'name="7kb.2" and (c_add(3523, 6436)=3 or c_sub ( 643 , -1241) <0 ) or c_add(c_sub(100, 99), c_add (0, 1)) = 2'
+        self.assert_search(['./test-data', expr], ["./test-data/02/7kb.2"])
+
+    def test_invalid_args(self):
+        exprs = ['c_add(5, 1',
+                 'c_add(-1, 1)>0 or c_sub("%s")' % random_string(),
+                 'type=file or c_name_equals("%s")' % random_string(),
+                 'c_add(1, 2, 3) > c_sub(4, 3)']
 
         for expr in exprs:
             returncode, _ = run_executable('efind', ['./test-data', expr])
