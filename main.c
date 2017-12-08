@@ -57,8 +57,8 @@ typedef enum
 	ACTION_PRINT,
 	ACTION_PRINT_HELP,
 	ACTION_PRINT_VERSION,
-	ACTION_LIST_EXTENSIONS,
-	ACTION_SHOW_BLACKLIST
+	ACTION_PRINT_EXTENSIONS,
+	ACTION_PRINT_BLACKLIST
 } Action;
 
 typedef enum
@@ -91,7 +91,7 @@ typedef struct
 /*! @endcond */
 
 static void
-_show_blacklist(void)
+_print_blacklist(void)
 {
 	Blacklist *blacklist;
 
@@ -110,7 +110,7 @@ _show_blacklist(void)
 }
 
 static void
-_list_extensions(void)
+_print_extensions(void)
 {
 	ExtensionManager *manager;
 
@@ -167,8 +167,8 @@ _print_help(const char *name)
 	printf(_("  --order-by fields   fields to order search result by; see manpage\n"));
 	printf(_("  --max-depth levels  maximum search depth\n"));
 	printf(_("  -p, --print         don't search files but print expression to stdout\n"));
-	printf(_("  --list-extensions   show a list of installed extensions\n"));
-	printf(_("  --show-blacklist    show blacklisted extensions\n"));
+	printf(_("  --print-extensions  show a list of installed extensions\n"));
+	printf(_("  --print-blacklist   show blacklisted extensions\n"));
 	printf(_("  --log-level level   set the log level (0-6)\n"));
 	printf(_("  --enable-log-color  enable colored log messages\n"));
 	printf(_("  -v, --version       show version and exit\n"));
@@ -483,13 +483,13 @@ _run_action(Action action, char argc, char **argv, const Options *opts)
 			result = EXIT_SUCCESS;
 			break;
 
-		case ACTION_LIST_EXTENSIONS:
-			_list_extensions();
+		case ACTION_PRINT_EXTENSIONS:
+			_print_extensions();
 			result = EXIT_SUCCESS;
 			break;
 
-		case ACTION_SHOW_BLACKLIST:
-			_show_blacklist();
+		case ACTION_PRINT_BLACKLIST:
+			_print_blacklist();
 			result = EXIT_SUCCESS;
 			break;
 
@@ -772,8 +772,8 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		{ "regex-type", required_argument, 0, 0 },
 		{ "printf", required_argument, 0, 0 },
 		{ "order-by", required_argument, 0, 0 },
-		{ "list-extensions", no_argument, 0, 0 },
-		{ "show-blacklist", no_argument, 0, 0 },
+		{ "print-extensions", no_argument, 0, 0 },
+		{ "print-blacklist", no_argument, 0, 0 },
 		{ "log-level", required_argument, 0, 0 },
 		{ "enable-log-color", no_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
@@ -844,13 +844,13 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				{
 					opts->max_depth = atoi(optarg);
 				}
-				else if(!strcmp(long_options[index].name, "list-extensions"))
+				else if(!strcmp(long_options[index].name, "print-extensions"))
 				{
-					action = ACTION_LIST_EXTENSIONS;
+					action = ACTION_PRINT_EXTENSIONS;
 				}
-				else if(!strcmp(long_options[index].name, "show-blacklist"))
+				else if(!strcmp(long_options[index].name, "print-blacklist"))
 				{
-					action = ACTION_SHOW_BLACKLIST;
+					action = ACTION_PRINT_BLACKLIST;
 				}
 				else if(!strcmp(long_options[index].name, "regex-type"))
 				{

@@ -581,7 +581,7 @@ class ListExtensions(FakeDirTest):
         FakeDirTest.__init__(self, name, **kwargs)
 
     def test_list_no_extensions(self):
-        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
+        returncode, output = run_executable_and_split_output("efind", ["--print-extensions"])
 
         assert(returncode == 0)
         assert(len(output) == 0)
@@ -602,7 +602,7 @@ class ListExtensions(FakeDirTest):
         self.copy_extension("c-test.so", self.global_path)
         self.copy_extension("py-test.py", self.local_path)
 
-        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
+        returncode, output = run_executable_and_split_output("efind", ["--print-extensions"])
 
         assert(returncode == 0)
         assert_sequence_equality(output, self.__build_so_extension_description(self.global_path) +
@@ -611,7 +611,7 @@ class ListExtensions(FakeDirTest):
     def __install_and_list_extension(self, filename, destination, builder):
         self.copy_extension(filename, destination)
 
-        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
+        returncode, output = run_executable_and_split_output("efind", ["--print-extensions"])
 
         assert(returncode == 0)
         assert_sequence_equality(output, builder(destination))
@@ -657,13 +657,13 @@ class Blacklist(FakeDirTest):
         self.__test_blacklist([self.__so_file], [self.__py_file])
 
     def __test_blacklist(self, installed, blacklisted=[]):
-        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
+        returncode, output = run_executable_and_split_output("efind", ["--print-extensions"])
         output = self.__filter_output(output)
 
         assert(returncode == 0)
         assert_sequence_equality(output, installed)
 
-        returncode, output = run_executable_and_split_output("efind", ["--show-blacklist"])
+        returncode, output = run_executable_and_split_output("efind", ["--print-blacklist"])
  
         assert(returncode == 0)
         assert_sequence_equality(output, blacklisted)
@@ -679,7 +679,7 @@ class EnvExtensionPath(unittest.TestCase):
         del os.environ["EFIND_EXTENSION_PATH"]
 
     def test_list_extensions(self):
-        returncode, output = run_executable_and_split_output("efind", ["--list-extensions"])
+        returncode, output = run_executable_and_split_output("efind", ["--print-extensions"])
 
         assert(returncode == 0)
         assert("./extensions/py-test.py" in output)
