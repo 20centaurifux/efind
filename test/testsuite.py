@@ -1315,4 +1315,8 @@ if __name__ == "__main__":
     for case in cases:
         suite.addTest(loader.loadTestsFromTestCase(case))
 
-    unittest.TextTestRunner().run(suite)
+    result = unittest.TextTestRunner().run(suite)
+
+    if result.errors != [] or result.failures != []:
+        sys.exit(1)
+
