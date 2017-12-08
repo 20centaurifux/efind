@@ -14,7 +14,7 @@
 """
 from testhelpers import *
 from getopt import getopt
-import unittest, inspect, random, os, os.path, shutil, sys, stat, grp, pwd
+import unittest, inspect, random, os, os.path, shutil, sys, stat, grp, pwd, re
 
 class InvalidArgs(unittest.TestCase):
     def test_invalid_args(self):
@@ -801,7 +801,7 @@ class OrderBy(unittest.TestCase, AssertSearch):
 
             previous = vals
 
-    def _test_invalid_args(self):
+    def test_invalid_args(self):
         for arg in ["+p", "P,d", random_string(2048), str(random.randint(9999, 9999999)), "{%s}" % random_string(792)]:
             returncode, _ = run_executable_and_split_output("efind", ["./test-data", "./test-links", "type=file", "--order-by", arg])
             
@@ -918,6 +918,386 @@ class OrderBy(unittest.TestCase, AssertSearch):
                     assert(val <= previous)
 
             previous = val
+
+class Printf(unittest.TestCase):
+    def test_text_attributes(self):
+        for attr in ["f", "{filename}", "F", "{filesystem}", "g", "{group}", "h", "{directory}",
+                     "H", "{starting-point}", "l", "{link}", "M", "{permissions}", "p", "{path}",
+                     "P", "u", "{username}"]:
+            self.__test_width_and_alignment(attr)
+
+    def test_numeric_attributes(self):
+        for attr in ["b", "{blocks}", "D", "{device}", "G", "{gid}", "i", "{inode}",
+                     "k", "{kb}", "n", "{hardlinks}", "s", "{bytes}", "U", "{uid}"]:
+            self.__test_width_and_alignment(attr)
+            self.__test_zero_padding(attr)
+
+    def test_float_attributes(self):
+        for attr in ["S", "{sparseness}"]:
+            self.__test_width_and_alignment(attr)
+            self.__test_zero_padding(attr)
+            self.__test_precision(attr)
+
+    def test_octal_attributes(self):
+        for attr in ["m", "{permission-bits}"]:
+            self.__test_width_and_alignment(attr)
+            self.__test_zero_padding(attr)
+            self.__test_octal_prefix(attr)
+
+    def test_date_attributes(self):
+        for attr in ["A", "{atime}", "C", "{ctime}", "T", "{mtime}"]:
+            self.__test_width_and_alignment(attr)
+            self.__test_time_format(attr)
+            self.__test_date_format(attr)
+
+    def test_compare_with_find(self):
+        find_args = ["./test-data", "-type", "f", "-printf"]
+        efind_args = ["./test-data", "type=file", "--printf"]
+
+        for arg in self.__get_comparable_args():
+            returncode, find_output = run_executable_and_split_output("find", find_args + [arg])
+
+            assert(returncode == 0)
+
+            returncode, efind_output = run_executable_and_split_output("efind", efind_args + [arg])
+
+            assert(returncode == 0)
+            assert_sequence_equality(efind_output, find_output)
+
+    def test_compare_short_and_long_names(self):
+        args = ["./test-data", "type=file", "--printf"]
+
+        for arg in self.__get_short_and_long_args():
+            returncode, short_output = run_executable_and_split_output("efind", args + [arg[0]])
+
+            assert(returncode == 0)
+
+            returncode, long_output = run_executable_and_split_output("efind", args + [arg[1]])
+
+            assert(returncode == 0)
+            assert_sequence_equality(long_output, short_output)
+
+    def test_ascii_codes(self):
+        args = ["./test-data", "type=file", "--printf", "\\B \\x41 \\A \\x42 \\101 \\102 "]
+
+        returncode, output = run_executable("efind", args)
+        output = output.strip().split(" ")
+
+        assert(returncode == 0)
+        assert_sequence_equality(output, ["A", "B"])
+
+    def test_escape_sequences(self):
+        args = ["./test-data", "type=file", "--printf"]
+
+        a, b = random_string(), random_string()
+
+        returncode, output = run_executable_and_split_output("efind", args + ["%s\\n\\0|%s\\n" % (a, b)])
+
+        assert(returncode == 0)
+        assert_sequence_equality(output, [a])
+
+        for seq in [["\a", "\\a"],
+                    ["\b", "\\b"],
+                    ["\f", "\\f"],
+                    ["\r", "\\r"],
+                    ["\t", "\\t"],
+                    ["\v", "\\v"],
+                    ["\\\\", "\\\\\\\\"]]:
+            returncode, output = run_executable("efind", args + ["%s%s" % (a, seq[1])])
+            output = output.split(seq[0])
+
+            assert(returncode == 0)
+            assert_sequence_equality(output, [a, ""])
+
+    def test_percent(self):
+        args = ["./test-data", "type=file", "--printf", "%%%%%s%%%%\n" % random_string()]
+
+        returncode, output = run_executable_and_split_output("efind", args)
+
+        assert(returncode == 0)
+
+        for l in output:
+            assert(l.startswith("%"))
+            assert(l.endswith("%"))
+
+    def test_invalid_args(self):
+        for fmt in ["%%p %%{%s}" % random_string(), "path: %{path", "%s%%" % random_string()]:
+            returncode, _ = run_executable("efind", ["./test-data", "type=file", "--printf", fmt])
+
+            assert(returncode == 1)
+
+    def __get_comparable_args(self):
+        return ["%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n",
+               "%p => %Ca%CA%Cb%CB%Cd|%TD%Th%Tj%Tm\052\a\0532%TU%Tw\v%TW[%Ty]|%TY %h '%023H' |%l| %m %#m %M\n",
+               "FI{{%p}}LE %b %% %20p%-#0P<%5s> USER: %0500u\tUSER ID: %U\n",
+               "",
+               random_string(64),
+               random_string(2048) + "\n"]
+
+    def __get_short_and_long_args(self):
+        return [["%{blocks} %20{path}%-#0P<%5{bytes}> USER: %{username} \x43\x052 USER ID: %{uid}\n",
+                 "%b %20p%-#0P<%5s> USER: %u \x43\x052 USER ID: %U\n"],
+                ["%{path} => %{ctime}a%{ctime}A%{ctime}b%{ctime}B%{ctime}d|%{mtime}D%{mtime}h%{mtime}j%{mtime}m\052\a\0532\n",
+                 "%p => %Ca%CA%Cb%CB%Cd|%TD%Th%Tj%Tm\052\a\0532\n"],
+                ["FI{{%{path}}}LE %{blocks} %% %20{path}%-#0P<%5{bytes}> USER: %0500{username}\tUSER ID: %{uid}\n",
+                 "FI{{%p}}LE %b %% %20p%-#0P<%5s> USER: %0500u\tUSER ID: %U\n"]]
+
+    def __test_width_and_alignment(self, attr):
+        args = ["./test-data", "type=file", "--printf"]
+
+        fmt = "'%%%s'\n" % attr
+        returncode, output = run_executable_and_split_output("efind", args + [fmt])
+
+        assert(returncode == 0)
+
+        width = random.randint(64, 256)
+
+        width_fmt = "'%%%d%s'\n" % (width, attr)
+        returncode, width_output = run_executable_and_split_output("efind", args + [width_fmt])
+
+        assert(returncode == 0)
+        assert(len(width_output) == len(output))
+
+        left_aligned_fmt = "'%%-%d%s'\n" % (width, attr)
+        returncode, left_aligned_output = run_executable_and_split_output("efind", args + [left_aligned_fmt])
+
+        assert(returncode == 0)
+        assert(len(left_aligned_output) == len(output))
+
+        for i in range(len(output)):
+            assert(len(width_output[i]) == width + 2)
+            assert(len(left_aligned_output[i]) == width + 2)
+
+            suffix = output[i][1:]
+            assert(width_output[i].endswith(suffix))
+
+            prefix = output[i][:-1]
+            assert(left_aligned_output[i].startswith(prefix))
+
+    def __test_zero_padding(self, attr):
+        args = ["./test-data", "type=file", "--printf"]
+
+        fmt = "%%%s\n" % attr
+        returncode, output = run_executable_and_split_output("efind", args + [fmt])
+
+        assert(returncode == 0)
+
+        width = random.randint(64, 256)
+
+        zero_fmt = "%%0%d%s\n" % (width, attr)
+        returncode, zero_output = run_executable_and_split_output("efind", args + [zero_fmt])
+
+        assert(returncode == 0)
+        assert(len(zero_output) == len(output))
+
+        for i in range(len(output)):
+            assert(len(zero_output[i]) == width)
+            assert(zero_output[i].endswith(output[i]))
+            assert(zero_output[i].startswith("0"))
+
+    def __test_precision(self, attr):
+        args = ["./test-data", "not empty", "--printf"]
+
+        fmt = "%%%s\n" % attr
+        returncode, output = run_executable_and_split_output("efind", args + [fmt])
+
+        assert(returncode == 0)
+
+        width = random.randint(2, 4)
+        precision = random.randint(2, 4)
+
+        precision_fmt = "%%%d.%d%s\n" % (width, precision, attr)
+        returncode, precision_output = run_executable_and_split_output("efind", args + [precision_fmt])
+
+        assert(returncode == 0)
+        assert(len(precision_output) == len(output))
+
+        for i in range(len(output)):
+            token = precision_output[i].split(".")
+
+            assert(len(token) == 2)
+            assert(len(token[1]) == precision)
+
+    def __test_octal_prefix(self, attr):
+        args = ["./test-data", "not empty", "--printf"]
+
+        fmt = "%%%s\n" % attr
+        returncode, output = run_executable_and_split_output("efind", args + [fmt])
+
+        assert(returncode == 0)
+
+        prefix_fmt = "%%#%s\n" % attr
+        returncode, prefix_output = run_executable_and_split_output("efind", args + [prefix_fmt])
+
+        assert(returncode == 0)
+        assert(len(prefix_output) == len(output))
+
+        for i in range(len(output)):
+            assert(re.match(r"[\d]{3}", output[i]) is not None)
+            assert(prefix_output[i] == "0%s" % output[i])
+
+    def __test_time_format(self, attr):
+        args = ["./test-data", "not empty", "--printf"]
+        args.append("%%%sHI|%%%sk %%%slp|%%%sr|%%%sT|%%%sS|%%%sX|%%%sZ\n" % tuple([attr for _ in range(8)]))
+
+        returncode, output = run_executable_and_split_output("efind", args)
+
+        assert(returncode == 0)
+
+        for l in output:
+            self.__assert_time_string(l)
+
+    def __assert_time_string(self, text):
+        token = text.split("|")
+
+        # hours (24-hour/12-hour with leading zero):
+        hours = token[0]
+        a, b = map(int, [hours[:2], hours[2:]])
+
+        self.__assert_hour_pair(a, b)
+
+        # hours (24-hour/12-hour without leading zero):
+        m = re.match(r"^(\d{1,2})\s+(\d{1,2})(AM|PM)$", token[1])
+
+        assert(len(m.groups()) == 3)
+
+        a, b = map(int, m.groups()[:2])
+
+        self.__assert_hour_pair(a, b)
+
+        # 12-hour time:
+        m = re.match(r"^(\d{2}):(\d{2}):(\d{2}) (AM|PM)$", token[2])
+
+        assert(len(m.groups()) == 4)
+
+        hour, minute, second = map(int, m.groups()[:3])
+
+        self.__assert_time(hour, minute, second, twentyfour=False)
+
+        # 24-hour time:
+        m = re.match(r"^(\d{2}):(\d{2}):(\d{2})$", token[3])
+
+        assert(len(m.groups()) == 3)
+
+        hour, minute, second = map(int, m.groups()[:3])
+
+        self.__assert_time(hour, minute, second, twentyfour=True)
+
+        # seconds:
+        seconds = int(token[4])
+
+        assert(seconds >= 0 and seconds <= 61)
+
+        # local time:
+        m = re.match(r"^(\d{2}):(\d{2}):(\d{2})$", token[5])
+
+        assert(len(m.groups()) == 3)
+
+        hour, minute, second = map(int, m.groups()[:3])
+
+        self.__assert_time(hour, minute, second, twentyfour=True)
+
+        # time zone:
+        if not token[6] == "":
+            m = re.match("^[A-Z]{2,3}$", token[6])
+
+            assert(m is not None)
+
+    def __assert_hour_pair(self, a, b):
+        assert(a <= 23 and a >= 0)
+        assert(b <= 12 and b >= 0)
+
+        if a <= 12:
+            assert(a == b)
+        else:
+            assert(a - 12 == b)
+
+    def __assert_time(self, hours, minutes, seconds, twentyfour=True):
+        if twentyfour:
+            assert(hours <= 23)
+        else:
+            assert(hours <=12)
+
+        assert(minutes <= 59 and minutes >= 0)
+        assert(seconds <= 60 and seconds >= 0)
+
+    def __test_date_format(self, attr):
+        args = ["./test-data", "not empty", "--printf"]
+        args.append("%%%sa|%%%sA|%%%sb|%%%sh|%%%sB|%%%sc|%%%sD|%%%sx|%%%sdjmUWwyY\n" % tuple([attr for _ in range(9)]))
+
+        returncode, output = run_executable_and_split_output("efind", args)
+
+        assert(returncode == 0)
+
+        for l in output:
+            self.__assert_date_string(l)
+
+    def __assert_date_string(self, text):
+        token = text.split("|")
+
+        # day name:
+        assert(token[0] == token[1][:3])
+        assert(token[1] in ["Sunday",
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday"])
+
+        # month name:
+        assert(token[2] == token[3])
+        assert(token[3] == token[4][:3])
+        assert(token[4] in ["January",
+                            "February",
+                            "March",
+                            "April",
+                            "May",
+                            "June",
+                            "July",
+                            "August",
+                            "September",
+                            "October",
+                            "November",
+                            "December"])
+
+        # date string:
+        m = re.match(r"^(Sun|Mon|Tue|Wed|Thu|Fri|Sat) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2}) (\d{2}):(\d{2}):(\d{2}) (\d{4})$", token[5])
+
+        assert(len(m.groups()) == 7)
+        assert(m.group(1) == token[0])
+        assert(m.group(2) == token[2])
+
+        day, hours, minutes, seconds, _ = map(int, m.groups()[2:])
+
+        assert(day >= 1 and day <= 31)
+        self.__assert_time(hours, minutes, seconds, twentyfour=True)
+
+        # date:
+        assert(token[6] == token[7])
+
+        m = re.match(r"^(\d{2})/(\d{2})/(\d{2})$", token[6])
+
+        assert(len(m.groups()) == 3)
+ 
+        day, month, year = map(int, m.groups())
+
+        assert(day >= 1 and day <= 31)
+        assert(month >= 1 and month <= 12)
+
+        # date fields:
+        m = re.match(r"^(\d{2})(\d{3})(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})(\d{4})$", token[8])
+
+        assert(len(m.groups()) == 8)
+
+        day_of_month, day_of_year, month, week_of_year_sun, week_of_year_mon, day_of_week, short_year, year = map(int, m.groups())
+
+        assert(day_of_month >= 1 and day_of_month <= 31)
+        assert(day_of_year >= 1 and day_of_year <= 366)
+        assert(month >= 1 and month <= 12)
+        assert(week_of_year_sun >= 0 and week_of_year_sun <= 53)
+        assert(week_of_year_mon >= 0 and week_of_year_mon <= 53)
+        assert(day_of_week >= 0 and day_of_week <= 6)
 
 def get_test_cases():
     mod = sys.modules[__name__]

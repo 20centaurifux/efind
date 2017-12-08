@@ -60,7 +60,7 @@ build_extensions()
 run_testsuite()
 {
 	echo "Running test suite."
-	$PYTHON ./testsuite.py
+	LANG=C $PYTHON ./testsuite.py
 }
 
 run()
