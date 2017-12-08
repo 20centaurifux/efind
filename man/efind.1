@@ -70,16 +70,15 @@ minute (00..59)
 .IP p
 locale's AM or PM
 .IP r
-time, 12-hour (hh:mm:ss [AP]M)
+time, 12-hour (hh:mm:ss AM|PM)
 .IP S
-second (00.00..61.00). There is a fractional part.
+second (00..60)
 .IP T
-time, 24-hour (hh:mm:ss.xxxxxxxxxx)
+time, 24-hour (hh:mm:ss)
 .IP X
-locale's time representation (H:M:S). The seconds field includes a
-fractional part.
+locale's time representation (H:M:S)
 .IP Z
-time zone (e.g., EDT), or nothing if no time zone is determinable
+time zone (e.g. EDT), or nothing if no time zone is determinable
 .PP
 Date fields:
 .IP a
@@ -93,9 +92,7 @@ locale's full month name, variable length (January..December)
 .IP c
 locale's date and time (Sat Nov 04 12:02:33 EST 1989). The format is
 the same as for
-.BR ctime (3)
-and so to preserve compatibility with that format, there is no fractional part
-in the seconds field.
+.BR ctime (3).
 .IP d
 day of month (01..31)
 .IP D
@@ -177,7 +174,7 @@ option are supported. Prepend `-' to a field to sort in descending order.
 .IP "\fB\-p, \-\-print"
 Don't search files but print translated expression to stdout.
 .IP "\fB\-q, \-\-quote"
-Quote special shell characters when printing the expression.
+Quote special shell characters when printing expression to stdout.
 .IP "\fB\-\-list-extensions"
 Print a list of installed extensions.
 .IP "\fB\-\-show-blacklist"
@@ -326,7 +323,7 @@ Users can specifiy wildcard patterns in a personal blacklist (~/.efind/blacklist
 to prevent extensions from being loaded. To disable globally installed extensions,
 for instance, add the following line to your blacklist:
 .P
-.B /etc/efind/extensions/*
+.B /usr/lib/efind/extensions/*
 
 Lines starting with an hash ('#') are ignored.
 
@@ -338,37 +335,39 @@ To show all blacklisted extensions type in
 .IP "\fBEFIND_EXTENSION_PATH"
 A colon-separated list of directories in which efind searches for additional
 extensions.
+.IP "\fBEFIND_LIBDIR"
+If set, efind uses this path to search for extensions and ignores files from
+the default library location (usually /usr/lib).
 
 .SH FILES
 .IP "\fB~/.efind/extensions"
 local extension files
-.IP "\fB/etc/efind/extensions"
+.IP "\fB/usr/lib/efind/extensions"
 global extension files
 .IP "\fB~/.efind/blacklist"
 wildcard patterns to prevent extensions from being loaded
 
 .SH EXAMPLES
-To find all MP3 and Ogg Vorbis files that were modified less than two days ago
-you could use the following expression:
+To find MP3 and Ogg Vorbis files you could use the following expression:
 
-.B efind ~/music ~/Downloads '(iname="*.mp3" or iname="*.ogg") and type=file and mtime<2 days'
+.B efind ~/music ~/Downloads '(iname="*.mp3" or iname="*.ogg") and type=file'
 
 With the taglib extension you can filter search results by audio tags and
 properties:
 
 .B efind ~/music 'iname="*.mp3" and artist_matches("David Bowie") and audio_length()>=120'
 
-Use the
+Use
 .B \-\-print
 and
 .B \-\-quote
-options to print the translated expression without running find:
+to print the translated expression without running find:
 
 .B efind . 'size>1G and name="*.iso"' --print --quote
 
 If not specified \fBefind\fR reads the expression from stdin:
 
-.B echo 'mtime>=10 days' | efind . --print
+.B echo 'mtime=10 days' | efind . --print
 
 Search results can be sorted with the --order-by option:
 
@@ -376,7 +375,7 @@ Search results can be sorted with the --order-by option:
 
 Alternatively you can use descriptive field names in the --order-by option:
 
-.B efind ~/Documents ~/Downloads 'type=file' -order-by '-{bytes}{path}'
+.B efind ~/Documents ~/Downloads 'type=file' --order-by '-{bytes}{path}'
 
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.
