@@ -1,19 +1,20 @@
-PREFIX=/usr
-LOCALEDIR=$(PREFIX)/share/locale
-LIBDIR=$(PREFIX)/lib
+PREFIX?=/usr
+LOCALEDIR?=$(PREFIX)/share/locale
 
 MACHINE:=$(shell uname -m)
 
 ifeq ($(MACHINE), x86_64)
-LIBDIR=$(PREFIX)/lib64
+	LIBDIR?=$(PREFIX)/lib64
+else
+	LIBDIR?=$(PREFIX)/lib
 endif
 
-MAKE=make
-FLEX=flex
-BISON=bison
-DOXYGEN=doxygen
-CPPCHECK=cppcheck
-CTAGS=ctags
+MAKE?=make
+FLEX?=flex
+BISON?=bison
+DOXYGEN?=doxygen
+CPPCHECK?=cppcheck
+CTAGS?=ctags
 
 LIBFFI_CFLAGS=`pkg-config --cflags libffi`
 LIBFFI_LDFLAGS=`pkg-config --libs libffi`
@@ -21,12 +22,12 @@ LIBFFI_LDFLAGS=`pkg-config --libs libffi`
 PYTHON_CFLAGS=-DWITH_PYTHON -I/usr/include/python2.7 $(LIBFFI_CFLAGS)
 PYTHON_LDFLAGS=-lpython2.7 $(LIBFFI_LDFLAGS)
 
-CC=gcc
+CC?=gcc
 CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) -DLIBDIR=\"$(LIBDIR)\"
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.2.0.a -lm
 INC=-I./datatypes
 
-VERSION=0.3.2
+VERSION=0.4.0
 
 all:
 	$(MAKE) -C ./datatypes
