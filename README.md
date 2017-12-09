@@ -175,11 +175,11 @@ Available time and date fields are
 | l           | hour (1..12)                                                      |
 | M           | minute (00..59)                                                   |
 | p           | locale's AM or PM                                                 |
-| r           | time, 12-hour (hh:mm:ss [AP]M)                                    |
-| S           | second (00.00..61.00)                                             |
-| T           | time, 24-hour (hh:mm:ss.xxxxxxxxxx)                               |
+| r           | time, 12-hour (hh:mm:ss AM\|PM)                                   |
+| S           | second (00..60)                                                   |
+| T           | time, 24-hour (hh:mm:ss)                                          |
 | X           | locale's time representation (H:M:S)                              |
-| Z           | time zone (e.g., EDT), or nothing if no time zone is determinable |
+| Z           | time zone (e.g. EDT), or nothing if no time zone is determinable  |
 | a           | locale's abbreviated weekday name (Sun..Sat)                      |
 | A           | locale's full weekday name, variable length (Sunday..Saturday)    |
 | b           | locale's abbreviated month name (Jan..Dec)                        |
