@@ -1157,7 +1157,7 @@ class Printf(unittest.TestCase):
         self.__assert_hour_pair(a, b)
 
         # hours (24-hour/12-hour without leading zero):
-        m = re.match(r"^(\d{1,2})\s+(\d{1,2})(AM|PM)$", token[1])
+        m = re.match(r"^\s+(\d{1,2})\s+(\d{1,2})(AM|PM)$", token[1])
 
         assert(len(m.groups()) == 3)
 
