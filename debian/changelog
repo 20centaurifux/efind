@@ -1,3 +1,16 @@
+efind (0.4-0) unstable; urgency=low
+  * FEATURE: support multiple starting points
+  * FEATURE: allow user-friendly field names
+  * FEAUTRE: new test suite
+  * CHANGE: search extensions in /usr/lib/efind
+  * CHANGE: renamed --list-extensions option to --print-extensions
+  * CHANGE: renamed --show-blacklist option to --print-blacklist
+  * FIX: recognize regex and iregex attributes
+  * FIX: allow filter functions as first function argument
+  * FIX: always return error code if find child process fails
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sun, 10 Dec 2017 10:22:17 +0100
+
 efind (0.3-1) unstable; urgency=low
   * not-operator
   * EFIND_EXTENSION_PATH environment variable for additional extension

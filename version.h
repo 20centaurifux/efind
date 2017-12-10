@@ -25,11 +25,11 @@
 /*! Major version. */
 #define EFIND_VERSION_MAJOR     0
 /*! Minor version. */
-#define EFIND_VERSION_MINOR     3
+#define EFIND_VERSION_MINOR     4
 /*! Patch level. */
-#define EFIND_VERSION_PATCH     2
+#define EFIND_VERSION_PATCH     0
 /*! Code name. */
-#define EFIND_VERSION_CODE_NAME "Leif Erikson"
+#define EFIND_VERSION_CODE_NAME "Magellan"
 /*! Project website. */
 #define EFIND_WEBSITE           "http://efind.dixieflatline.de"
 /*! Copyright date. */

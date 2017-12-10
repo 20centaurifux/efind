@@ -1,7 +1,14 @@
-2017-??-?? v0.3.2
+2017-??-?? v0.4.0
 	* FEATURE: support multiple starting points
 	* FEATURE: allow user-friendly field names
-	* FIX: allow filter functions as first function arguments
+	* FEAUTRE: new test suite
+	* CHANGE: search extensions in /usr/lib/efind instead of
+	          /etc/efind
+	* CHANGE: renamed --list-extensions option to --print-extensions
+	* CHANGE: renamed --show-blacklist option to --print-blacklist
+	* FIX: recognize regex and iregex attributes
+	* FIX: allow filter functions as first function argument
+	* FIX: always return error code if find child process fails
 
 2017-10-31 v0.3.1
 	* FEATURE: not-operator
