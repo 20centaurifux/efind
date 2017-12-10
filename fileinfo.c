@@ -176,11 +176,15 @@ _file_info_remove_cli(const char *cli, const char *path)
 }
 
 static double
+#ifdef _LARGEFILE64_SOURCE
+_file_info_calc_sparseness(blksize_t blksize, blkcnt_t blocks, off64_t size)
+#else
 _file_info_calc_sparseness(blksize_t blksize, blkcnt_t blocks, off_t size)
+#endif
 {
 	double sparseness = 0.0;
 
-	if(size)
+	if(size > 0)
 	{
 		sparseness = (double)(blksize / 8) * blocks / size;
 

@@ -8,6 +8,7 @@ efind (0.4-0) unstable; urgency=low
   * FIX: recognize regex and iregex attributes
   * FIX: allow filter functions as first function argument
   * FIX: always return error code if find child process fails
+  * FIX: integer overflow on x86 when calculating sparseness
 
  -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sun, 10 Dec 2017 10:22:17 +0100
 

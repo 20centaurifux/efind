@@ -9,6 +9,8 @@
 	* FIX: recognize regex and iregex attributes
 	* FIX: allow filter functions as first function argument
 	* FIX: always return error code if find child process fails
+	* FIX: integer overflow on x86 when calculating sparseness of
+	       files greater than 2G
 
 2017-10-31 v0.3.1
 	* FEATURE: not-operator
