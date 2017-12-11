@@ -778,7 +778,7 @@ class OrderBy(unittest.TestCase, AssertSearch):
 
             return [attrs[stat.ST_SIZE], attrs[stat.ST_ATIME], filename]
 
-        args = ["./test-data", "type=file", "--order-by", "-s{kb} -p"]
+        args = ["./test-data", "type=file", "--order-by", "-s{atime} -p"]
 
         returncode, files = run_executable_and_split_output("efind", args)
 
@@ -1319,4 +1319,3 @@ if __name__ == "__main__":
 
     if result.errors != [] or result.failures != []:
         sys.exit(1)
-
