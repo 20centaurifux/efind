@@ -54,7 +54,6 @@ typedef struct
 #define QUOTE_ARGS(ctx) (ctx->flags & TRANSLATION_FLAG_QUOTE)
 /*! @endcond */
 
-/* initialize context */
 static void
 _translation_ctx_init(TranslationCtx *ctx, Node *root, TranslationFlags flags)
 {
@@ -68,7 +67,6 @@ _translation_ctx_init(TranslationCtx *ctx, Node *root, TranslationFlags flags)
 	ctx->flags = flags;
 }
 
-/* append argument to context */
 static bool
 _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 {
@@ -123,9 +121,8 @@ _translation_ctx_append_args(TranslationCtx *ctx, ...)
 	return success;
 }
 
-/* write error message with line & column information */
 static ssize_t
-_vprintf_loc(const Node *node, char *buf, size_t size, const char *format, va_list ap)
+_vprintf_error(const Node *node, char *buf, size_t size, const char *format, va_list ap)
 {
 	const YYLTYPE *locp;
 	char tmp[64];
@@ -192,7 +189,6 @@ out:
 	return ret;
 }
 
-/* set error message */
 static void
 _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 {
@@ -212,7 +208,7 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 
 	if(node)
 	{
-		ssize_t written = _vprintf_loc(node, msg, sizeof(msg), fmt, ap);
+		ssize_t written = _vprintf_error(node, msg, sizeof(msg), fmt, ap);
 
 		if(written != -1)
 		{
@@ -220,7 +216,7 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 		}
 		else
 		{
-			WARNING("translate", "Couldn't set error message, `_vprintf_loc' failed.");
+			WARNING("translate", "Couldn't set error message, `_vprintf_error' failed.");
 		}
 	}
 	else
@@ -243,8 +239,6 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 /*
  *	convert property ids & flags:
  */
-
-/* convert property id to human-readable string */
 static const char *
 _property_to_str(PropertyId id)
 {
@@ -315,7 +309,6 @@ _property_to_str(PropertyId id)
 	return name;
 }
 
-/* convert property id to find argument */
 static const char *
 _property_to_arg(PropertyId id, int arg)
 {
@@ -386,7 +379,6 @@ _property_to_arg(PropertyId id, int arg)
 	return name;
 }
 
-/* flag to find argument */
 static const char *
 _flag_to_arg(FileFlag id)
 {
@@ -417,7 +409,6 @@ _flag_to_arg(FileFlag id)
 	return name;
 }
 
-/* compare operator to stirng */
 static const char *
 _cmp_to_str(CompareType cmp)
 {
@@ -454,12 +445,11 @@ _cmp_to_str(CompareType cmp)
 /*
  *	validation:
  */
-
 static bool
 _property_supports_number(PropertyId prop)
 {
-	return prop == PROP_ATIME || prop == PROP_CTIME || prop == PROP_MTIME
-	               || prop == PROP_SIZE || prop == PROP_GROUP_ID || prop == PROP_USER_ID;
+	return prop == PROP_ATIME || prop == PROP_CTIME || prop == PROP_MTIME ||
+	               prop == PROP_SIZE || prop == PROP_GROUP_ID || prop == PROP_USER_ID;
 }
 
 static bool
@@ -471,8 +461,9 @@ _property_supports_time(PropertyId prop)
 static bool
 _property_supports_string(PropertyId prop)
 {
-	return prop == PROP_NAME || prop == PROP_INAME || prop == PROP_REGEX || prop == PROP_IREGEX
-	               || prop == PROP_GROUP || prop == PROP_USER || prop == PROP_FILESYSTEM;
+	return prop == PROP_NAME || prop == PROP_INAME || prop == PROP_REGEX ||
+	               prop == PROP_IREGEX || prop == PROP_GROUP || prop == PROP_USER ||
+	               prop == PROP_FILESYSTEM;
 }
 
 static bool
@@ -493,7 +484,6 @@ _property_supports_numeric_operators(PropertyId prop)
 	return prop == PROP_ATIME || prop == PROP_CTIME || prop == PROP_MTIME || prop == PROP_SIZE;
 }
 
-/* test if a datatype can be compared to a property by calling the specified validation function and set error message on failure */
 static bool
 _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_property)(PropertyId id), const char *type_desc)
 {
@@ -501,7 +491,6 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 	assert(test_property != NULL);
 	assert(type_desc != NULL);
 
-	/* test if property supports given type */
 	if(!test_property(node->prop))
 	{
 		_set_error(ctx, (Node *)node, _("Cannot compare a value of type \"%s\" value to property \"%s\"."), type_desc, _property_to_str(node->prop));
@@ -509,7 +498,6 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 		return false;
 	}
 
-	/* test if property supports the given operator */
 	if(node->cmp != CMP_EQ && !_property_supports_numeric_operators(node->prop))
 	{
 		_set_error(ctx, (Node *)node, _("Values of type \"%s\" don't support the \"%s\" operator."), type_desc, _cmp_to_str(node->cmp));
@@ -520,9 +508,6 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 	return true;
 }
 
-/*
- *	append find arguments to translation context
- */
 static bool
 _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, int64_t val, const char *suffix)
 {
@@ -706,7 +691,6 @@ _append_type_cond(TranslationCtx *ctx, FileType type)
 		default:
 			FATALF("translate", "Unsupported file type: %#x", type);
 			success = false;
-
 	}
 
 	if(success)
@@ -960,9 +944,6 @@ _translate(TranslationCtx *ctx)
 	return _process_node(ctx, ctx->root);
 }
 
-/*
- *	global:
- */
 bool
 translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char **err)
 {
