@@ -255,7 +255,6 @@ utils_whereis(const char *name)
 
 	rest = getenv("PATH");
 
-	/* test if PATH is empty */
 	if(!rest || !rest[0])
 	{
 		return NULL;
@@ -263,7 +262,6 @@ utils_whereis(const char *name)
 
 	while(!exe && (token = strtok_r(rest, ":", &rest)))
 	{
-		/* build absolute path to executable file */
 		size_t len = strlen(token);
 
 		if(!len)
@@ -273,7 +271,6 @@ utils_whereis(const char *name)
 
 		if(utils_path_join(token, name, path, PATH_MAX))
 		{
-			/* test if file does exist & can be executed by user */
 			if(!stat(path, &sb))
 			{
 				if((sb.st_mode & S_IFMT) == S_IFREG && (sb.st_mode & S_IXUSR || sb.st_mode & S_IXGRP))
@@ -301,9 +298,9 @@ utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len
 
 	memset(dst, 0, max_len);
 
-	int len = strlen(dir);
+	size_t len = strlen(dir);
 
-	if((size_t)len < max_len)
+	if(len < max_len)
 	{
 		if(dir[len - 1] == '/')
 		{
@@ -314,7 +311,7 @@ utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len
 			len = snprintf(dst, max_len, "%s/%s", dir, filename);
 		}
 
-		result = len > 0 && (size_t)len < max_len;
+		result = len > 0 && len < max_len;
 	}
 
 	return result;
