@@ -1280,7 +1280,7 @@ class Printf(unittest.TestCase):
 
         assert(len(m.groups()) == 3)
  
-        day, month, year = map(int, m.groups())
+        month, day, year = map(int, m.groups())
 
         assert(day >= 1 and day <= 31)
         assert(month >= 1 and month <= 12)
