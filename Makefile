@@ -19,8 +19,8 @@ CTAGS?=ctags
 LIBFFI_CFLAGS=`pkg-config --cflags libffi`
 LIBFFI_LDFLAGS=`pkg-config --libs libffi`
 
-PYTHON_CFLAGS=-DWITH_PYTHON -I/usr/include/python2.7 $(LIBFFI_CFLAGS)
-PYTHON_LDFLAGS=-lpython2.7 $(LIBFFI_LDFLAGS)
+PYTHON_CFLAGS?=-DWITH_PYTHON -I/usr/include/python2.7 $(LIBFFI_CFLAGS)
+PYTHON_LDFLAGS?=-lpython2.7 $(LIBFFI_LDFLAGS)
 
 CC?=gcc
 CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) -DLIBDIR=\"$(LIBDIR)\"

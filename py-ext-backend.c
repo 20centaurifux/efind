@@ -41,80 +41,102 @@ typedef struct
 	AssocArray signatures;
 } PyHandle;
 
-/* add extension paths to sys.path */
 static void
-_py_set_python_path(void)
+_py_append_global_extension_path(PyObject *path)
 {
-	PyObject *sys = PyImport_ImportModule("sys");
+	assert(path != NULL);
+	assert(PyList_Check(path));
 
+	char dir[PATH_MAX];
+
+	if(path_builder_global_extensions(dir, PATH_MAX))
+	{
+		DEBUGF("python", "Appending global extension directory to Python path: %s", dir);
+
+		PyList_Append(path, PyString_FromString(dir));
+	}
+	else
+	{
+		WARNING("python", "Couldn't build global extension path.");
+	}
+}
+	
+static void
+_py_append_local_extension_path(PyObject *path)
+{
+	assert(path != NULL);
+	assert(PyList_Check(path));
+
+	char localpath[PATH_MAX];
+
+	if(path_builder_local_extensions(localpath, PATH_MAX))
+	{
+		DEBUGF("python", "Appending local extension directory to Python path: %s", localpath);
+
+		PyList_Append(path, PyString_FromString(localpath));
+	}
+	else
+	{
+		WARNING("python", "Couldn't build local extension path.");
+	}
+}
+
+static void
+_py_append_extension_paths_from_env(PyObject *path)
+{
+	assert(path != NULL);
+	assert(PyList_Check(path));
+
+	char *dirs = getenv("EFIND_EXTENSION_PATH");
+
+	if(dirs && *dirs)
+	{
+		dirs = utils_strdup(dirs); // prevent strtok_r from changing environment variable
+
+		char *rest = dirs;
+		char *dir;
+
+		while((dir = strtok_r(rest, ":", &rest)))
+		{
+			DEBUGF("python", "Appending extension directory to Python path: %s", dir);
+
+			PyList_Append(path, PyString_FromString(dir));
+		}
+
+		free(dirs);
+	}
+}
+
+static void
+_py_append_extension_module_paths(void)
+{
 	TRACE("python", "Importing `sys' module.");
 
-	if(sys && PyModule_Check(sys))
+	PyObject *sys = PyImport_ImportModule("sys");
+
+	if(sys)
 	{
+		assert(PyModule_Check(sys));
+
 		TRACE("python", "Retrieving `path' attribute from `sys' module.");
 
 		PyObject *path = PyObject_GetAttrString(sys, "path");
 
-		if(path && PyList_Check(path))
+		if(path)
 		{
-			/* append global extension directory */
-			DEBUG("python", "Appending global extension directory to Python path: /etc/efind/extension");
+			assert(PyList_Check(path));
 
-			char dir[PATH_MAX];
+			TRACE("python", "Appending extension directories.");
 
-			if(path_builder_global_extensions(dir, PATH_MAX))
-			{
-				PyList_Append(path, PyString_FromString(dir));
-			}
-			else
-			{
-				WARNING("python", "Couldn't build global extension path.");
-			}
+			_py_append_global_extension_path(path);
+			_py_append_local_extension_path(path);
+			_py_append_extension_paths_from_env(path);
 
-			/* append local extension directory */
-			const char *homedir = getenv("HOME");
-
-			if(homedir && *homedir)
-			{
-				size_t len = strlen(homedir);
-
-				if(SIZE_MAX - 20 >= len)
-				{
-					char *localpath = (char *)utils_malloc(len + 20);
-
-					sprintf(localpath, "%s/.efind/extensions", homedir);
-
-					DEBUGF("python", "Appending local extension directory to Python path: %s", localpath);
-
-					PyList_Append(path, PyString_FromString(localpath));
-					free(localpath);
-				}
-			}
-
-			/* append directories specified in EFIND_EXTENSION_PATH environment variable */
-			char *dirs = getenv("EFIND_EXTENSION_PATH");
-
-			if(dirs && *dirs)
-			{
-				dirs = utils_strdup(dirs);
-
-				char *rest = dirs;
-				char *dir;
-
-				while((dir = strtok_r(rest, ":", &rest)))
-				{
-					DEBUGF("python", "Appending extension directory to Python path: %s", dir);
-					PyList_Append(path, PyString_FromString(dir));
-				}
-
-				free(dirs);
-			}
+			Py_DECREF(path);
 		}
 
-		Py_XDECREF(path);
+		Py_DECREF(sys);
 	}
-
-	Py_XDECREF(sys);
 }
 
 static void
@@ -123,7 +145,7 @@ _py_initialize(void)
 	if(!Py_IsInitialized())
 	{
 		Py_Initialize();
-		_py_set_python_path();
+		_py_append_extension_module_paths();
 		atexit(Py_Finalize);
 	}
 }
@@ -144,12 +166,11 @@ _py_handle_destroy(PyHandle *handle)
 static PyHandle *
 _py_handle_new(PyObject *module)
 {
-	PyHandle *handle = NULL;
-
 	assert(module != NULL);
 	assert(PyModule_Check(module));
 
-	handle = utils_new(1, PyHandle);
+	PyHandle *handle = utils_new(1, PyHandle);
+
 	handle->module = module;
 	assoc_array_init(&handle->signatures, str_compare, free, free);
 
@@ -203,27 +224,26 @@ _py_get_extension_details(PyObject *module, char *details[3])
 {
 	bool success = true;
 	static char *keys[3] = {"EXTENSION_NAME", "EXTENSION_VERSION", "EXTENSION_DESCRIPTION"};
-	size_t i;
+	size_t count;
 
 	assert(module != NULL);
 	assert(details != NULL);
 
-	for(i = 0; success && i < sizeof(keys) / sizeof(char *); ++i)
+	for(count = 0; success && count < sizeof(keys) / sizeof(char *); count++)
 	{
-		success = false;
+		TRACEF("python", "Searching for symbol: `%s'", keys[count]);
 
-		TRACEF("python", "Searching for symbol: `%s'", keys[i]);
-
-		PyObject *attr = PyObject_GetAttrString(module, keys[i]);
+		PyObject *attr = PyObject_GetAttrString(module, keys[count]);
 
 		if(attr && PyString_Check(attr))
 		{
-			details[i] = utils_strdup(PyString_AsString(attr));
-			success = true;
+			details[count] = utils_strdup(PyString_AsString(attr));
 		}
 		else
 		{
-			DEBUGF("python", "Couldn't find string `%s'.", keys[i]);
+			DEBUGF("python", "Couldn't find string `%s'.", keys[count]);
+
+			success = false;
 		}
 
 		Py_XDECREF(attr);
@@ -231,75 +251,214 @@ _py_get_extension_details(PyObject *module, char *details[3])
 
 	if(!success)
 	{
-		_py_free_extension_details(details, i - 1);
+		_py_free_extension_details(details, count - 1);
 	}
 
 	return success;
 }
 
+static PyHandle *
+_py_import_module(PyObject *name, RegisterExtension fn, RegistrationCtx *ctx)
+{
+	PyHandle *handle = NULL;
+
+	assert(name != NULL);
+	assert(PyString_Check(name));
+	assert(fn != NULL);
+
+	PyObject *module = PyImport_Import(name);
+
+	if(module)
+	{
+		TRACE("python", "Module imported successfully, retrieving details.");
+
+		char *details[3];
+
+		if(_py_get_extension_details(module, details))
+		{
+			fn(ctx, details[0], details[1], details[2]);
+			_py_free_extension_details(details, 3);
+			handle = _py_handle_new(module);
+		}
+		else
+		{
+			DEBUG("python", "Couldn't retrieve required details from module.");
+
+			Py_DECREF(module);
+		}
+	}
+	else
+	{
+		PyErr_Print();
+	}
+
+	return handle;
+}
+
 static void *
 _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx *ctx)
 {
-	char *mod_name;
 	PyHandle *handle = NULL;
 
 	assert(filename != NULL);
 	assert(fn != NULL);
 
-	/* get module name from filename */
-	mod_name = _py_get_module_name(filename);
+	char *mod_name = _py_get_module_name(filename);
 
-	if(!mod_name)
+	if(mod_name)
 	{
-		return NULL;
-	}
-
-	/* initialize Python interpreter (if necessary) */
-	_py_initialize();
-
-	/* try to import specified module */
-	PyObject *name = PyString_FromString(mod_name);
-
-	if(name)
-	{
-		PyObject *module = NULL;
+		_py_initialize();
 
 		DEBUGF("python", "Importing `%s' module.", mod_name);
 
-		if((module = PyImport_Import(name)))
+		PyObject *name = PyString_FromString(mod_name);
+
+		if(name)
 		{
-			TRACEF("python", "Module `%s' imported successfully, retrieving details.", mod_name);
+			handle = _py_import_module(name, fn, ctx);
+			Py_DECREF(name);
+		}
 
-			/* module imported successfully => get details */
-			char *details[3];
+		free(mod_name);
+	}
+	else
+	{
+		DEBUGF("python", "Couldn't get module name from filename: `%s'", filename);
+	}
 
-			if(_py_get_extension_details(module, details))
+	return handle;
+}
+
+static bool
+_py_build_signature_from_sequence(PyObject *seq, uint32_t *argc, int **signature)
+{
+	bool success = true;
+
+	assert(seq != NULL);
+	assert(PySequence_Check(seq));
+	assert(argc != NULL);
+	assert(*argc == 0);
+	assert(signature != NULL);
+	assert(*signature == NULL);
+
+	Py_ssize_t len = PySequence_Length(seq);
+
+	if(len > UINT32_MAX)
+	{
+		DEBUG("python", "Signature exceeds allowed maximum length.");
+	}
+	else if(len)
+	{
+		*argc = (uint32_t)len;
+		*signature = utils_new(len, int);
+
+		for(Py_ssize_t i = 0; success && i < len; i++)
+		{
+			PyObject *arg = PySequence_ITEM(seq, i);
+
+			if(PyType_Check(arg))
 			{
-				/* register loaded module */
-				fn(ctx, details[0], details[1], details[2]);
-				_py_free_extension_details(details, 3);
-
-				/* create handle */
-				handle = _py_handle_new(module);
+				if((PyTypeObject *)arg == &PyInt_Type)
+				{
+					(*signature)[i] = CALLBACK_ARG_TYPE_INTEGER;
+				}
+				else if((PyTypeObject *)arg == &PyString_Type)
+				{
+					(*signature)[i] = CALLBACK_ARG_TYPE_STRING;
+				}
+				else
+				{
+					DEBUG("python", "__signature__ attribute contains an unsupported type.");
+					success = false;
+				}
 			}
 			else
 			{
-				/* Ooops, something went wrong */
-				DEBUGF("python", "Couldn't retrieve required details from module `%s'.", mod_name);
-				Py_DECREF(module);
+				DEBUG("python", "__signature__ attribute  is invalid, PyType_Check() failed.");
+				success = false;
 			}
-		}
-		else
-		{
-			PyErr_Print();
-		}
 
-		Py_DECREF(name);
+			Py_XDECREF(arg);
+		}
 	}
 
-	free(mod_name);
+	return success;
+}
 
-	return handle;
+static bool
+_py_get_signature_from_callable(PyObject *callable, uint32_t *argc, int **signature)
+{
+	PyObject *sig = NULL;
+	bool success = false;
+
+	assert(callable != NULL);
+	assert(PyCallable_Check(callable));
+	assert(argc != NULL);
+	assert(*argc == 0);
+	assert(signature != NULL);
+	assert(*signature == NULL);
+
+	if(PyObject_HasAttrString(callable, "__signature__"))
+	{
+		sig = PyObject_GetAttrString(callable, "__signature__");
+	}
+
+	if(sig && PySequence_Check(sig))
+	{
+		success = _py_build_signature_from_sequence(sig, argc, signature);
+	}
+	else
+	{
+		success = !sig || sig == Py_None;
+
+		if(!success)
+		{
+			DEBUG("python", "__signature__ attribute is invalid.");
+		}
+	}
+
+	Py_XDECREF(sig);
+
+	return success;
+}
+
+static bool
+_py_register_callable(PyObject *callable, char *fn_name, uint32_t argc, int *signature, RegisterCallback fn, RegistrationCtx *ctx)
+{
+	ffi_cif cif;
+	ffi_type *ret_type = &ffi_type_void;
+	ffi_arg ret_value;
+	ffi_type *arg_types[3 + argc];
+	void *arg_values[3 + argc];
+	bool success = false;
+
+	arg_types[0] = &ffi_type_pointer;
+	arg_types[1] = &ffi_type_pointer;
+	arg_types[2] = &ffi_type_uint;
+
+	arg_values[0] = &ctx;
+	arg_values[1] = &fn_name;
+	arg_values[2] = &argc;
+
+	for(uint32_t i = 0; i < argc; i++)
+	{
+		arg_types[3 + i] = &ffi_type_sint;
+		arg_values[3 + i] = &signature[i];
+	}
+
+	ffi_status status = ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, 3, 3 + argc, ret_type, arg_types);
+
+	if(status == FFI_OK)
+	{
+		ffi_call(&cif, FFI_FN(fn), &ret_value, arg_values);
+		success = true;
+	}
+	else
+	{
+		WARNINGF("python", "`ffi_prep_cif_var' failed with error code %#x.", status);
+	}
+
+	return success;
 }
 
 static bool
@@ -312,122 +471,36 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 	assert(PyCallable_Check(callable));
 	assert(fn != NULL);
 
-	/* get function name */
 	PyObject *name = PyObject_GetAttrString(callable, "__name__");
 
 	if(name && PyString_Check(name))
 	{
-		const char *fn_name = PyString_AsString(name);
+		char *fn_name = PyString_AsString(name);
 
 		assert(fn_name != NULL);
 
 		TRACEF("python", "Importing function: `%s'", fn_name);
 
-		/* get signature & register function */
-		PyObject *sig = NULL;
 		uint32_t argc = 0;
 		int *signature = NULL;
 
-		if(PyObject_HasAttrString(callable, "__signature__"))
+		if(_py_get_signature_from_callable(callable, &argc, &signature))
 		{
-			sig = PyObject_GetAttrString(callable, "__signature__");
-		}
-
-		if(sig && PySequence_Check(sig))
-		{
-			success = true;
-			
-			Py_ssize_t len = PySequence_Length(sig);
-
-			if(len && len <= UINT32_MAX)
+			if(_py_register_callable(callable, fn_name, argc, signature, fn, ctx))
 			{
-				argc = (uint32_t)len;
-				signature = utils_new(1, int);
-
-				for(Py_ssize_t i = 0; success && i < PySequence_Length(sig); ++i)
-				{
-					PyObject *arg = PySequence_ITEM(sig, i);
-
-					if(PyType_Check(arg))
-					{
-						if((PyTypeObject *)arg == &PyInt_Type)
-						{
-							signature[i] = CALLBACK_ARG_TYPE_INTEGER;
-						}
-						else if((PyTypeObject *)arg == &PyString_Type)
-						{
-							signature[i] = CALLBACK_ARG_TYPE_STRING;
-						}
-						else
-						{
-							DEBUGF("python", "__signature__ attribute of function `%s' contains an unsupported type.", fn_name);
-							success = false;
-						}
-					}
-					else
-					{
-						DEBUGF("python", "__signature__ attribute of function `%s' is invalid, PyType_Check() failed.", fn_name);
-						success = false;
-					}
-
-					Py_DECREF(arg);
-				}
-			}
-		}
-		else
-		{
-
-			success = !sig || sig == Py_None;
-
-			if(!success)
-			{
-				DEBUGF("python", "__signature__ attribute of function `%s' is invalid.", fn_name);
-			}
-		}
-
-		Py_XDECREF(sig);
-
-		/* call registration function */
-		if(success)
-		{
-			ffi_cif cif;
-			ffi_type *ret_type = &ffi_type_void;
-			ffi_arg ret_value;
-			ffi_type *arg_types[3 + argc];
-			void *arg_values[3 + argc];
-
-			arg_types[0] = &ffi_type_pointer;
-			arg_types[1] = &ffi_type_pointer;
-			arg_types[2] = &ffi_type_uint;
-
-			arg_values[0] = &ctx;
-			arg_values[1] = &fn_name;
-			arg_values[2] = &argc;
-
-			for(uint32_t i = 0; i < argc; ++i)
-			{
-				arg_types[3 + i] = &ffi_type_sint;
-				arg_values[3 + i] = &signature[i];
-			}
-
-			ffi_status status = ffi_prep_cif_var(&cif, FFI_DEFAULT_ABI, 3, 3 + argc, ret_type, arg_types);
-
-			if(status == FFI_OK)
-			{
-				ffi_call(&cif, FFI_FN(fn), &ret_value, arg_values);
-
-				/* store signature */
 				assoc_array_set(&handle->signatures, utils_strdup(fn_name), signature, false);
-			}
-			else
-			{
-				WARNINGF("python", "`ffi_prep_cif_var' failed with error code %#x.", status);
+				success = true;
 			}
 		}
-		else
+
+		if(!success && signature)
 		{
 			free(signature);
 		}
+	}
+	else
+	{
+		ERROR("python", "Couldn't detect name of callable object.");
 	}
 
 	Py_XDECREF(name);
@@ -451,9 +524,10 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 
 	if(exports && PySequence_Check(exports))
 	{
+		Py_ssize_t len = PySequence_Length(exports);
 		bool success = true;
 
-		for(Py_ssize_t i = 0; success && i < PySequence_Length(exports); ++i)
+		for(Py_ssize_t i = 0; success && i < len; i++)
 		{
 			success = false;
 			PyObject *callable = PySequence_ITEM(exports, i);
@@ -461,6 +535,10 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 			if(PyCallable_Check(callable))
 			{
 				success = _py_import_callable(handle, callable, fn, ctx);
+			}
+			else
+			{
+				DEBUGF("python", "Object at position %l of sequence `EXTENSION_EXPORT' is not a callable.", i);
 			}
 
 			Py_DECREF(callable);
@@ -472,6 +550,94 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 	}
 
 	Py_XDECREF(exports);
+}
+
+static PyObject *
+_py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *sig)
+{
+	PyObject *tuple = NULL;
+
+	assert(filename != NULL);
+	assert(!argc || sig != NULL);
+
+	tuple = PyTuple_New(argc + 1);
+
+	PyTuple_SetItem(tuple, 0, PyString_FromString(filename));
+
+	for(uint32_t i = 0; i < argc; i++)
+	{
+		PyObject *arg = NULL;
+
+		if(sig[i] == CALLBACK_ARG_TYPE_INTEGER)
+		{
+			arg = PyInt_FromLong(*((int *)(argv[i])));
+		}
+		else if(sig[i] == CALLBACK_ARG_TYPE_STRING)
+		{
+			if(argv[i])
+			{
+				arg = PyString_FromString(argv[i]);
+			}
+			else
+			{
+				arg = PyString_FromString("");
+			}
+		}
+		else
+		{
+			ERRORF("python", "Unknown datatype in function signature: %x\n", sig[i]);
+		}
+
+		PyTuple_SetItem(tuple, i + 1, arg);
+	}
+
+	return tuple;
+}
+
+static int
+_py_invoke(PyObject *callable, PyObject *tuple, int *result)
+{
+	int ret = -1;
+
+	assert(callable != NULL);
+	assert(PyCallable_Check(callable));
+	assert(tuple != NULL);
+	assert(PyTuple_Check(tuple));
+	assert(result != NULL);
+
+	*result = 0;
+
+	PyObject *obj = PyObject_CallObject(callable, tuple);
+
+	if(obj)
+	{
+		if(PyInt_Check(obj))
+		{
+			long value = PyInt_AsLong(obj);
+
+			if(value >= INT_MIN && value <= INT_MAX)
+			{
+				*result = (int)value;
+				ret = 0;
+			}
+			else
+			{
+				DEBUG("python", "Result out of range.");
+			}
+		}
+		else
+		{
+			DEBUG("python", "Result is not an integer.");
+		}
+
+		Py_DECREF(obj);
+	}
+	else
+	{
+		PyErr_Print();
+	}
+
+	return ret;
 }
 
 static int
@@ -486,69 +652,23 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 	assert(name != NULL);
 	assert(filename != NULL);
 
-	/* find callable */
 	PyObject *callable = PyObject_GetAttrString(py_handle->module, name);
 
 	if(callable && PyCallable_Check(callable))
 	{
-		/* get function signature */
 		int *sig = assoc_array_lookup(&py_handle->signatures, name);
 
-		/* build argument list */
-		PyObject *tuple = PyTuple_New(argc + 1);
+		PyObject *tuple = _py_build_function_tuple(filename, argc, argv, sig);
 
-		PyTuple_SetItem(tuple, 0, PyString_FromString(filename));
+		assert(tuple != NULL);
 
-		for(uint32_t i = 0; i < argc; ++i)
-		{
-			PyObject *arg = NULL;
-
-			if(sig[i] == CALLBACK_ARG_TYPE_INTEGER)
-			{
-				arg = PyInt_FromLong(*((int *)(argv[i])));
-			}
-			else if(sig[i] == CALLBACK_ARG_TYPE_STRING)
-			{
-				if(argv[i])
-				{
-					arg = PyString_FromString(argv[i]);
-				}
-				else
-				{
-					arg = PyString_FromString("");
-				}
-			}
-
-			PyTuple_SetItem(tuple, i + 1, arg);
-		}
-
-		PyObject *obj = PyObject_CallObject(callable, tuple);
-
-		if(obj)
-		{
-			if(PyInt_Check(obj))
-			{
-				long value = PyInt_AsLong(obj);
-
-				if(value >= INT_MIN && value <= INT_MAX)
-				{
-					*result = (int)value;
-					ret = 0;
-				}
-			}
-
-			Py_DECREF(obj);
-		}
-		else
-		{
-			PyErr_Print();
-		}
+		ret = _py_invoke(callable, tuple, result);
 
 		Py_DECREF(tuple);
 	}
 	else
 	{
-		ERRORF("python", "Callbable `%s' not found.", name);
+		ERRORF("python", "Callable `%s' not found.", name);
 	}
 
 	Py_XDECREF(callable);
