@@ -134,8 +134,16 @@ _py_append_extension_module_paths(void)
 
 			Py_DECREF(path);
 		}
+		else
+		{
+			PyErr_Print();
+		}
 
 		Py_DECREF(sys);
+	}
+	else
+	{
+		PyErr_Print();
 	}
 }
 
@@ -235,18 +243,26 @@ _py_get_extension_details(PyObject *module, char *details[3])
 
 		PyObject *attr = PyObject_GetAttrString(module, keys[count]);
 
-		if(attr && PyString_Check(attr))
+		if(attr)
 		{
-			details[count] = utils_strdup(PyString_AsString(attr));
+			success = PyString_Check(attr);
+
+			if(success)
+			{
+				details[count] = utils_strdup(PyString_AsString(attr));
+			}
+			else
+			{
+				DEBUGF("python", "Couldn't find string `%s'.", keys[count]);
+			}
+
+			Py_DECREF(attr);
 		}
 		else
 		{
-			DEBUGF("python", "Couldn't find string `%s'.", keys[count]);
-
+			PyErr_Print();
 			success = false;
 		}
-
-		Py_XDECREF(attr);
 	}
 
 	if(!success)
@@ -258,19 +274,18 @@ _py_get_extension_details(PyObject *module, char *details[3])
 }
 
 static PyHandle *
-_py_import_module(PyObject *name, RegisterExtension fn, RegistrationCtx *ctx)
+_py_import_module(const char *name, RegisterExtension fn, RegistrationCtx *ctx)
 {
 	PyHandle *handle = NULL;
 
 	assert(name != NULL);
-	assert(PyString_Check(name));
 	assert(fn != NULL);
 
-	PyObject *module = PyImport_Import(name);
+	PyObject *module = PyImport_ImportModule(name);
 
 	if(module)
 	{
-		TRACE("python", "Module imported successfully, retrieving details.");
+		TRACEF("python", "Module `%s' imported successfully, retrieving details.", name);
 
 		char *details[3];
 
@@ -282,7 +297,7 @@ _py_import_module(PyObject *name, RegisterExtension fn, RegistrationCtx *ctx)
 		}
 		else
 		{
-			DEBUG("python", "Couldn't retrieve required details from module.");
+			DEBUGF("python", "Couldn't retrieve required details from module `%s'.", name);
 
 			Py_DECREF(module);
 		}
@@ -303,23 +318,17 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 	assert(filename != NULL);
 	assert(fn != NULL);
 
-	char *mod_name = _py_get_module_name(filename);
+	char *name = _py_get_module_name(filename);
 
-	if(mod_name)
+	if(name)
 	{
 		_py_initialize();
 
-		DEBUGF("python", "Importing `%s' module.", mod_name);
+		DEBUGF("python", "Importing `%s' module.", name);
 
-		PyObject *name = PyString_FromString(mod_name);
+		handle = _py_import_module(name, fn, ctx);
 
-		if(name)
-		{
-			handle = _py_import_module(name, fn, ctx);
-			Py_DECREF(name);
-		}
-
-		free(mod_name);
+		free(name);
 	}
 	else
 	{
@@ -473,37 +482,44 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 
 	PyObject *name = PyObject_GetAttrString(callable, "__name__");
 
-	if(name && PyString_Check(name))
+	if(name)
 	{
-		char *fn_name = PyString_AsString(name);
-
-		assert(fn_name != NULL);
-
-		TRACEF("python", "Importing function: `%s'", fn_name);
-
-		uint32_t argc = 0;
-		int *signature = NULL;
-
-		if(_py_get_signature_from_callable(callable, &argc, &signature))
+		if(PyString_Check(name))
 		{
-			if(_py_register_callable(callable, fn_name, argc, signature, fn, ctx))
+			char *fn_name = PyString_AsString(name);
+
+			assert(fn_name != NULL);
+
+			TRACEF("python", "Importing function: `%s'", fn_name);
+
+			uint32_t argc = 0;
+			int *signature = NULL;
+
+			if(_py_get_signature_from_callable(callable, &argc, &signature))
 			{
-				assoc_array_set(&handle->signatures, utils_strdup(fn_name), signature, false);
-				success = true;
+				if(_py_register_callable(callable, fn_name, argc, signature, fn, ctx))
+				{
+					assoc_array_set(&handle->signatures, utils_strdup(fn_name), signature, false);
+					success = true;
+				}
+			}
+
+			if(!success && signature)
+			{
+				free(signature);
 			}
 		}
-
-		if(!success && signature)
+		else
 		{
-			free(signature);
+			ERROR("python", "Couldn't detect name of callable object.");
 		}
+
+		Py_DECREF(name);
 	}
 	else
 	{
-		ERROR("python", "Couldn't detect name of callable object.");
+		PyErr_Print();
 	}
-
-	Py_XDECREF(name);
 
 	return success;
 }
@@ -522,34 +538,41 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 
 	PyObject *exports = PyObject_GetAttrString((PyObject *)py_handle->module, "EXTENSION_EXPORT");
 
-	if(exports && PySequence_Check(exports))
+	if(exports)
 	{
-		Py_ssize_t len = PySequence_Length(exports);
-		bool success = true;
-
-		for(Py_ssize_t i = 0; success && i < len; i++)
+		if(PySequence_Check(exports))
 		{
-			success = false;
-			PyObject *callable = PySequence_ITEM(exports, i);
+			Py_ssize_t len = PySequence_Length(exports);
+			bool success = true;
 
-			if(PyCallable_Check(callable))
+			for(Py_ssize_t i = 0; success && i < len; i++)
 			{
-				success = _py_import_callable(handle, callable, fn, ctx);
-			}
-			else
-			{
-				DEBUGF("python", "Object at position %l of sequence `EXTENSION_EXPORT' is not a callable.", i);
-			}
+				success = false;
+				PyObject *callable = PySequence_ITEM(exports, i);
 
-			Py_DECREF(callable);
+				if(PyCallable_Check(callable))
+				{
+					success = _py_import_callable(handle, callable, fn, ctx);
+				}
+				else
+				{
+					DEBUGF("python", "Object at position %l of sequence `EXTENSION_EXPORT' is not a callable.", i);
+				}
+
+				Py_DECREF(callable);
+			}
 		}
+		else
+		{
+			DEBUG("python", "Couldn't find sequence `EXTENSION_EXPORT'.");
+		}
+
+		Py_DECREF(exports);
 	}
 	else
 	{
-		DEBUG("python", "Couldn't find sequence `EXTENSION_EXPORT'.");
+		PyErr_Print();
 	}
-
-	Py_XDECREF(exports);
 }
 
 static PyObject *
@@ -654,24 +677,31 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 
 	PyObject *callable = PyObject_GetAttrString(py_handle->module, name);
 
-	if(callable && PyCallable_Check(callable))
+	if(callable)
 	{
-		int *sig = assoc_array_lookup(&py_handle->signatures, name);
+		if(PyCallable_Check(callable))
+		{
+			int *sig = assoc_array_lookup(&py_handle->signatures, name);
 
-		PyObject *tuple = _py_build_function_tuple(filename, argc, argv, sig);
+			PyObject *tuple = _py_build_function_tuple(filename, argc, argv, sig);
 
-		assert(tuple != NULL);
+			assert(tuple != NULL);
 
-		ret = _py_invoke(callable, tuple, result);
+			ret = _py_invoke(callable, tuple, result);
 
-		Py_DECREF(tuple);
+			Py_DECREF(tuple);
+		}
+		else
+		{
+			ERRORF("python", "Callable `%s' not found.", name);
+		}
+
+		Py_DECREF(callable);
 	}
 	else
 	{
-		ERRORF("python", "Callable `%s' not found.", name);
+		PyErr_Print();
 	}
-
-	Py_XDECREF(callable);
 
 	return ret;
 }
