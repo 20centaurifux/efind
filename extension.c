@@ -233,7 +233,6 @@ _extension_manager_function_discovered(RegistrationCtx *ctx, const char *name, u
 			{
 				WARNINGF("extension", "Unexpected data type: %#x", val);
 
-				/* failure => free memory */
 				_extension_callback_free(cb);
 				success = false;
 			}
@@ -288,12 +287,10 @@ _extension_manager_import_module(ExtensionManager *manager, const char *filename
 
 	if(module)
 	{
-		/* load module */
 		if((module->handle = module->backend.load(module->filename, _extension_manager_extension_registered, (void *)module)))
 		{
 			assoc_array_set(manager->modules, utils_strdup(module->filename), module, true);
 
-			/* discover functions */
 			module->backend.discover(module->handle, _extension_manager_function_discovered, (void *)module);
 
 			success = true;
@@ -377,10 +374,8 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 	blacklist = blacklist_new();
 	blacklist_load_default(blacklist);
 
-	/* try to open extension folder */
 	if((pdir = opendir(path)))
 	{
-		/* search for extensions */
 		struct dirent *entry;
 
 		success = true;
@@ -408,14 +403,7 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 						if(!_extension_manager_import_module(manager, filename, mod_type))
 						{
-							int len = snprintf(msg, sizeof(msg), _("Couldn't load extension \"%s\"."), filename);
-
-							if(err && len > 0 && (size_t)len < sizeof(msg))
-							{
-								*err = strdup(msg);
-							}
-
-							success = false;
+							DEBUGF("extension", "Import of extension `%s' failed.", filename);
 						}
 					}
 				}
