@@ -8,6 +8,7 @@
 	* CHANGE: renamed --show-blacklist option to --print-blacklist
 	* CHANGE: don't abort import of extensions if a single import
 	          fails
+	* CHANGE: enable colored log messages by default
 	* FIX: recognize regex and iregex attributes
 	* FIX: allow filter functions as first function argument
 	* FIX: always return error code if find child process fails

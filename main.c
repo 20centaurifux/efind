@@ -170,7 +170,7 @@ _print_help(const char *name)
 	printf(_("  --print-extensions  show a list of installed extensions\n"));
 	printf(_("  --print-blacklist   show blacklisted extensions\n"));
 	printf(_("  --log-level level   set the log level (0-6)\n"));
-	printf(_("  --enable-log-color  enable colored log messages\n"));
+	printf(_("  --disable-log-color disable colored log messages\n"));
 	printf(_("  -v, --version       show version and exit\n"));
 	printf(_("  -h, --help          display this help and exit\n"));
 }
@@ -775,7 +775,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		{ "print-extensions", no_argument, 0, 0 },
 		{ "print-blacklist", no_argument, 0, 0 },
 		{ "log-level", required_argument, 0, 0 },
-		{ "enable-log-color", no_argument, 0, 0 },
+		{ "disable-log-color", no_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
 		{ 0, 0, 0, 0 }
@@ -836,9 +836,9 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				{
 					opts->log_level = atoi(optarg);
 				}
-				else if(!strcmp(long_options[index].name, "enable-log-color"))
+				else if(!strcmp(long_options[index].name, "disable-log-color"))
 				{
-					opts->log_color = true;
+					opts->log_color = false;
 				}
 				else if(!strcmp(long_options[index].name, "max-depth"))
 				{
@@ -907,6 +907,7 @@ _read_options(int argc, char *argv[], Options *opts)
 
 	opts->flags = FLAG_STDIN;
 	opts->max_depth = -1;
+	opts->log_color = true;
 
 	int offset = _index_of_first_option(argc, argv);
 	Action action = _get_opt(argc, argv, offset, opts);
