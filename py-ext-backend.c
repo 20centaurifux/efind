@@ -383,7 +383,7 @@ _py_build_signature_from_sequence(PyObject *seq, uint32_t *argc, int **signature
 			}
 			else
 			{
-				DEBUG("python", "__signature__ attribute  is invalid, PyType_Check() failed.");
+				DEBUG("python", "__signature__ attribute is invalid, PyType_Check() failed.");
 				success = false;
 			}
 
@@ -608,7 +608,7 @@ _py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *
 		}
 		else
 		{
-			ERRORF("python", "Unknown datatype in function signature: %x\n", sig[i]);
+			ERRORF("python", "Unknown datatype in function signature: %#x\n", sig[i]);
 		}
 
 		PyTuple_SetItem(tuple, i + 1, arg);
