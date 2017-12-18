@@ -474,29 +474,29 @@ ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args)
 }
 
 RootNode *
-ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *post_exprs)
+ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *filter_exprs)
 {
 	RootNode *node;
 
-	assert(exprs != NULL || post_exprs != NULL);
+	assert(exprs != NULL || filter_exprs != NULL);
 
-	if(exprs && post_exprs)
+	if(exprs && filter_exprs)
 	{
-		TRACEF("parser", "new RootNode[%#x] (exprs=new Node(type=%#x), post_exprs=new Node(type=%#x))", NODE_ROOT, exprs->type, post_exprs->type);
+		TRACEF("parser", "new RootNode[%#x] (exprs=new Node(type=%#x), filter_exprs=new Node(type=%#x))", NODE_ROOT, exprs->type, filter_exprs->type);
 	}
-	else if(!post_exprs)
+	else if(!filter_exprs)
 	{
-		TRACEF("parser", "new RootNode[%#x] (exprs=new Node(type=%#x), post_exprs=NULL)", NODE_ROOT, exprs->type);
+		TRACEF("parser", "new RootNode[%#x] (exprs=new Node(type=%#x), filter_exprs=NULL)", NODE_ROOT, exprs->type);
 	}
 	else
 	{
-		TRACEF("parser", "new RootNode[%#x] (exprs=NULL, post_exprs=new Node(type=%#x))", NODE_ROOT, post_exprs->type);
+		TRACEF("parser", "new RootNode[%#x] (exprs=NULL, filter_exprs=new Node(type=%#x))", NODE_ROOT, filter_exprs->type);
 	}
 
 	node = node_new(alloc, locp, RootNode, NODE_ROOT);
 
 	node->exprs = exprs;
-	node->post_exprs = post_exprs;
+	node->filter_exprs = filter_exprs;
 
 	return node;
 }

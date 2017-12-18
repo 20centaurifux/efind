@@ -101,7 +101,6 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 	assert(blacklist != NULL);
 	assert(filename != NULL);
 
-
 	DEBUGF("blacklist", "Loading file: %s", filename);
 
 	if((fp = fopen(filename, "r")))

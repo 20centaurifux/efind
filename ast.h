@@ -207,8 +207,8 @@ typedef struct
 	Node padding;
 	/*! Root node of the expression tree. */
 	Node *exprs;
-	/*! Root node of the post-processing expression tree. */
-	Node *post_exprs;
+	/*! Root node of the filter expression tree. */
+	Node *filter_exprs;
 } RootNode;
 
 /**
