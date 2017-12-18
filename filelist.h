@@ -114,8 +114,6 @@ bool file_list_append(FileList *list, const char *cli, const char *path);
   */
 void file_list_sort(FileList *list);
 
-
-
 /**
    @param list FileList instance
    @param f function called for each file stored in the list
@@ -135,6 +133,7 @@ void file_list_foreach(FileList *list, Callback f, void *user_data);
 
 /**
    @param list FileList instance
+   @param offset index of the entry to get
    @return a FileListEntry
 
    Gets a FileListEntry from the list.

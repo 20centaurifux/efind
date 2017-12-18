@@ -294,7 +294,6 @@ file_list_append(FileList *list, const char *cli, const char *path)
 
 	TRACEF("filelist", "Appending file: %s", path);
 
-	/* resize entry array */
 	if(list->size == list->count)
 	{
 		list->size *= 2;
@@ -310,7 +309,6 @@ file_list_append(FileList *list, const char *cli, const char *path)
 		}
 	}
 
-	/* append entry */
 	entry = _file_list_entry_new_from_path(list, cli, path);
 
 	if(entry)
