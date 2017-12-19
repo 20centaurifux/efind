@@ -31,14 +31,15 @@
 #define MAX_FIELD_NAME 32
 /*! @endcond */
 
-static const char *_FIELD_CHARS = "AbCDfFgGhHiklmMnpsSTuU";
+static const char *_FIELD_CHARS = "AbCDfFgGhHiklmMnpsSTuUact";
 
 static const char *_FIELD_NAMES[] =
 {
 	"atime", "blocks", "ctime", "device", "filename", "filesystem",
 	"group", "gid", "directory", "starting-point", "inode", "kb", "link",
 	"permission-bits", "permissions", "hardlinks", "path", "bytes",
-	"sparseness", "mtime", "username", "uid"
+	"sparseness", "mtime", "username", "uid", "aseconds", "cseconds",
+	"mseconds"
 };
 
 char *

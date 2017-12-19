@@ -837,9 +837,9 @@ class OrderBy(unittest.TestCase, AssertSearch):
 
         attrs = []
 
-        attrs.append(build_attr_with_valfn(["A", "{atime}"], build_stat_valfn(stat.ST_ATIME)))
+        attrs.append(build_attr_with_valfn(["A", "{atime}", "a", "{aseconds}"], build_stat_valfn(stat.ST_ATIME)))
         attrs.append(build_attr_with_valfn(["b", "{blocks}"], lambda f: os.stat(f).st_blocks))
-        attrs.append(build_attr_with_valfn(["C", "{ctime}"], build_stat_valfn(stat.ST_CTIME)))
+        attrs.append(build_attr_with_valfn(["C", "{ctime}", "c", "{cseconds}"], build_stat_valfn(stat.ST_CTIME)))
         attrs.append(build_attr_with_valfn(["D", "{device}"], build_stat_valfn(stat.ST_DEV)))
         attrs.append(build_attr_with_valfn(["f", "{filename}"], os.path.basename))
         attrs.append(build_attr_with_valfn(["g", "{group}"], lambda f: grp.getgrgid(os.stat(f)[stat.ST_GID])[0]))
@@ -854,7 +854,7 @@ class OrderBy(unittest.TestCase, AssertSearch):
         attrs.append(build_attr_with_valfn(["n", "{hardlinks}"], build_stat_valfn(stat.ST_NLINK)))
         attrs.append(build_attr_with_valfn(["p", "{path}"], lambda f: f))
         attrs.append(build_attr_with_valfn(["S", "{sparseness}"], sparseness_valfn))
-        attrs.append(build_attr_with_valfn(["T", "{mtime}"], build_stat_valfn(stat.ST_MTIME)))
+        attrs.append(build_attr_with_valfn(["T", "{mtime}", "t", "{mseconds}"], build_stat_valfn(stat.ST_MTIME)))
         attrs.append(build_attr_with_valfn(["U", "{uid}"], build_stat_valfn(stat.ST_UID)))
         attrs.append(build_attr_with_valfn(["u", "{username}"], lambda f: pwd.getpwuid(os.stat(f)[stat.ST_UID])[0]))
         attrs.append(build_attr_with_valfn(["P"], filename_without_starting_point_valfn))
@@ -928,7 +928,8 @@ class Printf(unittest.TestCase):
 
     def test_numeric_attributes(self):
         for attr in ["b", "{blocks}", "D", "{device}", "G", "{gid}", "i", "{inode}",
-                     "k", "{kb}", "n", "{hardlinks}", "s", "{bytes}", "U", "{uid}"]:
+                     "k", "{kb}", "n", "{hardlinks}", "s", "{bytes}", "U", "{uid}",
+                     "a", "{aseconds}", "c", "{cseconds}", "t", "{mseconds}"]:
             self.__test_width_and_alignment(attr)
             self.__test_zero_padding(attr)
 

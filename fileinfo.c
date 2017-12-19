@@ -397,21 +397,33 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 			break;
 
 		case 'A': /* File's last access time. */
-		case 'a':
 			attr->flags = FILE_ATTR_FLAG_TIME;
 			attr->value.time = info->sb.st_atime;
 			break;
 
-		case 'C': /* File's last access time. */
-		case 'c':
+		case 'C': /* File's last status change time. */
 			attr->flags = FILE_ATTR_FLAG_TIME;
 			attr->value.time = info->sb.st_ctime;
 			break;
 
-		case 'T': /* File's last status change time. */
-		case 't':
+		case 'T': /* File's last modification time. */
 			attr->flags = FILE_ATTR_FLAG_TIME;
 			attr->value.time = info->sb.st_mtime;
+			break;
+
+		case 'a': /* File last access time (numeric) */
+			attr->flags = FILE_ATTR_FLAG_LLONG;
+			attr->value.llong = info->sb.st_atime;
+			break;
+
+		case 'c': /* File's last status change time (numeric). */
+			attr->flags = FILE_ATTR_FLAG_LLONG;
+			attr->value.llong = info->sb.st_ctime;
+			break;
+
+		case 't': /* File's last modification time (numeric). */
+			attr->flags = FILE_ATTR_FLAG_LLONG;
+			attr->value.llong = info->sb.st_mtime;
 			break;
 
 		case 'm': /* File's  permission  bits (in octal). */

@@ -48,7 +48,7 @@ typedef enum
 	FORMAT_LEXER_RESULT_FINISHED
 } FormatLexerStepResult;
 
-#define ATTRIBUTES      "bfgGhiklmMnpsSuUyYpPHFD"
+#define ATTRIBUTES      "bfgGhiklmMnpsSuUyYpPHFDact"
 #define DATE_ATTRIBUTES "ACT"
 #define TIME_FIELDS     "HIklMprST+XZ"
 #define DATE_FIELDS     "aAbBcdDhjmUwWxyY"
@@ -158,6 +158,7 @@ _format_lexer_found_token(FormatLexerResult *result, FormatTokenType type_id)
 	}
 	else
 	{
+		abort();
 		FATALF("format", "Unknown token type: %#x", type_id);
 	}
 }

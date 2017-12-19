@@ -116,11 +116,15 @@ last two digits of year (00..99)
 .IP Y
 year (1970...)
 .RE
+.IP "%a, %{aseconds}"
+File's last access time in seconds since Jan. 1, 1970, 00:00 GMT.
 .IP "%b, %{blocks}"
 The amount of disk space used for this file in 512-byte blocks.
 .IP "%C\fIk\fP, %{ctime}\fIk\fP"
 File's last status change time in the format specified by \fIk\fR,
 which is the same as for %A.
+.IP "%c, %{cseconds}"
+File's last status change time in seconds since Jan. 1, 1970, 00:00 GMT.
 .IP "%D, %{device}"
 The device number on which the file exists (the st_dev field of struct
 stat) in decimal.
@@ -164,6 +168,8 @@ undefined.
 .IP "%T\fIk\fP, %{mtime}\fIk\fP"
 File's last modification time in the format specified by \fIk\fR,
 which is the same as for %A.
+.IP "%t, %{mseconds}"
+File's last modification time in seconds since Jan. 1, 1970, 00:00 GMT.
 .IP "%u, %{username}"
 File's user name, or numeric user ID if the user has no name.
 .IP "%U, %{uid}"

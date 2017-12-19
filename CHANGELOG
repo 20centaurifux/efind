@@ -10,6 +10,7 @@
 	* CHANGE: don't abort import of extensions if a single import
 	          fails
 	* CHANGE: enable colored log messages by default
+	* CHANGE: the fields %a, %c and %t print the timestamp in seconds
 	* FIX: recognize regex and iregex attributes
 	* FIX: allow filter functions as first function argument
 	       (e.g. "foo(bar(1, 2), 3)")

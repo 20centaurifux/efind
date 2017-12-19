@@ -222,9 +222,9 @@ expression finds all documents in the current folder with a file size less or eq
 * In contrast to GNU find numeric values like file size or group id are *not* converted
   to string. This means that all number related flags work with **efind**.
 * Width and precision are interpreted *exactly the same way* as the printf C function does.
-* The fields %a, %c and %t are not available. To print a date string in the
-  format returned by the "ctime" C function use %A, %C or %T without a format string.
+* The fields %a, %c and %t print the timestamp in seconds.
 * Date format strings are not limited to a single field. The string "%AHMS" prints hour,
   minute and second of the last file access, for example.
+* **efind's** printf format supports user-friendly field names like "{path}" or "{group}".
 * When printing an undefined escape sequence (e.g. "\P") only the character following the
   backslash is printed.
