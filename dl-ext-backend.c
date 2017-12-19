@@ -90,6 +90,7 @@ _dl_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 	else
 	{
 		DEBUGF("extension", "dlsym() failed: couldn't find symbol `%s'.", name);
+
 		fprintf(stderr, _("Function `%s' not found.\n"), name);
 	}
 

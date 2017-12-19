@@ -305,6 +305,8 @@ file_list_append(FileList *list, const char *cli, const char *path)
 		else
 		{
 			FATAL("filelist", "Integer overflow.");
+
+			fprintf(stderr, _("Couldn't allocate memory.\n"));
 			abort();
 		}
 	}

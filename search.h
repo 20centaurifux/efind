@@ -68,7 +68,7 @@ typedef void (*Callback)(const char *str, void *user_data);
    Translates an expression and executes GNU find. If specified the result is filtered
    by a post-processing expression.
  */
-int search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data);
+int search_files(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data);
 
 /**
    @param out stream to write the translated expression to

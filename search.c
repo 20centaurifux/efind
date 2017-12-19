@@ -629,7 +629,7 @@ _search_filter_args_free(FilterArgs *args)
 }
 
 int
-search_files_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data)
+search_files(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data)
 {
 	int outfds[2];
 	int errfds[2];

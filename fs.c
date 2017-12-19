@@ -70,6 +70,8 @@ fs_map_load(void)
 				if(map->size >= SIZE_MAX / 2)
 				{
 					FATAL("misc", "Integer overflow.");
+
+					fprintf(stderr, _("Couldn't allocate memory.\n"));
 					abort();
 				}
 

@@ -521,6 +521,7 @@ _extension_manager_load_env(ExtensionManager *manager)
 			if(err)
 			{
 				WARNING("extension", err);
+
 				free(err);
 				err = NULL;
 			}

@@ -294,7 +294,7 @@ _sort_and_print_files(FoundArg *arg)
 
 	file_list_sort(arg->files);
 
-	for(size_t i = 0; i < file_list_count(arg->files); ++i)
+	for(size_t i = 0; i < file_list_count(arg->files); i++)
 	{
 		FileListEntry *entry = file_list_at(arg->files, i);
 
@@ -323,7 +323,7 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, FoundArg *a
 
 		if(path)
 		{
-			success = search_files_expr(path, opts->expr, _get_translation_flags(opts), sopts, cb, _error_cb, arg) >= 0;
+			success = search_files(path, opts->expr, _get_translation_flags(opts), sopts, cb, _error_cb, arg) >= 0;
 		}
 		else
 		{
@@ -335,10 +335,6 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, FoundArg *a
 
 	return success;
 }
-
-/*! @cond INTERNAL */
-#define COLLECT_AND_SORT_FILES(arg) (arg.files != NULL)
-/*! @endcond */
 
 static bool
 _parse_printf_arg(const Options *opts, FoundArg *arg)
@@ -354,6 +350,7 @@ _parse_printf_arg(const Options *opts, FoundArg *arg)
 		if(!arg->fmt->success)
 		{
 			DEBUG("action", "Parsing of format string failed.");
+
 			fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
 			success = false;
 		}
@@ -378,6 +375,7 @@ _parse_orderby_arg(const Options *opts, FoundArg *arg)
 		if(sort_string_test(orderby) == -1)
 		{
 			DEBUG("action", "Parsing of sort string failed.");
+
 			fprintf(stderr, _("Couldn't parse sort string.\n"));
 			success = false;
 		}
@@ -392,6 +390,10 @@ _parse_orderby_arg(const Options *opts, FoundArg *arg)
 
 	return success;
 }
+
+/*! @cond INTERNAL */
+#define COLLECT_AND_SORT_FILES(arg) (arg.files != NULL)
+/*! @endcond */
 
 static bool
 _exec_find(const Options *opts)
@@ -427,6 +429,7 @@ _exec_find(const Options *opts)
 		}
 
 		TRACE("action", "Cleaning up file search.");
+
 		search_options_free(&sopts);
 	}
 
@@ -572,6 +575,9 @@ static bool
 _test_search_dirs_are_valid(Options *opts)
 {
 	bool success = true;
+
+	assert(opts != NULL);
+
 	const char *path = _find_invalid_search_dir(opts);
 
 	if(path)
@@ -608,6 +614,7 @@ _append_homedir(Options *opts)
 	if(envpath)
 	{
 		TRACEF("startup", "Found directory: %s", envpath);
+
 		slist_append(&opts->dirs, utils_strdup(envpath));
 		success = true;
 	}
@@ -680,6 +687,7 @@ _read_missing_expr_from_stdin(Options *opts)
 	if(opts->flags & FLAG_STDIN)
 	{
 		DEBUG("startup", "No expression specified, reading from standard input.");
+
 		opts->expr = _read_expr_from_stdin();
 	}
 }
@@ -730,7 +738,7 @@ _append_multiple_search_dirs(char *argv[], int offset, Options *opts)
 		opts->flags &= ~FLAG_STDIN; 
 	}
 
-	for(int i = 1; i < limit; ++i)
+	for(int i = 1; i < limit; i++)
 	{
 		if(!slist_contains(&opts->dirs, argv[i]))
 		{
@@ -883,7 +891,7 @@ _index_of_first_option(int argc, char *argv[])
 	assert(argc >= 1);
 	assert(argv != NULL);
 
-	for(int i = 1; i < argc; ++i)
+	for(int i = 1; i < argc; i++)
 	{
 		if(*argv[i] != '-')
 		{
@@ -1024,6 +1032,7 @@ main(int argc, char *argv[])
 	}
 
 	INFO("shutdown", "Cleaning up.");
+
 	_options_free(&opts);
 
 	return result;
