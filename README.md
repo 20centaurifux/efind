@@ -22,6 +22,13 @@ the [taglib](https://github.com/20centaurifux/efind-taglib) extension:
 	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
 	  and artist_matches("Welle: Erdball") and audio_length()>200'
 
+Use the --order-by option to sort the search result. In this example we sort the
+found files by size (descending) and path (ascending):
+
+	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
+	  and artist_matches("Welle: Erdball") and audio_length()>200' \
+	  --order-by "-{bytes}{path}"
+
 ## General Usage
 
 Running **efind** without any argument the search expression is read from
@@ -31,10 +38,10 @@ and --expr options:
 
 	$ efind --dir=/tmp --expr="size>1M and type=file"
 
-**efind** tries to handle the first two arguments as path and expression. It's
+**efind** tries to handle the first arguments as path(s) and expression. It's
 valid to run **efind** the following way:
 
-	$ efind ~/git 'type=file and name="CHANGELOG"'
+	$ efind ~/git ~/code 'type=file and name="CHANGELOG"'
 
 If you want to show the translated arguments without running GNU find use the --print
 option. To quote special shell characters append --quote:
@@ -200,9 +207,12 @@ Available time and date fields are
 ### Sorting
 
 You can use the same directives to sort the search result as with the --printf option.
+
+	$ efind . "type=file" --order-by "sp"
+
 Prepend a minus sign to change direction:
 
-	$ efind . "type=file" --order-by "-sp"
+	$ efind . "type=file" --order-by "-{bytes}{path}"
 
 ## Differences to GNU find
 
@@ -228,3 +238,8 @@ expression finds all documents in the current folder with a file size less or eq
 * **efind's** printf format supports user-friendly field names like "{path}" or "{group}".
 * When printing an undefined escape sequence (e.g. "\P") only the character following the
   backslash is printed.
+
+## Planned features
+
+* --skip option
+* --limit option
