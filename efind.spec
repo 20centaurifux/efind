@@ -31,7 +31,6 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %{_bindir}/*
 %{_mandir}/man1/*
-%{_mandir}/man1/*
 %{_datarootdir}/locale/*
 
 
