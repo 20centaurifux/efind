@@ -1,2 +1,2 @@
-* support multiple directories
-* user-friendly field names for --order-by and --printf option
+* --skip option
+* --limit option
