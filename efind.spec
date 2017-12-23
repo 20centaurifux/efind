@@ -15,6 +15,8 @@ efind is a wrapper for GNU find providing an easier and more
 intuitive expression syntax. It can be extended by custom
 functions to filter search results.
 
+%global debug_package %{nil}
+
 %prep
 %setup -q
 
