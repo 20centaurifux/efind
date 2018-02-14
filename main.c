@@ -80,6 +80,8 @@ typedef struct
 	char *regex_type;
 	char *printf;
 	char *orderby;
+	int32_t skip;
+	int32_t limit;
 } Options;
 
 typedef struct
@@ -87,6 +89,8 @@ typedef struct
 	const char *dir;
 	FormatParserResult *fmt;
 	FileList *files;
+	int32_t range[2];
+	size_t count[2];
 } FoundArg;
 /*! @endcond */
 
@@ -166,6 +170,8 @@ _print_help(const char *name)
 	printf(_("  --printf format     print format on standard output; see manpage\n"));
 	printf(_("  --order-by fields   fields to order search result by; see manpage\n"));
 	printf(_("  --max-depth levels  maximum search depth\n"));
+	printf(_("  --skip number       number of files to skip before printing\n"));
+	printf(_("  --limit number      maximum number of files to print\n"));
 	printf(_("  -p, --print         don't search files but print expression to stdout\n"));
 	printf(_("  --print-extensions  print a list of installed extensions\n"));
 	printf(_("  --print-blacklist   print blacklisted extensions\n"));
@@ -239,15 +245,52 @@ _print_expr(const Options *opts)
 	return success;
 }
 
-static void
+static bool
+_skip_file(FoundArg *arg)
+{
+	bool skip = false;
+
+	if(arg->range[0] > 0 && arg->count[0] < (size_t)arg->range[0])
+	{
+		++arg->count[0];
+		skip = true;
+	}
+
+	return skip;
+}
+
+static bool
+_exceeds_limit(FoundArg *arg)
+{
+	bool exceeds = false;
+
+	if(arg->range[1] >= 0 && arg->count[1] >= (size_t)arg->range[1])
+	{
+		exceeds = true;
+	}
+
+	++arg->count[1];
+
+	return exceeds;
+}
+
+static bool
 _file_cb(const char *path, void *user_data)
 {
 	FoundArg *arg = (FoundArg *)user_data;
+	bool abort = false;
 
 	assert(path != NULL);
 	assert(arg != NULL);
 
-	if(path)
+	if(_skip_file(arg))
+	{
+		return abort;
+	}
+
+	abort = _exceeds_limit(arg);
+
+	if(!abort && path)
 	{
 		if(arg->fmt)
 		{
@@ -261,9 +304,11 @@ _file_cb(const char *path, void *user_data)
 			printf("%s\n", path);
 		}
 	}
+
+	return abort;
 }
 
-static void
+static bool
 _collect_cb(const char *path, void *user_data)
 {
 	FoundArg *arg = (FoundArg *)user_data;
@@ -274,9 +319,11 @@ _collect_cb(const char *path, void *user_data)
 	assert(arg->dir != NULL);
 
 	file_list_append(arg->files, arg->dir, path);
+
+	return false;
 }
 
-static void
+static bool
 _error_cb(const char *msg, void *user_data)
 {
 	if(msg)
@@ -284,6 +331,8 @@ _error_cb(const char *msg, void *user_data)
 		fputs(msg, stderr);
 		fputc('\n', stderr);
 	}
+
+	return false;
 }
 
 static void
@@ -299,7 +348,11 @@ _sort_and_print_files(FoundArg *arg)
 		FileListEntry *entry = file_list_at(arg->files, i);
 
 		arg->dir = entry->info->cli;
-		_file_cb(entry->info->path, arg);
+
+		if(_file_cb(entry->info->path, arg))
+		{
+			break;
+		}
 	}
 }
 
@@ -409,6 +462,9 @@ _exec_find(const Options *opts)
 	TRACE("action", "Preparing file search.");
 
 	memset(&arg, 0, sizeof(FoundArg));
+
+	arg.range[0] = opts->skip;
+	arg.range[1] = opts->limit;
 
 	if(_parse_printf_arg(opts, &arg) && _parse_orderby_arg(opts, &arg))
 	{
@@ -777,6 +833,8 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		{ "print", no_argument, 0, 'p' },
 		{ "follow", no_argument, 0, 'L' },
 		{ "max-depth", required_argument, 0, 0 },
+		{ "skip", required_argument, 0, 0 },
+		{ "limit", required_argument, 0, 0 },
 		{ "regex-type", required_argument, 0, 0 },
 		{ "printf", required_argument, 0, 0 },
 		{ "order-by", required_argument, 0, 0 },
@@ -872,6 +930,14 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				{
 					opts->orderby = utils_strdup(optarg);
 				}
+				else if(!strcmp(long_options[index].name, "skip"))
+				{
+					opts->skip = atoi(optarg);
+				}
+				else if(!strcmp(long_options[index].name, "limit"))
+				{
+					opts->limit = atoi(optarg);
+				}
 
 				break;
 
@@ -935,6 +1001,9 @@ _options_init(Options *opts)
 
 	memset(opts, 0, sizeof(Options));
 	slist_init(&opts->dirs, str_compare, &free, NULL);
+
+	opts->skip = -1;
+	opts->limit = -1;
 }
 
 static void

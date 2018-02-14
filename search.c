@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
@@ -73,11 +74,10 @@ typedef struct
 	void *user_data;
 } ReaderArgs;
 
-#define ABORT_SEARCH -1
-
 const int PROCESS_STATUS_OK       = 0;
 const int PROCESS_STATUS_ERROR    = 1;
 const int PROCESS_STATUS_FINISHED = 2;
+const int PROCESS_STATUS_STOP     = 3;
 /*! @endcond */
 
 void
@@ -247,10 +247,10 @@ _search_filter(const char *filename, void *user_data)
 	return result;
 }
 
-static bool
+static int
 _search_process_line(ReaderArgs *args)
 {
-	bool success = true;
+	int status = PROCESS_STATUS_OK;
 
 	assert(args != NULL);
 	assert(args->line != NULL);
@@ -261,69 +261,76 @@ _search_process_line(ReaderArgs *args)
 
 		if(result == EVAL_RESULT_TRUE && args->cb)
 		{
-			args->cb(args->line, args->user_data);
+			if(args->cb(args->line, args->user_data))
+			{
+				status = PROCESS_STATUS_STOP;
+			}
 		}
 		else if(result == EVAL_RESULT_ABORTED)
 		{
-			success = false;
+			status = PROCESS_STATUS_ERROR;
 		}
 	}
 	else if(args->cb)
 	{
-		args->cb(args->line, args->user_data);
+		if(args->cb(args->line, args->user_data))
+		{
+			status = PROCESS_STATUS_STOP;
+		}
 	}
 
-	return success;
+	return status;
 }
 
 static int
-_search_process_lines_from_buffer(ReaderArgs *args)
+_search_process_lines_from_buffer(ReaderArgs *args, int *count)
 {
-	int count = 0;
+	int status = PROCESS_STATUS_OK;
 
 	assert(args != NULL);
 	assert(args->buffer != NULL);
 
-	while(count != ABORT_SEARCH && buffer_read_line(args->buffer, &args->line, &args->llen))
+	while(status == PROCESS_STATUS_OK && buffer_read_line(args->buffer, &args->line, &args->llen))
 	{
-		if(_search_process_line(args))
+		status = _search_process_line(args);
+
+		if(status == PROCESS_STATUS_OK)
 		{
-			if(count < INT32_MAX)
+			if(count && *count < INT32_MAX)
 			{
-				count++;
+				++(*count);
 			}
 		}
-		else
-		{
-			count = ABORT_SEARCH;
-		}
 	}
 
-	return count;
+	return status;
 }
 
 static int
-_search_flush_and_process_buffer(ReaderArgs *args)
+_search_flush_and_process_buffer(ReaderArgs *args, int *count)
 {
-	int count = 0;
-
 	assert(args != NULL);
 	assert(args->buffer != NULL);
+
+	int status = PROCESS_STATUS_OK;
 
 	if(args->cb && !buffer_is_empty(args->buffer))
 	{
-		count = _search_process_lines_from_buffer(args);
+		int status = _search_process_lines_from_buffer(args, count);
 
-		if(count != ABORT_SEARCH && buffer_flush(args->buffer, &args->line, &args->llen))
+		if(status == PROCESS_STATUS_OK && buffer_flush(args->buffer, &args->line, &args->llen))
 		{
-			if(_search_process_line(args) && count < INT32_MAX)
+			if(_search_process_line(args) == PROCESS_STATUS_OK)
 			{
-				count++;
+				if(count && *count < INT32_MAX)
+				{
+					++count;
+				}
 			}
 		}
 	}
 
-	return count;
+	return status;
 }
 
 static int
@@ -337,9 +344,9 @@ _search_wait_for_child(ParentCtx *ctx, int status)
 
 	DEBUGF("search", "Waiting for child process with pid %ld.", ctx->child_pid);
 
-	if((rc = waitpid(ctx->child_pid, &child_status, WNOHANG)) == ctx->child_pid)
+	if((rc = waitpid(ctx->child_pid, &child_status, 0)) == ctx->child_pid)
 	{
-		if(WIFEXITED(child_status) && status == PROCESS_STATUS_OK)
+		if(WIFEXITED(child_status) && (status == PROCESS_STATUS_OK || status == PROCESS_STATUS_STOP))
 		{
 			if(child_status)
 			{
@@ -431,15 +438,13 @@ _search_parent_process(ParentCtx *ctx)
 
 					while(status == PROCESS_STATUS_OK && (bytes = buffer_fill_from_fd(&outbuf, ctx->outfd, 512)) > 0)
 					{
-						int count = _search_process_lines_from_buffer(&reader_args);
+						int count = 0;
+
+						status = _search_process_lines_from_buffer(&reader_args, &count);
 
 						TRACEF("search", "Received %ld byte(s) from stdout, read %d line(s) from stdout buffer.", bytes, count);
 
-						if(count == ABORT_SEARCH)
-						{
-							status = PROCESS_STATUS_ERROR;
-						}
-						else
+						if(status == PROCESS_STATUS_OK)
 						{
 							if(INT32_MAX - count >= lc)
 							{
@@ -468,7 +473,7 @@ _search_parent_process(ParentCtx *ctx)
 					{
 						TRACEF("search", "Read %ld byte(s) from stderr.", bytes);
 
-						_search_process_lines_from_buffer(&reader_args);
+						_search_process_lines_from_buffer(&reader_args, NULL);
 
 						if(SSIZE_MAX - sum >= bytes)
 						{
@@ -478,6 +483,18 @@ _search_parent_process(ParentCtx *ctx)
 				}
 			}
 		} while(status == PROCESS_STATUS_OK && sum);
+
+		if(status == PROCESS_STATUS_STOP)
+		{
+			DEBUG("search", "Killing child process.");
+
+			int rc = kill(ctx->child_pid, SIGTERM);
+
+			if(rc == -1)
+			{
+				ERRORF("search", "Kill failed with status %d.", errno);
+			}
+		}
 
 		status = _search_wait_for_child(ctx, status);
 	}
@@ -492,9 +509,9 @@ _search_parent_process(ParentCtx *ctx)
 		reader_args.cb = ctx->found_file;
 		reader_args.filter = true;
 
-		int count = _search_flush_and_process_buffer(&reader_args);
+		int count = 0;
 
-		if(count != ABORT_SEARCH)
+		if(_search_flush_and_process_buffer(&reader_args, &count) == PROCESS_STATUS_OK)
 		{
 			if(INT32_MAX - count >= lc)
 			{
@@ -512,7 +529,7 @@ _search_parent_process(ParentCtx *ctx)
 		reader_args.cb = ctx->err_message;
 		reader_args.filter = false;
 
-		_search_flush_and_process_buffer(&reader_args);
+		_search_flush_and_process_buffer(&reader_args, NULL);
 	}
 	else if(status == PROCESS_STATUS_ERROR)
 	{

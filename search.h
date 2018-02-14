@@ -52,8 +52,9 @@ void search_options_free(SearchOptions *opts);
 /**
    @typedef Callback
    @brief A function called for each found file or error message.
+          If the callback returns true the search aborts.
  */
-typedef void (*Callback)(const char *str, void *user_data);
+typedef bool (*Callback)(const char *str, void *user_data);
 
 /**
    @param path directory to search in
