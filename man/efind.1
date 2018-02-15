@@ -16,6 +16,10 @@ Search expression.
 Follow symbolic links.
 .IP "\fB\-\-max-depth\fR=\fIlevels"
 Maximum search depth.
+.IP "\fB\-\-skip\fR=\fInumber"
+Number of files to skip before printing to stdout.
+.IP "\fB\-\-limit\fR=\fInumber"
+Maximum number of files to print to stdout.
 .IP "\fB\-\-regex-type\fR=\fItype"
 Changes the understood regular expression syntax. Currently-implemented types
 are emacs (this is the default), posix-awk, posix-basic, posix-egrep and
@@ -382,6 +386,13 @@ Search results can be sorted with the --order-by option:
 Alternatively you can use descriptive field names in the --order-by option:
 
 .B efind ~/Documents ~/Downloads 'type=file' --order-by '-{bytes}{path}'
+
+You can skip found files and limit the output with the --skip and --limit options:
+
+.B efind . 'type=file' --skip 5 --limit 10
+
+The forked GNU find process is killed if the number of printed files exceeds the
+specified limit argument and no --order-by option is set.
 
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.
