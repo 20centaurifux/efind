@@ -369,9 +369,29 @@ _search_wait_for_child(ParentCtx *ctx, int status)
 }
 
 static void
+_search_kill_child(pid_t pid)
+{
+	DEBUGF("search", "Killing child process with pid %ld.", pid);
+
+	int result = kill(pid, SIGTERM);
+
+	if(result == -1)
+	{
+		WARNINGF("search", "Kill failed with status %d.", errno);
+
+		result = kill(pid, SIGKILL);
+
+		if(result == -1)
+		{
+			ERRORF("search", "Kill failed with status %d.", errno);
+		}
+	}
+}
+
+static void
 _search_reader_args_init(ReaderArgs *args, FilterArgs *filter_args, void *user_data)
 {
-	assert(args != NULL);
+assert(args != NULL);
 
 	memset(args, 0, sizeof(ReaderArgs));
 	args->filter_args = filter_args;
@@ -486,14 +506,7 @@ _search_parent_process(ParentCtx *ctx)
 
 		if(status == PROCESS_STATUS_STOP)
 		{
-			DEBUG("search", "Killing child process.");
-
-			int rc = kill(ctx->child_pid, SIGTERM);
-
-			if(rc == -1)
-			{
-				ERRORF("search", "Kill failed with status %d.", errno);
-			}
+			_search_kill_child(ctx->child_pid);
 		}
 
 		status = _search_wait_for_child(ctx, status);
