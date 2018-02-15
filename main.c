@@ -92,6 +92,9 @@ typedef struct
 	int32_t range[2];
 	size_t count[2];
 } FoundArg;
+
+#define FILES_TO_SKIP  0
+#define FILES_TO_PRINT 1
 /*! @endcond */
 
 static void
@@ -250,9 +253,9 @@ _skip_file(FoundArg *arg)
 {
 	bool skip = false;
 
-	if(arg->range[0] > 0 && arg->count[0] < (size_t)arg->range[0])
+	if(arg->range[FILES_TO_SKIP] > 0 && arg->count[FILES_TO_SKIP] < (size_t)arg->range[FILES_TO_SKIP])
 	{
-		++arg->count[0];
+		++arg->count[FILES_TO_SKIP];
 		skip = true;
 	}
 
@@ -260,16 +263,16 @@ _skip_file(FoundArg *arg)
 }
 
 static bool
-_exceeds_limit(FoundArg *arg)
+_exceeds_range_limit(FoundArg *arg)
 {
 	bool exceeds = false;
 
-	if(arg->range[1] >= 0 && arg->count[1] >= (size_t)arg->range[1])
+	if(arg->range[FILES_TO_PRINT] >= 0 && arg->count[FILES_TO_PRINT] >= (size_t)arg->range[FILES_TO_PRINT])
 	{
 		exceeds = true;
 	}
 
-	++arg->count[1];
+	++arg->count[FILES_TO_PRINT];
 
 	return exceeds;
 }
@@ -283,25 +286,23 @@ _file_cb(const char *path, void *user_data)
 	assert(path != NULL);
 	assert(arg != NULL);
 
-	if(_skip_file(arg))
+	if(!_skip_file(arg))
 	{
-		return abort;
-	}
+		abort = _exceeds_range_limit(arg);
 
-	abort = _exceeds_limit(arg);
-
-	if(!abort && path)
-	{
-		if(arg->fmt)
+		if(!abort && path)
 		{
-			assert(arg->dir != NULL);
-			assert(arg->fmt->success == true);
+			if(arg->fmt)
+			{
+				assert(arg->dir != NULL);
+				assert(arg->fmt->success == true);
 
-			format_write(arg->fmt, arg->dir, path, stdout);
-		}
-		else
-		{
-			printf("%s\n", path);
+				format_write(arg->fmt, arg->dir, path, stdout);
+			}
+			else
+			{
+				printf("%s\n", path);
+			}
 		}
 	}
 
@@ -463,8 +464,8 @@ _exec_find(const Options *opts)
 
 	memset(&arg, 0, sizeof(FoundArg));
 
-	arg.range[0] = opts->skip;
-	arg.range[1] = opts->limit;
+	arg.range[FILES_TO_SKIP] = opts->skip;
+	arg.range[FILES_TO_PRINT] = opts->limit;
 
 	if(_parse_printf_arg(opts, &arg) && _parse_orderby_arg(opts, &arg))
 	{
