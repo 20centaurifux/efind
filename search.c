@@ -67,6 +67,7 @@ typedef struct
 {
 	Buffer *buffer;
 	char *line;
+	int32_t count;
 	size_t llen;
 	bool filter;
 	FilterArgs *filter_args;
@@ -283,12 +284,14 @@ _search_process_line(ReaderArgs *args)
 }
 
 static int
-_search_process_lines_from_buffer(ReaderArgs *args, int *count)
+_search_process_lines_from_buffer(ReaderArgs *args)
 {
 	int status = PROCESS_STATUS_OK;
 
 	assert(args != NULL);
 	assert(args->buffer != NULL);
+
+	args->count = 0;
 
 	while(status == PROCESS_STATUS_OK && buffer_read_line(args->buffer, &args->line, &args->llen))
 	{
@@ -296,9 +299,9 @@ _search_process_lines_from_buffer(ReaderArgs *args, int *count)
 
 		if(status == PROCESS_STATUS_OK)
 		{
-			if(count && *count < INT32_MAX)
+			if(args->count < INT32_MAX)
 			{
-				++(*count);
+				++args->count;
 			}
 		}
 	}
@@ -307,24 +310,26 @@ _search_process_lines_from_buffer(ReaderArgs *args, int *count)
 }
 
 static int
-_search_flush_and_process_buffer(ReaderArgs *args, int *count)
+_search_flush_and_process_buffer(ReaderArgs *args)
 {
+	int status = PROCESS_STATUS_OK;
+
 	assert(args != NULL);
 	assert(args->buffer != NULL);
 
-	int status = PROCESS_STATUS_OK;
+	args->count = 0;
 
 	if(args->cb && !buffer_is_empty(args->buffer))
 	{
-		int status = _search_process_lines_from_buffer(args, count);
+		int status = _search_process_lines_from_buffer(args);
 
 		if(status == PROCESS_STATUS_OK && buffer_flush(args->buffer, &args->line, &args->llen))
 		{
 			if(_search_process_line(args) == PROCESS_STATUS_OK)
 			{
-				if(count && *count < INT32_MAX)
+				if(args->count < INT32_MAX)
 				{
-					++count;
+					++args->count;
 				}
 			}
 		}
@@ -458,17 +463,15 @@ _search_parent_process(ParentCtx *ctx)
 
 					while(status == PROCESS_STATUS_OK && (bytes = buffer_fill_from_fd(&outbuf, ctx->outfd, 512)) > 0)
 					{
-						int count = 0;
+						status = _search_process_lines_from_buffer(&reader_args);
 
-						status = _search_process_lines_from_buffer(&reader_args, &count);
-
-						TRACEF("search", "Received %ld byte(s) from stdout, read %d line(s) from stdout buffer.", bytes, count);
+						TRACEF("search", "Received %ld byte(s) from stdout, read %d line(s) from stdout buffer.", bytes, reader_args.count);
 
 						if(status == PROCESS_STATUS_OK)
 						{
-							if(INT32_MAX - count >= lc)
+							if(INT32_MAX - reader_args.count >= lc)
 							{
-								lc += count;
+								lc += reader_args.count;
 							}
 							else
 							{
@@ -493,7 +496,7 @@ _search_parent_process(ParentCtx *ctx)
 					{
 						TRACEF("search", "Read %ld byte(s) from stderr.", bytes);
 
-						_search_process_lines_from_buffer(&reader_args, NULL);
+						_search_process_lines_from_buffer(&reader_args);
 
 						if(SSIZE_MAX - sum >= bytes)
 						{
@@ -522,13 +525,11 @@ _search_parent_process(ParentCtx *ctx)
 		reader_args.cb = ctx->found_file;
 		reader_args.filter = true;
 
-		int count = 0;
-
-		if(_search_flush_and_process_buffer(&reader_args, &count) == PROCESS_STATUS_OK)
+		if(_search_flush_and_process_buffer(&reader_args) == PROCESS_STATUS_OK)
 		{
-			if(INT32_MAX - count >= lc)
+			if(INT32_MAX - reader_args.count >= lc)
 			{
-				lc += count;
+				lc += reader_args.count;
 			}
 			else
 			{
@@ -542,7 +543,7 @@ _search_parent_process(ParentCtx *ctx)
 		reader_args.cb = ctx->err_message;
 		reader_args.filter = false;
 
-		_search_flush_and_process_buffer(&reader_args, NULL);
+		_search_flush_and_process_buffer(&reader_args);
 	}
 	else if(status == PROCESS_STATUS_ERROR)
 	{
