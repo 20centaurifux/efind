@@ -1300,6 +1300,81 @@ class Printf(unittest.TestCase):
         assert(week_of_year_mon >= 0 and week_of_year_mon <= 53)
         assert(day_of_week >= 0 and day_of_week <= 6)
 
+class TestRange(unittest.TestCase):
+    def test_skip(self):
+        returncode, files = run_executable_and_split_output("efind", ["./test-data", "type=file", "--skip=10"])
+
+        assert(returncode == 0)
+        assert(len(files) == 8)
+
+    def test_limit(self):
+        returncode, files = run_executable_and_split_output("efind", ["./test-data", "type=file", "--limit=3"])
+
+        assert(returncode == 0)
+        assert(len(files) == 3)
+
+    def test_skip_limit(self):
+        returncode, a = run_executable_and_split_output("efind", ["./test-data", "type=file", "--skip", "0", "--limit=3"])
+
+        assert(returncode == 0)
+        assert(len(a) == 3)
+
+        returncode, b = run_executable_and_split_output("efind", ["./test-data", "type=file", "--skip", "5", "--limit=3"])
+
+        assert(returncode == 0)
+        assert(len(b) == 3)
+
+        assert(set(a) != set(b))
+
+    def test_negative_skip(self):
+        returncode, a = run_executable_and_split_output("efind", ["./test-data", "type=file", "--skip", "-100"])
+
+        assert(returncode == 0)
+
+        returncode, b = run_executable_and_split_output("efind", ["./test-data", "type=file"])
+
+        assert(returncode == 0)
+
+        assert_sequence_equality(a, b)
+
+    def test_negative_limit(self):
+        returncode, a = run_executable_and_split_output("efind", ["./test-data", "type=file", "--limit=-70"])
+
+        assert(returncode == 0)
+
+        returncode, b = run_executable_and_split_output("efind", ["./test-data", "type=file"])
+
+        assert(returncode == 0)
+
+        assert_sequence_equality(a, b)
+
+    def test_skip_sorted(self):
+        returncode, files = run_executable_and_split_output("efind", ["./test-data", "size>=1G", "--order-by", "-f", "--skip=2"])
+
+        assert(returncode == 0)
+        assert(len(files) == 1)
+        assert(files[0] == "./test-data/00/1G.0")
+
+    def test_limit_sorted(self):
+        returncode, files = run_executable_and_split_output("efind", ["./test-data", "size>=1G", "--order-by", "-f", "--limit", "1"])
+
+        assert(returncode == 0)
+        assert(len(files) == 1)
+        assert(files[0] == "./test-data/01/2G.1")
+
+    def test_skip_limit_sorted(self):
+        returncode, files = run_executable_and_split_output("efind", ["./test-data", "size>=1G", "--order-by", "-f", "--skip", "1", "--limit", "1"])
+
+        assert(returncode == 0)
+        assert(len(files) == 1)
+        assert(files[0] == "./test-data/02/1G.2")
+
+    def test_invalid_args(self):
+        for arg in ["--skip", "--limit"]:
+            returncode, _ = run_executable_and_split_output("efind", ["./test-data", "type=file", arg])
+
+            assert(returncode == 1)
+
 def get_test_cases():
     mod = sys.modules[__name__]
 
