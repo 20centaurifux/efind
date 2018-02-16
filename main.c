@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -37,6 +36,7 @@
 #include <assert.h>
 #include <datatypes.h>
 
+#include "efind.h"
 #include "log.h"
 #include "search.h"
 #include "parser.h"
@@ -47,43 +47,8 @@
 #include "filelist.h"
 #include "format-fields.h"
 #include "gettext.h"
-#include "version.h"
 
 /*! @cond INTERNAL */
-typedef enum
-{
-	ACTION_ABORT,
-	ACTION_EXEC,
-	ACTION_PRINT,
-	ACTION_PRINT_HELP,
-	ACTION_PRINT_VERSION,
-	ACTION_PRINT_EXTENSIONS,
-	ACTION_PRINT_BLACKLIST
-} Action;
-
-typedef enum
-{
-	FLAG_NONE   = 0,
-	FLAG_STDIN  = 1,
-	FLAG_QUOTE  = 2
-} Flags;
-
-typedef struct
-{
-	LogLevel log_level;
-	bool log_color;
-	int32_t flags;
-	char *expr;
-	SList dirs;
-	int32_t max_depth;
-	bool follow;
-	char *regex_type;
-	char *printf;
-	char *orderby;
-	int32_t skip;
-	int32_t limit;
-} Options;
-
 typedef struct
 {
 	const char *dir;
@@ -764,215 +729,6 @@ _prepare_processing(Options *opts)
 	return success;
 }
 
-static void
-_append_single_search_dir(char *argv[], Options *opts)
-{
-	assert(argv != NULL);
-	assert(opts != NULL);
-
-	if(!slist_contains(&opts->dirs, argv[1]))
-	{
-		slist_append(&opts->dirs, utils_strdup(argv[1]));
-	}
-}
-
-static void
-_append_multiple_search_dirs(char *argv[], int offset, Options *opts)
-{
-	int limit = offset;
-
-	assert(argv != NULL);
-	assert(opts != NULL);
-
-	/* handle all arguments as directories if expression is already set */
-	if(opts->expr)
-	{
-		limit++;
-	}
-	else
-	{
-		opts->expr = utils_strdup(argv[offset]);
-		opts->flags &= ~FLAG_STDIN; 
-	}
-
-	for(int i = 1; i < limit; i++)
-	{
-		if(!slist_contains(&opts->dirs, argv[i]))
-		{
-			slist_append(&opts->dirs, utils_strdup(argv[i]));
-		}
-	}
-}
-
-static void
-_append_search_dirs_and_expr_from_argv(char *argv[], int offset, Options *opts)
-{
-	assert(argv != NULL);
-	assert(opts != NULL);
-
-	if(offset)
-	{
-		if(offset == 1)
-		{
-			_append_single_search_dir(argv, opts);
-		}
-		else
-		{
-			_append_multiple_search_dirs(argv, offset, opts);
-		}
-	}
-}
-
-static Action
-_get_opt(int argc, char *argv[], int offset, Options *opts)
-{
-	static struct option long_options[] =
-	{
-		{ "expr", required_argument, 0, 'e' },
-		{ "quote", no_argument, 0, 'q' },
-		{ "dir", required_argument, 0, 'd' },
-		{ "print", no_argument, 0, 'p' },
-		{ "follow", no_argument, 0, 'L' },
-		{ "max-depth", required_argument, 0, 0 },
-		{ "skip", required_argument, 0, 0 },
-		{ "limit", required_argument, 0, 0 },
-		{ "regex-type", required_argument, 0, 0 },
-		{ "printf", required_argument, 0, 0 },
-		{ "order-by", required_argument, 0, 0 },
-		{ "print-extensions", no_argument, 0, 0 },
-		{ "print-blacklist", no_argument, 0, 0 },
-		{ "log-level", required_argument, 0, 0 },
-		{ "disable-log-color", no_argument, 0, 0 },
-		{ "version", no_argument, 0, 'v' },
-		{ "help", no_argument, 0, 'h' },
-		{ 0, 0, 0, 0 }
-	};
-
-	Action action = ACTION_EXEC;
-	int index = 0;
-
-	assert(argc >= 1);
-	assert(argv != NULL);
-	assert(opts != NULL);
-
-	while(action != ACTION_ABORT)
-	{
-		int opt = getopt_long(argc - offset, argv + offset, "e:d:qpvhL", long_options, &index);
-
-		if(opt == -1)
-		{
-			break;
-		}
-
-		switch(opt)
-		{
-			case 'e':
-				opts->expr = utils_strdup(optarg);
-				opts->flags &= ~FLAG_STDIN; 
-				break;
-
-			case 'd':
-				if(!slist_contains(&opts->dirs, argv[1]))
-				{
-					slist_append(&opts->dirs, utils_strdup(optarg));
-				}
-				break;
-
-			case 'q':
-				opts->flags |= FLAG_QUOTE;
-				break;
-
-			case 'p':
-				action = ACTION_PRINT;
-				break;
-
-			case 'v':
-				action = ACTION_PRINT_VERSION;
-				break;
-
-			case 'h':
-				action = ACTION_PRINT_HELP;
-				break;
-
-			case 'L':
-				opts->follow = true;
-				break;
-
-			case 0:
-				if(!strcmp(long_options[index].name, "log-level"))
-				{
-					opts->log_level = atoi(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "disable-log-color"))
-				{
-					opts->log_color = false;
-				}
-				else if(!strcmp(long_options[index].name, "max-depth"))
-				{
-					opts->max_depth = atoi(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "print-extensions"))
-				{
-					action = ACTION_PRINT_EXTENSIONS;
-				}
-				else if(!strcmp(long_options[index].name, "print-blacklist"))
-				{
-					action = ACTION_PRINT_BLACKLIST;
-				}
-				else if(!strcmp(long_options[index].name, "regex-type"))
-				{
-					opts->regex_type = utils_strdup(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "printf"))
-				{
-					opts->printf = utils_strdup(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "order-by"))
-				{
-					opts->orderby = utils_strdup(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "skip"))
-				{
-					opts->skip = atoi(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "limit"))
-				{
-					opts->limit = atoi(optarg);
-				}
-
-				break;
-
-			default:
-				action = ACTION_ABORT;
-		}
-	}
-
-	return action;
-}
-
-static int
-_index_of_first_option(int argc, char *argv[])
-{
-	int index = 0;
-
-	assert(argc >= 1);
-	assert(argv != NULL);
-
-	for(int i = 1; i < argc; i++)
-	{
-		if(*argv[i] != '-')
-		{
-			index++;
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	return index;
-}
-
 static Action
 _read_options(int argc, char *argv[], Options *opts)
 {
@@ -980,19 +736,7 @@ _read_options(int argc, char *argv[], Options *opts)
 	assert(argv != NULL);
 	assert(opts != NULL);
 
-	opts->flags = FLAG_STDIN;
-	opts->max_depth = -1;
-	opts->log_color = true;
-
-	int offset = _index_of_first_option(argc, argv);
-	Action action = _get_opt(argc, argv, offset, opts);
-
-	if(action != ACTION_ABORT)
-	{
-		_append_search_dirs_and_expr_from_argv(argv, offset, opts);
-	}
-
-	return action;
+	return options_getopt(opts, argc, argv);
 }
 
 static void
@@ -1003,6 +747,9 @@ _options_init(Options *opts)
 	memset(opts, 0, sizeof(Options));
 	slist_init(&opts->dirs, str_compare, &free, NULL);
 
+	opts->flags = FLAG_STDIN;
+	opts->max_depth = -1;
+	opts->log_color = true;
 	opts->skip = -1;
 	opts->limit = -1;
 }

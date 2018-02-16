@@ -25,7 +25,7 @@ PYTHON_LDFLAGS?=-lpython2.7 $(LIBFFI_LDFLAGS)
 CC?=gcc
 CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) -DLIBDIR=\"$(LIBDIR)\"
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.2.0.a -lm
-INC=-I./datatypes
+INC=-I"$(PWD)/datatypes"
 
 VERSION=0.4.0
 
@@ -33,7 +33,7 @@ all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./gettext.c ./log.c ./parser.y.c ./lexer.l.c ./format-fields.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c ./pathbuilder.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./gettext.c ./log.c ./options_getopt.c ./parser.y.c ./lexer.l.c ./format-fields.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c ./pathbuilder.c -o ./efind $(LDFLAGS) $(LIBS)
 	$(MAKE) -C ./po
 
 install:
