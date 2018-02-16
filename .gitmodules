@@ -1,3 +1,6 @@
 [submodule "datatypes"]
 	path = datatypes
 	url = https://github.com/20centaurifux/datatypes
+[submodule "inih"]
+	path = inih
+	url = https://github.com/benhoyt/inih
