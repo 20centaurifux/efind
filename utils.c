@@ -115,6 +115,20 @@ utils_strdup(const char *str)
 	return ptr;
 }
 
+void
+utils_copy_string(const char *src, char **dst)
+{
+	assert(src != NULL);
+	assert(dst != NULL);
+
+	if(*dst)
+	{
+		free(*dst);
+	}
+
+	*dst = utils_strdup(src);
+}
+
 size_t
 utils_strlcat(char *dst, const char *src, size_t size)
 {
@@ -315,5 +329,57 @@ utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len
 	}
 
 	return result;
+}
+
+bool
+utils_parse_integer(const char *value, long int min, long int max, long int *dst)
+{
+	bool success = false;
+
+	assert(value != NULL);
+	assert(dst != NULL);
+
+	if(value)
+	{
+		char *tail = NULL;
+		long int v = strtol(value, &tail, 10);
+
+		if(tail && *tail == '\0' && v >= min && v <= max)
+		{
+			*dst = v;
+			success = true;
+		}
+	}
+
+	return success;
+}
+
+bool
+utils_parse_bool(const char *value, bool *dst)
+{
+	bool success = false;
+
+	assert(value != NULL);
+	assert(dst != NULL);
+
+	if(value)
+	{
+		success = true;
+
+		if(!strcmp(value, "yes"))
+		{
+			*dst = true;
+		}
+		else if(!strcmp(value, "no"))
+		{
+			*dst = false;
+		}
+		else
+		{
+			success = false;
+		}
+	}
+
+	return success;
 }
 

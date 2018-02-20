@@ -95,6 +95,14 @@ void *utils_realloc_n(void *ptr, size_t nmemb, size_t size);
 char *utils_strdup(const char *str);
 
 /**
+   @param src string to copy
+   @param dst location to write copied string to
+
+   Copies a string. Frees memory allocated by dst if necessary.
+ */
+void utils_copy_string(const char *src, char **dst);
+
+/**
    @param dst destination string
    @param src string to append
    @param size at most size - 1 bytes are copied
@@ -150,6 +158,26 @@ char *utils_whereis(const char *name);
    Joins a path with a filename.
  */
 bool utils_path_join(const char *dir, const char *filename, char *dst, size_t max_len);
+
+/**
+   @param value string to parse
+   @param min allowed minimum value
+   @param max allowed maximum value
+   @param dst location to write converted string to
+   @return true on success
+
+   Tries to convert a string to an integer.
+ */
+bool utils_parse_integer(const char *value, long int min, long int max, long int *dst);
+
+/**
+   @param value string to parse
+   @param dst location to write converted string to
+   @return true on success
+
+   Tries to convert a string to a boolean. Allowed strings are `yes' and `no'.
+ */
+bool utils_parse_bool(const char *value, bool *dst);
 
 #endif
 

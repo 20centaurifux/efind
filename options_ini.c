@@ -31,66 +31,6 @@
 #include "log.h"
 #include "gettext.h"
 
-static bool
-_options_parse_integer(const char *value, long int min, long int max, long int *dst)
-{
-	bool success = false;
-
-	if(value)
-	{
-		char *tail = NULL;
-		long int v = strtol(value, &tail, 10);
-
-		if(tail && *tail == '\0' && v >= min && v <= max)
-		{
-			*dst = v;
-			success = true;
-		}
-	}
-
-	return success;
-}
-
-static bool
-_options_parse_bool(const char *value, bool *dst)
-{
-	bool success = false;
-
-	if(value)
-	{
-		success = true;
-
-		if(!strcmp(value, "yes"))
-		{
-			*dst = true;
-		}
-		else if(!strcmp(value, "no"))
-		{
-			*dst = false;
-		}
-		else
-		{
-			success = false;
-		}
-	}
-
-	return success;
-}
-
-static void
-_options_set_string(const char *value, char **dst)
-{
-	if(value)
-	{
-		if(*dst)
-		{
-			free(*dst);
-		}
-
-		*dst = utils_strdup(value);
-	}
-}
-
 static void
 _options_handle_logging_section(Options *opts, const char *name, const char *value)
 {
@@ -98,14 +38,14 @@ _options_handle_logging_section(Options *opts, const char *name, const char *val
 	{
 		long int level = 0;
 
-		if(_options_parse_integer(value, LOG_LEVEL_NONE, LOG_LEVEL_FATAL, &level))
+		if(utils_parse_integer(value, LOG_LEVEL_NONE, LOG_LEVEL_FATAL, &level))
 		{
 			opts->log_level = (LogLevel)level;
 		}
 	}
 	else if(!strcmp(name, "color"))
 	{
-		_options_parse_bool(value, &opts->log_color);
+		utils_parse_bool(value, &opts->log_color);
 	}
 }
 
@@ -116,7 +56,7 @@ _options_handle_general_section(Options *opts, const char *name, const char *val
 	{
 		bool set = false;
 
-		if(_options_parse_bool(value, &set))
+		if(utils_parse_bool(value, &set))
 		{
 			if(set)
 			{
@@ -130,28 +70,28 @@ _options_handle_general_section(Options *opts, const char *name, const char *val
 	}
 	else if(!strcmp(name, "follow-links"))
 	{
-		_options_parse_bool(value, &opts->follow);
+		utils_parse_bool(value, &opts->follow);
 	}
 	else if(!strcmp(name, "max-depth"))
 	{
 		long int depth;
 
-		if(_options_parse_integer(value, 0, INT32_MAX, &depth))
+		if(utils_parse_integer(value, 0, INT32_MAX, &depth))
 		{
 			opts->max_depth = (int32_t)depth;
 		}
 	}
 	else if(!strcmp(name, "regex-type"))
 	{
-		_options_set_string(value, &opts->regex_type);
+		utils_copy_string(value, &opts->regex_type);
 	}
 	else if(!strcmp(name, "order-by"))
 	{
-		_options_set_string(value, &opts->orderby);
+		utils_copy_string(value, &opts->orderby);
 	}
 	else if(!strcmp(name, "printf"))
 	{
-		_options_set_string(value, &opts->printf);
+		utils_copy_string(value, &opts->printf);
 	}
 }
 
