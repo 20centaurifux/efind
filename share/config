@@ -1,12 +1,12 @@
 ; efind example config
 [general]
-quote=yes                                      ; quote special characters in translated and printed expression
-regex-type=posix-awk                           ; use posix-awk expression type
-max-depth=5                                    ; maximum search depth
-follow-links=yes                               ; follow symbolic links
-order-by=sp                                    ; order by size and path
-printf=%M %8s %8{username} %8{group} %{path}\n ; print permissions, size, owner & path
+quote=yes                    ; quote special characters in translated and printed expression
+regex-type=posix-awk         ; use posix-awk expression type
+max-depth=5                  ; maximum search depth
+follow-links=yes             ; follow symbolic links
+order-by=sp                  ; order by size and path
+printf=\033[0;33m%p\033[0m\n ; yellow output
 
 [logging]
-verbosity=6                                    ; enable tracing
-color=no                                       ; don't print colored log messages
+verbosity=6                  ; enable tracing
+color=no                     ; don't print colored log messages
