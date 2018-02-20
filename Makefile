@@ -1,5 +1,7 @@
 PREFIX?=/usr
 LOCALEDIR?=$(PREFIX)/share/locale
+SYSCONFDIR?=/etc
+DATAROOTDIR=$(PREFIX)/share
 
 MACHINE:=$(shell uname -m)
 
@@ -25,7 +27,7 @@ PYTHON_LDFLAGS?=-lpython2.7 $(LIBFFI_LDFLAGS)
 INIH_CFLAGS?=-DINI_USE_STACK=0 -I"$(PWD)/inih"
 
 CC?=gcc
-CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) -DLIBDIR=\"$(LIBDIR)\" $(INIH_CFLAGS)
+CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) -DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" $(INIH_CFLAGS)
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.2.0.a -lm
 INC=-I"$(PWD)/datatypes"
 
@@ -35,7 +37,7 @@ all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./gettext.c ./log.c ./options_getopt.c ./inih/ini.c ./parser.y.c ./lexer.l.c ./format-fields.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c ./pathbuilder.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./gettext.c ./log.c ./options_getopt.c ./options_ini.c ./inih/ini.c ./parser.y.c ./lexer.l.c ./format-fields.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c ./pathbuilder.c -o ./efind $(LDFLAGS) $(LIBS)
 	$(MAKE) -C ./po
 
 install:
@@ -45,11 +47,14 @@ install:
 	test -d "$(DESTDIR)$(PREFIX)/share/man/man1" || mkdir -p "$(DESTDIR)$(PREFIX)/share/man/man1"
 	cp ./man/efind.1 $(DESTDIR)$(PREFIX)/share/man/man1/efind.1
 	gzip $(DESTDIR)$(PREFIX)/share/man/man1/efind.1 -f
+	test -d "$(DESTDIR)$(DATAROOTDIR)/efind" || mkdir -p "$(DESTDIR)$(DATAROOTDIR)/efind"
+	cp ./share/* $(DESTDIR)$(DATAROOTDIR)/efind/
 	LOCALEDIR=$(LOCALEDIR) $(MAKE) -C ./po install
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/efind
 	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/efind.1.gz
+	rm -fr $(DESTDIR)$(DATAROOTDIR)/efind
 	LOCALEDIR=$(LOCALEDIR) $(MAKE) -C ./po uninstall
 
 tarball:

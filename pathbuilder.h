@@ -29,6 +29,24 @@
    @param path_len maximum buffer size
    @return true on success
 
+   Builds the path to global configuration file.
+ */
+bool path_builder_global_ini(char *path, size_t path_len);
+
+/**
+   @param path location to write built path to
+   @param path_len maximum buffer size
+   @return true on success
+
+   Builds the path to local configuration file.
+ */
+bool path_builder_local_ini(char *path, size_t path_len);
+
+/**
+   @param path location to write built path to
+   @param path_len maximum buffer size
+   @return true on success
+
    Builds the path to global installed extensions.
  */
 bool path_builder_global_extensions(char *path, size_t path_len);

@@ -183,14 +183,29 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				}
 				else if(!strcmp(long_options[index].name, "regex-type"))
 				{
+					if(opts->regex_type)
+					{
+						free(opts->regex_type);
+					}
+
 					opts->regex_type = utils_strdup(optarg);
 				}
 				else if(!strcmp(long_options[index].name, "printf"))
 				{
+					if(opts->printf)
+					{
+						free(opts->printf);
+					}
+
 					opts->printf = utils_strdup(optarg);
 				}
 				else if(!strcmp(long_options[index].name, "order-by"))
 				{
+					if(opts->orderby)
+					{
+						free(opts->orderby);
+					}
+
 					opts->orderby = utils_strdup(optarg);
 				}
 				else if(!strcmp(long_options[index].name, "skip"))

@@ -117,11 +117,19 @@ typedef struct
 
 /**
    @param opts Options to set
+   @return Action to run.
+
+   Reads and sets options from command-line arguments.
+ */
+Action options_load_ini(Options *opts);
+
+/**
+   @param opts Options to set
    @param argc number of command-line arguments
    @param argv command-line arguments
    @return Action to run.
 
-   Reads options from command-line.
+   Reads and sets options from command-line arguments.
  */
 Action options_getopt(Options *opts, int argc, char *argv[]);
 

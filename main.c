@@ -736,7 +736,14 @@ _read_options(int argc, char *argv[], Options *opts)
 	assert(argv != NULL);
 	assert(opts != NULL);
 
-	return options_getopt(opts, argc, argv);
+	Action action = options_load_ini(opts);
+
+	if(action != ACTION_ABORT)
+	{
+		action = options_getopt(opts, argc, argv);
+	}
+
+	return action;
 }
 
 static void
