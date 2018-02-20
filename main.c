@@ -130,23 +130,23 @@ _print_help(const char *name)
 	printf(_("Usage: %s [options]\n"), name);
 	printf(_("       %s [starting-points] [options]\n"), name);
 	printf(_("       %s [starting-points] [expression] [options]\n\n"), name);
-	printf(_("  -e, --expr          expression to evaluate when finding files\n"));
-	printf(_("  -q, --quote         quote special characters in translated expression\n"));
-	printf(_("  -d, --dir           directory to search (multiple directories are possible)\n"));
-	printf(_("  -L, --follow        follow symbolic links\n"));
-	printf(_("  --regex-type type   set regular expression type; see manpage\n"));
-	printf(_("  --printf format     print format on standard output; see manpage\n"));
-	printf(_("  --order-by fields   fields to order search result by; see manpage\n"));
-	printf(_("  --max-depth levels  maximum search depth\n"));
-	printf(_("  --skip number       number of files to skip before printing\n"));
-	printf(_("  --limit number      maximum number of files to print\n"));
-	printf(_("  -p, --print         don't search files but print expression to stdout\n"));
-	printf(_("  --print-extensions  print a list of installed extensions\n"));
-	printf(_("  --print-blacklist   print blacklisted extensions\n"));
-	printf(_("  --log-level level   set the log level (0-6)\n"));
-	printf(_("  --disable-log-color disable colored log messages\n"));
-	printf(_("  -v, --version       print version and exit\n"));
-	printf(_("  -h, --help          display this help and exit\n"));
+	printf(_("  -e, --expr expression  expression to evaluate when finding files\n"));
+	printf(_("  -q, --quote yes|no     quote special characters in translated expression\n"));
+	printf(_("  -d, --dir path         directory to search (multiple directories are possible)\n"));
+	printf(_("  -L, --follow           follow symbolic links\n"));
+	printf(_("  --regex-type type      set regular expression type; see manpage\n"));
+	printf(_("  --printf format        print format on standard output; see manpage\n"));
+	printf(_("  --order-by fields      fields to order search result by; see manpage\n"));
+	printf(_("  --max-depth levels     maximum search depth\n"));
+	printf(_("  --skip number          number of files to skip before printing\n"));
+	printf(_("  --limit number         maximum number of files to print\n"));
+	printf(_("  -p, --print            don't search files but print expression to stdout\n"));
+	printf(_("  --print-extensions     print a list of installed extensions\n"));
+	printf(_("  --print-blacklist      print blacklisted extensions\n"));
+	printf(_("  --log-level level      set the log level (0-6)\n"));
+	printf(_("  --log-color yes|no     enable/disable colored log messages\n"));
+	printf(_("  -v, --version          print version and exit\n"));
+	printf(_("  -h, --help             display this help and exit\n"));
 }
 
 static void

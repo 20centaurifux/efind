@@ -20,11 +20,13 @@
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <getopt.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
 #include "efind.h"
 #include "utils.h"
+#include "gettext.h"
 
 static void
 _append_single_search_dir(char *argv[], Options *opts)
@@ -85,13 +87,42 @@ _append_search_dirs_and_expr_from_argv(char *argv[], int offset, Options *opts)
 	}
 }
 
+static bool
+_parse_flag(const char *value, Options *opts, const char *name, int flag)
+{
+	bool set;
+
+	assert(value != NULL);
+	assert(opts != NULL);
+
+	bool success = utils_parse_bool(optarg, &set);
+
+	if(success)
+	{
+		if(set)
+		{
+			opts->flags |= flag;
+		}
+		else
+		{
+			opts->flags &= ~flag;
+		}
+	}
+	else
+	{
+		fprintf(stderr, _("argument of option `%s' is malformed.\n"), name);
+	}
+
+	return success;
+}
+
 static Action
 _get_opt(int argc, char *argv[], int offset, Options *opts)
 {
 	static struct option long_options[] =
 	{
 		{ "expr", required_argument, 0, 'e' },
-		{ "quote", no_argument, 0, 'q' },
+		{ "quote", required_argument, 0, 'q' },
 		{ "dir", required_argument, 0, 'd' },
 		{ "print", no_argument, 0, 'p' },
 		{ "follow", no_argument, 0, 'L' },
@@ -104,7 +135,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		{ "print-extensions", no_argument, 0, 0 },
 		{ "print-blacklist", no_argument, 0, 0 },
 		{ "log-level", required_argument, 0, 0 },
-		{ "disable-log-color", no_argument, 0, 0 },
+		{ "log-color", required_argument, 0, 0 },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
 		{ 0, 0, 0, 0 }
@@ -141,7 +172,10 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				break;
 
 			case 'q':
-				opts->flags |= FLAG_QUOTE;
+				if(!_parse_flag(optarg, opts, "quote", FLAG_QUOTE))
+				{
+					action = ACTION_ABORT;
+				}
 				break;
 
 			case 'p':
@@ -165,9 +199,12 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				{
 					opts->log_level = atoi(optarg);
 				}
-				else if(!strcmp(long_options[index].name, "disable-log-color"))
+				else if(!strcmp(long_options[index].name, "log-color"))
 				{
-					opts->log_color = false;
+					if(!utils_parse_bool(optarg, &opts->log_color))
+					{
+						fprintf(stderr, _("argument of option `%s' is malformed.\n"), "log-color");
+					}
 				}
 				else if(!strcmp(long_options[index].name, "max-depth"))
 				{

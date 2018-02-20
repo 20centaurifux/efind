@@ -48,7 +48,7 @@ class PrintInfo(unittest.TestCase):
         return ["--log-level=%d" % random.randint(0, 6)]
 
     def __make_log_level_argv_with_color(self):
-        return ["--disable-log-color"] + self.__make_log_level_argv()
+        return ["log-color=yes"] + self.__make_log_level_argv()
 
 class AttributeTester:
     def __init__(self, search_dir):
