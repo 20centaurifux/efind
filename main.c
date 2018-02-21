@@ -131,9 +131,9 @@ _print_help(const char *name)
 	printf(_("       %s [starting-points] [options]\n"), name);
 	printf(_("       %s [starting-points] [expression] [options]\n\n"), name);
 	printf(_("  -e, --expr expression  expression to evaluate when finding files\n"));
-	printf(_("  -q, --quote yes|no     quote special characters in translated expression\n"));
+	printf(_("  -q, --quote <yes|no>   quote special characters in translated expression\n"));
 	printf(_("  -d, --dir path         directory to search (multiple directories are possible)\n"));
-	printf(_("  -L, --follow yes|no    follow symbolic links\n"));
+	printf(_("  -L, --follow <yes|no>  follow symbolic links\n"));
 	printf(_("  --regex-type type      set regular expression type; see manpage\n"));
 	printf(_("  --printf format        print format on standard output; see manpage\n"));
 	printf(_("  --order-by fields      fields to order search result by; see manpage\n"));
@@ -144,7 +144,7 @@ _print_help(const char *name)
 	printf(_("  --print-extensions     print a list of installed extensions\n"));
 	printf(_("  --print-blacklist      print blacklisted extensions\n"));
 	printf(_("  --log-level level      set the log level (0-6)\n"));
-	printf(_("  --log-color yes|no     enable/disable colored log messages\n"));
+	printf(_("  --log-color <yes|no>   enable/disable colored log messages\n"));
 	printf(_("  -v, --version          print version and exit\n"));
 	printf(_("  -h, --help             display this help and exit\n"));
 }

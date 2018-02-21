@@ -12,7 +12,7 @@ It can be extended by custom functions to filter search results.
 Starting-point of the search (multiple directories are supported).
 .IP "\fB\-e, \-\-expr\fR=\fIexpr"
 Search expression.
-.IP "\fB\-L, \-\-follow"
+.IP "\fB\-L, \-\-follow\fR=\fI<yes|no>\fR [default: no]"
 Follow symbolic links.
 .IP "\fB\-\-max-depth\fR=\fIlevels"
 Maximum search depth.
@@ -178,12 +178,13 @@ File's last modification time in seconds since Jan. 1, 1970, 00:00 GMT.
 File's user name, or numeric user ID if the user has no name.
 .IP "%U, %{uid}"
 File's numeric user ID.
+.RE
 .IP "\fB\-\-order-by\fR=\fIfields"
 Fields to sort search result by. The same field names as in the --printf
 option are supported. Prepend `-' to a field to sort in descending order.
 .IP "\fB\-p, \-\-print"
 Don't search files but print translated expression to stdout.
-.IP "\fB\-q, \-\-quote"
+.IP "\fB\-q, \-\-quote\fR=\fI<yes|no>\fR [default: no]"
 Quote special shell characters when printing expression to stdout.
 .IP "\fB\-\-print-extensions"
 Print a list of installed extensions.
@@ -193,10 +194,10 @@ Print a list of blacklisted extensions.
 Output version information and exit.
 .IP "\fB\-h, \-\-help"
 Display help and exit.
-.IP "\fB\-\-log-level\fR=\fIlevel"
+.IP "\fB\-\-log-level\fR=\fIlevel\fR [default: 0]"
 Set verbosity level (0 to 6).
-.IP "\fB\-\-disable-log-color
-Disable colored log messages.
+.IP "\fB\-\-log-color\fR=\fI<yes|no>\fR [default: yes]"
+Enable colored log messages.
 .SH EXPRESSION SYNTAX
 A search expression consists of at least one comparison or file flag to test.
 Multiple expressions can be evaluated with conditional operators:
@@ -350,6 +351,12 @@ If set, efind uses this path to search for extensions and ignores files from
 the default library location (usually /usr/lib).
 
 .SH FILES
+.IP "\fB/etc/efind/config"
+global configuration file
+.IP "\fB~/.efind/config"
+local configuration file
+.IP "\fB/usr/share/efind/config"
+example configuration file
 .IP "\fB~/.efind/extensions"
 local extension files
 .IP "\fB/usr/lib/efind/extensions"
