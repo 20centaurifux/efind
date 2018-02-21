@@ -1,12 +1,12 @@
 ; efind example config
 [general]
-quote=yes                    ; quote special characters in translated and printed expression
-regex-type=posix-awk         ; use posix-awk expression type
-max-depth=5                  ; maximum search depth
-follow-links=yes             ; follow symbolic links
-order-by=sp                  ; order by size and path
-printf=\033[0;33m%p\033[0m\n ; yellow output
+quote=yes                                   ; quote special characters when printing translated expressions
+regex-type=posix-awk                        ; use posix-awk expression type
+max-depth=5                                 ; maximum search depth
+follow-links=yes                            ; follow symbolic links
+order-by=-sp                                ; order by size (descending) and path (ascending)
+printf=\033[0;36m%-8s \033[0;37m%p\033[0m\n ; print file size & path with colors
 
 [logging]
-verbosity=6                  ; enable tracing
-color=no                     ; don't print colored log messages
+verbosity=6                                 ; enable tracing
+color=no                                    ; don't print colored log messages
