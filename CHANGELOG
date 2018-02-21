@@ -1,5 +1,6 @@
 2018-??-?? v0.4.1
 	* FEATURE: load settings from configuration files
+	* FEATURE: --skip & --range options
 	* CHANGE: renamed --disable-log-colors option to --log-color
 	* CHANGE: optional boolean arguments for --follow & --quote options
 	* FIX: memory leak when specifying multiple expressions

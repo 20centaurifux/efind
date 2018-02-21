@@ -31,7 +31,7 @@
 /*! Minor version. */
 #define EFIND_VERSION_MINOR     4
 /*! Patch level. */
-#define EFIND_VERSION_PATCH     0
+#define EFIND_VERSION_PATCH     1
 /*! Code name. */
 #define EFIND_VERSION_CODE_NAME "Magellan"
 /*! Project website. */
