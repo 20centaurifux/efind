@@ -189,7 +189,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		switch(opt)
 		{
 			case 'e':
-				opts->expr = utils_strdup(optarg);
+				utils_copy_string(optarg, &opts->expr);
 				opts->flags &= ~FLAG_STDIN; 
 				break;
 
