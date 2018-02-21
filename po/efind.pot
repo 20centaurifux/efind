@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-15 16:41+0100\n"
+"POT-Creation-Date: 2018-02-21 16:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -53,7 +53,7 @@ msgstr ""
 msgid "Found unexpected character in sort string: '%c'.\n"
 msgstr ""
 
-#: filelist.c:189 main.c:433
+#: filelist.c:189 main.c:398
 #, c-format
 msgid "Couldn't parse sort string.\n"
 msgstr ""
@@ -98,17 +98,17 @@ msgstr ""
 msgid "Couldn't retrieve real path from file: %s\n"
 msgstr ""
 
-#: main.c:136
+#: main.c:101
 #, c-format
 msgid "No extensions loaded.\n"
 msgstr ""
 
-#: main.c:144
+#: main.c:109
 #, c-format
 msgid "Couldn't load extensions.\n"
 msgstr ""
 
-#: main.c:153
+#: main.c:118
 #, c-format
 msgid ""
 "%s %d.%d.%d (%s)\n"
@@ -117,135 +117,151 @@ msgid ""
 "This program is released under the terms of the %s (%s)\n"
 msgstr ""
 
-#: main.c:165
+#: main.c:130
 #, c-format
 msgid "Usage: %s [options]\n"
 msgstr ""
 
-#: main.c:166
+#: main.c:131
 #, c-format
 msgid "       %s [starting-points] [options]\n"
 msgstr ""
 
-#: main.c:167
+#: main.c:132
 #, c-format
 msgid ""
 "       %s [starting-points] [expression] [options]\n"
 "\n"
 msgstr ""
 
-#: main.c:168
+#: main.c:133
 #, c-format
-msgid "  -e, --expr          expression to evaluate when finding files\n"
+msgid "  -e, --expr expression  expression to evaluate when finding files\n"
 msgstr ""
 
-#: main.c:169
+#: main.c:134
 #, c-format
 msgid ""
-"  -q, --quote         quote special characters in translated expression\n"
+"  -q, --quote <yes|no>   quote special characters in translated expression\n"
 msgstr ""
 
-#: main.c:170
+#: main.c:135
 #, c-format
 msgid ""
-"  -d, --dir           directory to search (multiple directories are "
+"  -d, --dir path         directory to search (multiple directories are "
 "possible)\n"
 msgstr ""
 
-#: main.c:171
+#: main.c:136
 #, c-format
-msgid "  -L, --follow        follow symbolic links\n"
+msgid "  -L, --follow <yes|no>  follow symbolic links\n"
 msgstr ""
 
-#: main.c:172
+#: main.c:137
 #, c-format
-msgid "  --regex-type type   set regular expression type; see manpage\n"
+msgid "  --regex-type type      set regular expression type; see manpage\n"
 msgstr ""
 
-#: main.c:173
+#: main.c:138
 #, c-format
-msgid "  --printf format     print format on standard output; see manpage\n"
+msgid "  --printf format        print format on standard output; see manpage\n"
 msgstr ""
 
-#: main.c:174
-#, c-format
-msgid "  --order-by fields   fields to order search result by; see manpage\n"
-msgstr ""
-
-#: main.c:175
-#, c-format
-msgid "  --max-depth levels  maximum search depth\n"
-msgstr ""
-
-#: main.c:176
-#, c-format
-msgid "  --skip number       number of files to skip before printing\n"
-msgstr ""
-
-#: main.c:177
-#, c-format
-msgid "  --limit number      maximum number of files to print\n"
-msgstr ""
-
-#: main.c:178
+#: main.c:139
 #, c-format
 msgid ""
-"  -p, --print         don't search files but print expression to stdout\n"
+"  --order-by fields      fields to order search result by; see manpage\n"
 msgstr ""
 
-#: main.c:179
+#: main.c:140
 #, c-format
-msgid "  --print-extensions  print a list of installed extensions\n"
+msgid "  --max-depth levels     maximum search depth\n"
 msgstr ""
 
-#: main.c:180
+#: main.c:141
 #, c-format
-msgid "  --print-blacklist   print blacklisted extensions\n"
+msgid "  --skip number          number of files to skip before printing\n"
 msgstr ""
 
-#: main.c:181
+#: main.c:142
 #, c-format
-msgid "  --log-level level   set the log level (0-6)\n"
+msgid "  --limit number         maximum number of files to print\n"
 msgstr ""
 
-#: main.c:182
+#: main.c:143
 #, c-format
-msgid "  --disable-log-color disable colored log messages\n"
+msgid ""
+"  -p, --print            don't search files but print expression to stdout\n"
 msgstr ""
 
-#: main.c:183
+#: main.c:144
 #, c-format
-msgid "  -v, --version       print version and exit\n"
+msgid "  --print-extensions     print a list of installed extensions\n"
 msgstr ""
 
-#: main.c:184
+#: main.c:145
 #, c-format
-msgid "  -h, --help          display this help and exit\n"
+msgid "  --print-blacklist      print blacklisted extensions\n"
 msgstr ""
 
-#: main.c:408
+#: main.c:146
+#, c-format
+msgid "  --log-level level      set the log level (0-6)\n"
+msgstr ""
+
+#: main.c:147
+#, c-format
+msgid "  --log-color <yes|no>   enable/disable colored log messages\n"
+msgstr ""
+
+#: main.c:148
+#, c-format
+msgid "  -v, --version          print version and exit\n"
+msgstr ""
+
+#: main.c:149
+#, c-format
+msgid "  -h, --help             display this help and exit\n"
+msgstr ""
+
+#: main.c:373
 #, c-format
 msgid "Couldn't parse format string: %s\n"
 msgstr ""
 
-#: main.c:570
+#: main.c:535
 #, c-format
 msgid "Expression cannot be empty.\n"
 msgstr ""
 
-#: main.c:642
+#: main.c:607
 #, c-format
 msgid "The specified directory is invalid: %s\n"
 msgstr ""
 
-#: main.c:699
+#: main.c:664
 #, c-format
 msgid "Couldn't detect home directory.\n"
 msgstr ""
 
-#: main.c:1101
+#: main.c:855
 #, c-format
 msgid "Try '%s --help' for more information.\n"
+msgstr ""
+
+#: options_getopt.c:113 options_getopt.c:225 options_getopt.c:239
+#, c-format
+msgid "Argument of option `%s' is malformed.\n"
+msgstr ""
+
+#: options_ini.c:130
+#, c-format
+msgid "Error in line %d of global configuration file: \"%s\"\n"
+msgstr ""
+
+#: options_ini.c:140
+#, c-format
+msgid "Error in line %d of local configuration file: \"%s\"\n"
 msgstr ""
 
 #: search.c:215
