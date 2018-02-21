@@ -125,7 +125,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		{ "quote", required_argument, 0, 'q' },
 		{ "dir", required_argument, 0, 'd' },
 		{ "print", no_argument, 0, 'p' },
-		{ "follow", no_argument, 0, 'L' },
+		{ "follow", required_argument, 0, 'L' },
 		{ "max-depth", required_argument, 0, 0 },
 		{ "skip", required_argument, 0, 0 },
 		{ "limit", required_argument, 0, 0 },
@@ -150,7 +150,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 
 	while(action != ACTION_ABORT)
 	{
-		int opt = getopt_long(argc - offset, argv + offset, "e:d:qpvhL", long_options, &index);
+		int opt = getopt_long(argc - offset, argv + offset, "e:d:q:pvhL:", long_options, &index);
 
 		if(opt == -1)
 		{
@@ -191,7 +191,11 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				break;
 
 			case 'L':
-				opts->follow = true;
+				if(!utils_parse_bool(optarg, &opts->follow))
+				{
+					fprintf(stderr, _("argument of option `%s' is malformed.\n"), "follow");
+					action = ACTION_ABORT;
+				}
 				break;
 
 			case 0:

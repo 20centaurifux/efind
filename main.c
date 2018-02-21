@@ -133,7 +133,7 @@ _print_help(const char *name)
 	printf(_("  -e, --expr expression  expression to evaluate when finding files\n"));
 	printf(_("  -q, --quote yes|no     quote special characters in translated expression\n"));
 	printf(_("  -d, --dir path         directory to search (multiple directories are possible)\n"));
-	printf(_("  -L, --follow           follow symbolic links\n"));
+	printf(_("  -L, --follow yes|no    follow symbolic links\n"));
 	printf(_("  --regex-type type      set regular expression type; see manpage\n"));
 	printf(_("  --printf format        print format on standard output; see manpage\n"));
 	printf(_("  --order-by fields      fields to order search result by; see manpage\n"));

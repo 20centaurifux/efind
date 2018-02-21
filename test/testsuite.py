@@ -455,10 +455,10 @@ class SearchSingleDirectory(unittest.TestCase, AssertSearch):
         self.assert_search(['./test-data', '-e','size=5M or (size>=1G and name="*.1")', '--max-depth=1'], [])
 
     def test_follow_links(self):
-        self.assert_search(['./test-links', '-e','size=5M or (size>=1G and name="*.1")', '-L'],
+        self.assert_search(['./test-links', '-e','size=5M or (size>=1G and name="*.1")', '-L', 'yes'],
                            ["./test-links/02/5M.2"])
 
-        self.assert_search(['./test-links/', 'size=1G', '--follow'],
+        self.assert_search(['./test-links/', 'size=1G', '--follow', 'yes'],
                            ["./test-links/00/1G.0", "./test-links/02/1G.2"])
 
         self.assert_search(['./test-links/', 'size=1G'], [])
@@ -533,7 +533,7 @@ class SearchMultipleDirectories(unittest.TestCase):
         assert(len(output) == 0)
 
     def test_follow_links(self):
-        args = ["test-data/00", "test-links/02", "size=1G", "-L"]
+        args = ["test-data/00", "test-links/02", "size=1G", "-L", "yes"]
         returncode, output = run_executable_and_split_output("efind", args)
  
         assert(returncode == 0)
@@ -874,7 +874,7 @@ class OrderBy(unittest.TestCase, AssertSearch):
         else:
             orderby = "-%s" % attr
 
-        returncode, output = run_executable_and_split_output("efind", ["./test-data", "./test-links", "type=file", "-L", "--order-by", orderby])
+        returncode, output = run_executable_and_split_output("efind", ["./test-data", "./test-links", "type=file", "-L", "yes", "--order-by", orderby])
 
         assert(returncode == 0)
 
