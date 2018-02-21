@@ -110,10 +110,30 @@ _parse_flag(const char *value, Options *opts, const char *name, int flag)
 	}
 	else
 	{
-		fprintf(stderr, _("argument of option `%s' is malformed.\n"), name);
+		fprintf(stderr, _("Argument of option `%s' is malformed.\n"), name);
 	}
 
 	return success;
+}
+
+static char **
+_copy_argv(int argc, char *argv[], int offset)
+{
+	char **argv_c = NULL;
+
+	if(offset && offset < argc)
+	{
+		argv_c = utils_malloc(sizeof(char *) * argc - offset);
+
+		*argv_c = utils_strdup(*argv);
+
+		for(int i = 1; i < argc - offset; ++i)
+		{
+			argv_c[i] = utils_strdup(argv[i + offset]);
+		}
+	}
+
+	return argv_c;
 }
 
 static Action
@@ -146,11 +166,20 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 
 	assert(argc >= 1);
 	assert(argv != NULL);
+	assert(offset < argc);
 	assert(opts != NULL);
+
+	char **argv_ptr = argv;
+	char **argv_heap = _copy_argv(argc, argv, offset);
+
+	if(argv_heap)
+	{
+		argv_ptr = argv_heap;
+	}
 
 	while(action != ACTION_ABORT)
 	{
-		int opt = getopt_long(argc - offset, argv + offset, "e:d:q:pvhL:", long_options, &index);
+		int opt = getopt_long(argc - offset, argv_ptr, "e:d:q:pvhL:", long_options, &index);
 
 		if(opt == -1)
 		{
@@ -165,7 +194,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				break;
 
 			case 'd':
-				if(!slist_contains(&opts->dirs, argv[1]))
+				if(!slist_contains(&opts->dirs, argv_ptr[1]))
 				{
 					slist_append(&opts->dirs, utils_strdup(optarg));
 				}
@@ -193,7 +222,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 			case 'L':
 				if(!utils_parse_bool(optarg, &opts->follow))
 				{
-					fprintf(stderr, _("argument of option `%s' is malformed.\n"), "follow");
+					fprintf(stderr, _("Argument of option `%s' is malformed.\n"), "follow");
 					action = ACTION_ABORT;
 				}
 				break;
@@ -207,7 +236,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				{
 					if(!utils_parse_bool(optarg, &opts->log_color))
 					{
-						fprintf(stderr, _("argument of option `%s' is malformed.\n"), "log-color");
+						fprintf(stderr, _("Argument of option `%s' is malformed.\n"), "log-color");
 					}
 				}
 				else if(!strcmp(long_options[index].name, "max-depth"))
@@ -248,6 +277,16 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 			default:
 				action = ACTION_ABORT;
 		}
+	}
+
+	if(argv_heap)
+	{
+		for(int i = 0; i < argc - offset; ++i)
+		{
+			free(argv_heap[i]);
+		}
+
+		free(argv_heap);
 	}
 
 	return action;
