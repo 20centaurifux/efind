@@ -32,7 +32,7 @@
 #include "gettext.h"
 
 static void
-_options_handle_logging_section(Options *opts, const char *name, const char *value)
+_ini_handle_logging_section(Options *opts, const char *name, const char *value)
 {
 	if(!strcmp(name, "verbosity"))
 	{
@@ -50,7 +50,7 @@ _options_handle_logging_section(Options *opts, const char *name, const char *val
 }
 
 static void
-_options_handle_general_section(Options *opts, const char *name, const char *value)
+_ini_handle_general_section(Options *opts, const char *name, const char *value)
 {
 	if(!strcmp(name, "quote"))
 	{
@@ -96,7 +96,7 @@ _options_handle_general_section(Options *opts, const char *name, const char *val
 }
 
 static int
-_options_ini_handler(void *user_data, const char *section, const char *name, const char *value)
+_ini_handler(void *user_data, const char *section, const char *name, const char *value)
 {
 	assert(user_data != NULL);
 
@@ -104,11 +104,11 @@ _options_ini_handler(void *user_data, const char *section, const char *name, con
 
 	if(!strcmp(section, "general"))
 	{
-		_options_handle_general_section(opts, name, value);
+		_ini_handle_general_section(opts, name, value);
 	}
 	else if(!strcmp(section, "logging"))
 	{
-		_options_handle_logging_section(opts, name, value);
+		_ini_handle_logging_section(opts, name, value);
 	}
 
 	return 1;
@@ -123,7 +123,7 @@ options_load_ini(Options *opts)
 
 	if(path_builder_global_ini(path, PATH_MAX))
 	{
-		int line = ini_parse(path, _options_ini_handler, opts);
+		int line = ini_parse(path, _ini_handler, opts);
 
 		if(line > 0)
 		{
@@ -133,7 +133,7 @@ options_load_ini(Options *opts)
 
 	if(path_builder_local_ini(path, PATH_MAX))
 	{
-		int line = ini_parse(path, _options_ini_handler, opts);
+		int line = ini_parse(path, _ini_handler, opts);
 
 		if(line > 0)
 		{

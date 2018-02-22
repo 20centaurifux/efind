@@ -119,7 +119,7 @@ typedef struct
    @param opts Options to set
    @return Action to run.
 
-   Reads and sets options from command-line arguments.
+   Reads and sets options from INI files.
  */
 Action options_load_ini(Options *opts);
 
