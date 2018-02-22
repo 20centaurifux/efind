@@ -29,7 +29,7 @@
 #include "gettext.h"
 
 static void
-_append_single_search_dir(char *argv[], Options *opts)
+_get_opt_append_single_search_dir(char *argv[], Options *opts)
 {
 	assert(argv != NULL);
 	assert(opts != NULL);
@@ -41,7 +41,7 @@ _append_single_search_dir(char *argv[], Options *opts)
 }
 
 static void
-_append_multiple_search_dirs(char *argv[], int offset, Options *opts)
+_get_opt_append_multiple_search_dirs(char *argv[], int offset, Options *opts)
 {
 	int limit = offset;
 
@@ -69,7 +69,7 @@ _append_multiple_search_dirs(char *argv[], int offset, Options *opts)
 }
 
 static void
-_append_search_dirs_and_expr_from_argv(char *argv[], int offset, Options *opts)
+_get_opt_append_search_dirs_and_expr_from_argv(char *argv[], int offset, Options *opts)
 {
 	assert(argv != NULL);
 	assert(opts != NULL);
@@ -78,17 +78,17 @@ _append_search_dirs_and_expr_from_argv(char *argv[], int offset, Options *opts)
 	{
 		if(offset == 1)
 		{
-			_append_single_search_dir(argv, opts);
+			_get_opt_append_single_search_dir(argv, opts);
 		}
 		else
 		{
-			_append_multiple_search_dirs(argv, offset, opts);
+			_get_opt_append_multiple_search_dirs(argv, offset, opts);
 		}
 	}
 }
 
 static bool
-_parse_flag(const char *value, Options *opts, const char *name, int flag)
+_get_opt_parse_flag(const char *value, Options *opts, const char *name, int flag)
 {
 	bool set;
 
@@ -117,14 +117,13 @@ _parse_flag(const char *value, Options *opts, const char *name, int flag)
 }
 
 static char **
-_copy_argv(int argc, char *argv[], int offset)
+_get_opt_copy_argv(int argc, char *argv[], int offset)
 {
 	char **argv_c = NULL;
 
 	if(offset && offset < argc)
 	{
-		argv_c = utils_malloc(sizeof(char *) * argc - offset);
-
+		argv_c = utils_malloc(sizeof(char *) * (argc - offset));
 		*argv_c = utils_strdup(*argv);
 
 		for(int i = 1; i < argc - offset; ++i)
@@ -170,7 +169,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 	assert(opts != NULL);
 
 	char **argv_ptr = argv;
-	char **argv_heap = _copy_argv(argc, argv, offset);
+	char **argv_heap = _get_opt_copy_argv(argc, argv, offset);
 
 	if(argv_heap)
 	{
@@ -194,7 +193,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				break;
 
 			case 'd':
-				if(!slist_contains(&opts->dirs, argv_ptr[1]))
+				if(!slist_contains(&opts->dirs, optarg))
 				{
 					slist_append(&opts->dirs, utils_strdup(optarg));
 				}
@@ -205,7 +204,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				{
 					opts->flags |= FLAG_QUOTE;
 				}
-				else if(!_parse_flag(optarg, opts, "quote", FLAG_QUOTE))
+				else if(!_get_opt_parse_flag(optarg, opts, "quote", FLAG_QUOTE))
 				{
 					action = ACTION_ABORT;
 				}
@@ -301,18 +300,18 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 }
 
 static int
-_index_of_first_option(int argc, char *argv[])
+_get_opt_index_of_first_option(int argc, char *argv[])
 {
 	int index = 0;
 
 	assert(argc >= 1);
 	assert(argv != NULL);
 
-	for(int i = 1; i < argc; i++)
+	for(int i = 1; i < argc; ++i)
 	{
 		if(*argv[i] != '-')
 		{
-			index++;
+			++index;
 		}
 		else
 		{
@@ -326,13 +325,17 @@ _index_of_first_option(int argc, char *argv[])
 Action
 options_getopt(Options *opts, int argc, char *argv[])
 {
-	int offset = _index_of_first_option(argc, argv);
+	assert(opts != NULL);
+	assert(argc > 0);
+	assert(argv != NULL);
+
+	int offset = _get_opt_index_of_first_option(argc, argv);
 
 	Action action = _get_opt(argc, argv, offset, opts);
 
 	if(action != ACTION_ABORT)
 	{
-		_append_search_dirs_and_expr_from_argv(argv, offset, opts);
+		_get_opt_append_search_dirs_and_expr_from_argv(argv, offset, opts);
 	}
 
 	return action;

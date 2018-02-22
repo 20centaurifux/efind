@@ -2,8 +2,9 @@
 	* FEATURE: load settings from configuration files
 	* FEATURE: --skip & --range options
 	* CHANGE: renamed --disable-log-colors option to --log-color
-	* CHANGE: optional boolean arguments for --follow & --quote options
-	* FIX: memory leak when specifying multiple expressions
+	* CHANGE: optional boolean arguments for --follow & --quote option
+	* FIX: memory leak when specifying multiple expressions with --expr option
+	* FIX: don't add same starting-point twice when using -d option
 
 2017-12-23 v0.4.0
 	* FEATURE: support multiple starting points/search paths
