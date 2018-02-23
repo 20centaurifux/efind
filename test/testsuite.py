@@ -1375,6 +1375,124 @@ class TestRange(unittest.TestCase):
 
             assert(returncode == 1)
 
+class TestINI(unittest.TestCase):
+    def setUp(self):
+        self.__home = os.environ["HOME"]
+
+        os.makedirs("./fake-dirs/home/.efind")
+        os.environ["HOME"] = "./fake-dirs/home"
+
+    def tearDown(self):
+        os.environ["HOME"] = self.__home
+        shutil.rmtree("./fake-dirs")
+
+    def test_quote(self):
+        returncode, line = run_executable("efind", ['.', 'name="*.txt"', '-p'])
+
+        assert(returncode == 0)
+        assert("-name *.txt" in line)
+
+        for option in ["quote=no", "quote=%s" % random_string()]:
+            self.__write_ini("[general]\n%s\n" % option)
+
+            returncode, a = run_executable("efind", ['.', 'name="*.txt"', '-p'])
+
+            assert(returncode == 0)
+            assert(line == a)
+
+        self.__write_ini("[general]\nquote=yes\n")
+
+        returncode, b = run_executable("efind", ['.', 'name="*.txt"', '-p'])
+
+        assert(returncode == 0)
+        assert("-name \"*.txt\"" in b)
+
+    def test_max_depth(self):
+        self.__write_ini("[general]\nmax-depth=1337\n")
+
+        returncode, line = run_executable("efind", ['.', 'type=socket', '--print'])
+
+        assert(returncode == 0)
+        assert("-maxdepth 1337" in line)
+
+        self.__write_ini("[general]\nmax-depth=%s\n" % random_string())
+
+        returncode, line = run_executable("efind", ['.', 'type=socket', '--print'])
+
+        assert(returncode == 0)
+        assert("-maxdepth" not in line)
+
+    def test_follow_links(self):
+        self.__write_ini("[general]\nfollow-links=yes\n")
+
+        returncode, line = run_executable("efind", ['.', 'size=1kb', '--print'])
+
+        assert(returncode == 0)
+        assert("-L" in line)
+
+        for option in["follow-links=no", "follow-links=%s" % random_string()]:
+            self.__write_ini("[general]\n%s\n" % option)
+
+            returncode, line = run_executable("efind", ['.', 'size=1kb', '--print'])
+
+            assert(returncode == 0)
+            assert("-L" not in line)
+
+    def test_order_by(self):
+        self.__write_ini("[general]\norder-by=p\n")
+
+        returncode, a = run_executable_and_split_output("efind", ['./test-data', 'type=file'])
+
+        assert(returncode == 0)
+
+        self.__write_ini("[general]\norder-by=-p\n")
+
+        returncode, b = run_executable_and_split_output("efind", ['./test-data', 'type=file'])
+
+        assert(returncode == 0)
+
+        i = 0
+
+        for path in reversed(b):
+            assert(path == a[i])
+            i += 1
+
+    def test_printf(self):
+        self.__write_ini("[general]\nprintf=%s|%s\\n")
+
+        returncode, lines = run_executable_and_split_output("efind", ['./test-data', 'type=file'])
+
+        assert(returncode == 0)
+
+        for line in lines:
+            m = re.match(r"^(\d+)\|(\d+)$", line)
+
+            assert(m.groups()[0] == m.groups()[1])
+
+    def test_logging(self):
+        self.__write_ini("[logging]\nverbosity=6\ncolor=yes")
+
+        returncode, output = run_executable("efind", ['--print-extensions'])
+
+        assert(returncode == 0)
+        assert("INFO" in output)
+        assert("DEBUG" in output)
+        assert("TRACE" in output)
+
+        for options in ["verbosity=0\ncolor=no\n", "verbosity=%s\ncolor=yes\n"]:
+            self.__write_ini("[logging]\n%s" % options)
+
+            returncode, output = run_executable("efind", ['--print-extensions'])
+
+            assert(returncode == 0)
+            assert("INFO" not in output)
+            assert("DEBUG" not in output)
+            assert("TRACE" not in output)
+
+    def __write_ini(self, text):
+        with open("./fake-dirs/home/.efind/config", "w") as f:
+                f.write(text)
+
 def get_test_cases():
     mod = sys.modules[__name__]
 
