@@ -1493,6 +1493,45 @@ class TestINI(unittest.TestCase):
         with open("./fake-dirs/home/.efind/config", "w") as f:
                 f.write(text)
 
+class TestOptionOrder(unittest.TestCase):
+    def setUp(self):
+        self.__home = os.environ["HOME"]
+
+        os.makedirs("./fake-dirs/home/.efind")
+
+        with open("./fake-dirs/home/.efind/config", "w") as f:
+            f.write("[general]\n")
+            f.write("max-depth=5\n")
+            f.write("quote=yes\n")
+            f.write("follow-links=yes\n")
+            f.write("[logging]\n")
+            f.write("verbosity=6\n")
+
+        os.environ["HOME"] = "./fake-dirs/home"
+
+    def tearDown(self):
+        os.environ["HOME"] = self.__home
+        shutil.rmtree("./fake-dirs")
+
+    def test_order(self):
+        returncode, a = run_executable("efind", ['.', 'name="*.txt"', '-p'])
+
+        assert(returncode == 0)
+        assert("-name \"*.txt\"" in a)
+        assert("-maxdepth 5" in a)
+        assert("-L" in a)
+        assert("DEBUG" in a)
+        assert("INFO" in a)
+
+        returncode, b = run_executable("efind", ['.', 'name="*.txt"', '-p', '--max-depth=12', '--quote=no', '--log-level=4', '--follow=no'])
+
+        assert(returncode == 0)
+        assert("-name *.txt" in b)
+        assert("-maxdepth 12" in b)
+        assert("-L" not in b)
+        assert("DEBUG" not in b)
+        assert("INFO" in b)
+
 def get_test_cases():
     mod = sys.modules[__name__]
 
