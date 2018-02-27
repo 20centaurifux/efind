@@ -351,7 +351,7 @@ _search_wait_for_child(ParentCtx *ctx, int status)
 
 	if((rc = waitpid(ctx->child_pid, &child_status, 0)) == ctx->child_pid)
 	{
-		if(WIFEXITED(child_status) && (status == PROCESS_STATUS_OK || status == PROCESS_STATUS_STOP))
+		if(WIFEXITED(child_status) && status == PROCESS_STATUS_OK)
 		{
 			if(child_status)
 			{
@@ -507,7 +507,7 @@ _search_parent_process(ParentCtx *ctx)
 			}
 		} while(status == PROCESS_STATUS_OK && sum);
 
-		if(status == PROCESS_STATUS_STOP)
+		if(status == PROCESS_STATUS_STOP || status == PROCESS_STATUS_ERROR)
 		{
 			_search_kill_child(ctx->child_pid);
 		}
