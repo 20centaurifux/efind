@@ -445,7 +445,7 @@ _exec_find(const Options *opts)
 
 		success = _search_dirs(opts, &sopts, cb, &arg);
 
-		if(success && COLLECT_AND_SORT_FILES(arg))
+		if(COLLECT_AND_SORT_FILES(arg) && file_list_count(arg.files) > 0)
 		{
 			_sort_and_print_files(&arg);
 		}
