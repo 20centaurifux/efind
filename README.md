@@ -20,14 +20,23 @@ Additionally you can filter the search result by audio tags and properties with
 the [taglib](https://github.com/20centaurifux/efind-taglib) extension:
 
 	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
-	  and artist_matches("Welle: Erdball") and audio_length()>200'
+	  and artist_matches("Welle: Erdball") and audio_length()>120'
 
 Use the --order-by option to sort the search result. In this example we sort the
 found files by size (descending) and path (ascending):
 
 	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
-	  and artist_matches("Welle: Erdball") and audio_length()>200' \
+	  and artist_matches("Welle: Erdball") and audio_length()>120' \
 	  --order-by "-{bytes}{path}"
+
+**efind** also provides options to limit the output:
+
+	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
+	  and artist_matches("Welle: Erdball") and audio_length()>120' \
+	  --limit 1
+
+The example above prints the first file matching the search criteria and
+aborts the search immediately.
 
 ## General Usage
 
@@ -241,5 +250,4 @@ expression finds all documents in the current folder with a file size less or eq
 
 ## Planned features
 
-* --skip option
-* --limit option
+* --Lua support
