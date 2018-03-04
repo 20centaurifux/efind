@@ -1,3 +1,13 @@
+efind (0.4-1) unstable; urgency=low
+  * FEATURE: load settings from configuration files
+  * FEATURE: --skip & --limit options
+  * CHANGE: renamed --disable-log-colors option to --log-color
+  * CHANGE: optional boolean arguments for --follow & --quote options
+  * FIX: memory leak when specifying multiple expressions with --expr option
+  * FIX: don't add same starting-point twice when using -d option
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Fri, 02 Mar 2018 20:26:38 +0100
+
 efind (0.4-0) unstable; urgency=low
   * FEATURE: support multiple starting points
   * FEATURE: allow user-friendly field names
