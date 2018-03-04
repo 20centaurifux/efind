@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: efind v0.4.0\n"
+"Project-Id-Version: efind v0.4.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-21 16:50+0100\n"
+"POT-Creation-Date: 2018-03-04 09:04+0100\n"
 "PO-Revision-Date: 2017-08-08 17:16+0200\n"
 "Last-Translator:  <sebastian.fedrau@gmail.com>\n"
 "Language-Team: German\n"
@@ -162,7 +162,8 @@ msgstr "  -q, --quote <yes|no>   Sonderzeichen in Anführungszeichen setzen\n"
 msgid ""
 "  -d, --dir path         directory to search (multiple directories are "
 "possible)\n"
-msgstr "  -d, --dir              Startverzeichnis (mehrere Ordner sind möglich)\n"
+msgstr ""
+"  -d, --dir              Startverzeichnis (mehrere Ordner sind möglich)\n"
 
 #: main.c:136
 #, c-format
@@ -177,17 +178,19 @@ msgstr ""
 "Handbuch\n"
 
 #: main.c:138
-#,  c-format
+#, c-format
 msgid "  --printf format        print format on standard output; see manpage\n"
 msgstr ""
-"  --printf Format        Ausgabeformat für die Standardausgabe; siehe Handbuch\n"
+"  --printf Format        Ausgabeformat für die Standardausgabe; siehe "
+"Handbuch\n"
 
 #: main.c:139
 #, c-format
 msgid ""
 "  --order-by fields      fields to order search result by; see manpage\n"
 msgstr ""
-"  --order-by Felder      beim Sortieren zu verwendende Felder; siehe Handbuch\n"
+"  --order-by Felder      beim Sortieren zu verwendende Felder; siehe "
+"Handbuch\n"
 
 #: main.c:140
 #, c-format
@@ -198,7 +201,8 @@ msgstr "  --max-depth Tiefe      maximale Suchtiefe\n"
 #, c-format
 msgid "  --skip number          number of files to skip before printing\n"
 msgstr ""
-"  --skip Nummer          Anzahl der zu überspringenden Dateien bei der Ausgabe\n"
+"  --skip Nummer          Anzahl der zu überspringenden Dateien bei der "
+"Ausgabe\n"
 
 #: main.c:142
 #, c-format
@@ -210,7 +214,8 @@ msgstr "  --limit Nummer         maximale Anzahl der auszugebenden Dateien\n"
 msgid ""
 "  -p, --print            don't search files but print expression to stdout\n"
 msgstr ""
-"  -p, --print            übersetzten Suchausdruck auf Standardausgabe ausgeben\n"
+"  -p, --print            übersetzten Suchausdruck auf Standardausgabe "
+"ausgeben\n"
 
 #: main.c:144
 #, c-format
@@ -267,7 +272,7 @@ msgstr "Heimverzeichnis konnte nicht gefunden werden.\n"
 msgid "Try '%s --help' for more information.\n"
 msgstr "'%s --help' liefert weitere Informationen.\n"
 
-#: options_getopt.c:113 options_getopt.c:225 options_getopt.c:239
+#: options_getopt.c:113 options_getopt.c:232 options_getopt.c:246
 #, c-format
 msgid "Argument of option `%s' is malformed.\n"
 msgstr "Das Argument der Option `%s' ist ungültig.\n"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-21 16:50+0100\n"
+"POT-Creation-Date: 2018-03-04 09:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -249,7 +249,7 @@ msgstr ""
 msgid "Try '%s --help' for more information.\n"
 msgstr ""
 
-#: options_getopt.c:113 options_getopt.c:225 options_getopt.c:239
+#: options_getopt.c:113 options_getopt.c:232 options_getopt.c:246
 #, c-format
 msgid "Argument of option `%s' is malformed.\n"
 msgstr ""
