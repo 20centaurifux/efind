@@ -57,7 +57,7 @@ typedef struct
 	char *tail;
 	char format[FORMAT_FMT_BUFFER_MAX];
 	char attr;
-	Allocator *alloc;
+	Pool *pool;
 	SList *nodes;
 } FormatParserCtx;
 /*! @endcond */
@@ -664,9 +664,9 @@ _format_parser_ctx_init(FormatParserCtx *ctx)
 
 	memset(ctx, 0, sizeof(FormatParserCtx));
 
- 	ctx->alloc = (Allocator *)chunk_allocator_new(item_size, 32);
+ 	ctx->pool = (Pool *)memory_pool_new(item_size, 32);
 
-	stack_init(&ctx->state, &direct_compare, NULL, ctx->alloc);
+	stack_init(&ctx->state, &direct_compare, NULL, ctx->pool);
 	ctx->nodes = slist_new(&direct_compare, &free, NULL);
 }
 
@@ -697,7 +697,7 @@ _format_parser_ctx_free(FormatParserCtx *ctx)
 			slist_destroy(ctx->nodes);
 		}
 
-		chunk_allocator_destroy((ChunkAllocator *)ctx->alloc);
+		memory_pool_destroy((MemoryPool *)ctx->pool);
 	}
 }
 

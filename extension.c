@@ -322,10 +322,12 @@ _extension_manager_find_callback(ExtensionManager *manager, const char *name, Ex
 
 		assert(module != NULL);
 
-		*cb = assoc_array_lookup(module->callbacks, name);
+		AssocArrayPair *pair = assoc_array_lookup(module->callbacks, name);
 
-		if(*cb)
+		if(pair)
 		{
+			*cb = assoc_array_pair_get_value(pair);
+
 			return module;
 		}
 	}

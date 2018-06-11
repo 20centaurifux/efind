@@ -86,8 +86,8 @@ typedef struct
 		char *start;
 		/*! Pointer to last processed character if a token. */
 		char *tail;
-		/*! Custom allocator for lexer states. */
-		Allocator *alloc;
+		/*! Memory pool for lexer states. */
+		Pool *pool;
 		/*! A list of found tokens. */
 		SList token;
 	} ctx;

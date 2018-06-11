@@ -114,7 +114,7 @@ parse_string(const char *str)
 	buffer_init(&result->data.buffer, PARSER_MAX_EXPRESSION_LENGTH);
 	slist_init(&result->data.strings, &direct_compare, &free, NULL);
 
-	result->data.alloc = (Allocator *)chunk_allocator_new(_parser_get_alloc_item_size(), 16);
+	result->data.pool = (Pool *)memory_pool_new(_parser_get_alloc_item_size(), 16);
 	result->data.column = 1;
 	result->data.lineno = 1;
 
@@ -155,14 +155,14 @@ void parser_result_free(ParserResult *result)
 	if(result)
 	{
 		free(result->err);
-		chunk_allocator_destroy((ChunkAllocator *)result->data.alloc);
+		memory_pool_destroy((MemoryPool *)result->data.pool);
 		slist_clear(&result->data.strings);
 		buffer_free(&result->data.buffer);
 		free(result);
 	}
 }
 
-#define ALLOC(scanner) ((ParserExtra *)yyget_extra(scanner))->alloc
+#define POOL(scanner) ((ParserExtra *)yyget_extra(scanner))->pool
 %}
 
 %token TOKEN_LPAREN
@@ -190,11 +190,11 @@ void parser_result_free(ParserResult *result)
 
 %%
 query:
-    exprs                                       { *root = ast_root_node_new(ALLOC(scanner), &@1, $1, NULL); }
-    | post_exprs                                { *root = ast_root_node_new(ALLOC(scanner), &@1, NULL, $1); }
+    exprs                                       { *root = ast_root_node_new(POOL(scanner), &@1, $1, NULL); }
+    | post_exprs                                { *root = ast_root_node_new(POOL(scanner), &@1, NULL, $1); }
     | exprs operator post_exprs                 { if($2 == OP_AND)
                                                   {
-                                                    *root = ast_root_node_new(ALLOC(scanner), &@1, $1, $3);
+                                                    *root = ast_root_node_new(POOL(scanner), &@1, $1, $3);
                                                   }
                                                   else
                                                   {
@@ -205,7 +205,7 @@ query:
     ;
 
 exprs:
-    exprs operator term                         { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    exprs operator term                         { $$ = ast_expr_node_new(POOL(scanner), &@1, $1, $2, $3); }
     | term                                      { $$ = $1; }
     ;
 
@@ -213,15 +213,15 @@ term:
     TOKEN_LPAREN exprs TOKEN_RPAREN             { $$ = $2; }
     | cond                                      { $$ = $1; }
     | flag                                      { $$ = $1; }
-    | TOKEN_NOT_OPERATOR term                   { $$ = ast_not_node_new(ALLOC(scanner), &@1, $2); }
+    | TOKEN_NOT_OPERATOR term                   { $$ = ast_not_node_new(POOL(scanner), &@1, $2); }
     ;
 
 cond:
-    property compare value                      { $$ = ast_cond_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    property compare value                      { $$ = ast_cond_node_new(POOL(scanner), &@1, $1, $2, $3); }
     ;
 
 flag:
-    TOKEN_FLAG                                  { $$ = ast_value_node_new_flag(ALLOC(scanner), &@1, yylval.ivalue); }
+    TOKEN_FLAG                                  { $$ = ast_value_node_new_flag(POOL(scanner), &@1, yylval.ivalue); }
     ;
 
 property:
@@ -229,28 +229,28 @@ property:
     ;
 
 value:
-    number                                      { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, $1); }
-    | number interval                           { $$ = ast_value_node_new_int_pair(ALLOC(scanner), &@1, VALUE_TIME, $1, $2); }
-    | number unit                               { $$ = ast_value_node_new_int_pair(ALLOC(scanner), &@1, VALUE_SIZE, $1, $2); }
-    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, yylval.svalue); }
-    | TOKEN_TYPE                                { $$ = ast_value_node_new_type(ALLOC(scanner), &@1, yylval.ivalue); }
+    number                                      { $$ = ast_value_node_new_int(POOL(scanner), &@1, $1); }
+    | number interval                           { $$ = ast_value_node_new_int_pair(POOL(scanner), &@1, VALUE_TIME, $1, $2); }
+    | number unit                               { $$ = ast_value_node_new_int_pair(POOL(scanner), &@1, VALUE_SIZE, $1, $2); }
+    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(POOL(scanner), &@1, yylval.svalue); }
+    | TOKEN_TYPE                                { $$ = ast_value_node_new_type(POOL(scanner), &@1, yylval.ivalue); }
     ;
 
 post_exprs:
     post_expr                                   { $$ = $1; }
-    | post_expr operator post_exprs             { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    | post_expr operator post_exprs             { $$ = ast_expr_node_new(POOL(scanner), &@1, $1, $2, $3); }
     ;
 
 post_expr:
-    post_term                                   { $$ = ast_compare_node_new(ALLOC(scanner), &@1, $1, CMP_EQ, ast_true_node_new(ALLOC(scanner), &@1)); }
-    | post_term compare post_term               { $$ = ast_compare_node_new(ALLOC(scanner), &@1, $1, $2, $3); }
+    post_term                                   { $$ = ast_compare_node_new(POOL(scanner), &@1, $1, CMP_EQ, ast_true_node_new(POOL(scanner), &@1)); }
+    | post_term compare post_term               { $$ = ast_compare_node_new(POOL(scanner), &@1, $1, $2, $3); }
     | TOKEN_LPAREN post_exprs TOKEN_RPAREN      { $$ = $2; }
-    | TOKEN_NOT_OPERATOR post_expr              { $$ = ast_not_node_new(ALLOC(scanner), &@1, $2); }
+    | TOKEN_NOT_OPERATOR post_expr              { $$ = ast_not_node_new(POOL(scanner), &@1, $2); }
     ;
 
 post_term:
     fn_call                                     { $$ = $1; }
-    | number                                    { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, yylval.ivalue); }
+    | number                                    { $$ = ast_value_node_new_int(POOL(scanner), &@1, yylval.ivalue); }
     ;
 
 fn_name:
@@ -258,18 +258,18 @@ fn_name:
     ;
 
 fn_call:
-    fn_name TOKEN_LPAREN TOKEN_RPAREN           { $$ = ast_func_node_new(ALLOC(scanner), &@1, $1, NULL); }
-    | fn_name TOKEN_LPAREN fn_args TOKEN_RPAREN { $$ = ast_func_node_new(ALLOC(scanner), &@1, $1, $3); }
+    fn_name TOKEN_LPAREN TOKEN_RPAREN           { $$ = ast_func_node_new(POOL(scanner), &@1, $1, NULL); }
+    | fn_name TOKEN_LPAREN fn_args TOKEN_RPAREN { $$ = ast_func_node_new(POOL(scanner), &@1, $1, $3); }
 
 
 fn_args:
      fn_arg
-     | fn_arg TOKEN_COMMA fn_args               { $$ = ast_expr_node_new(ALLOC(scanner), &@1, $1, OP_COMMA, $3); }
+     | fn_arg TOKEN_COMMA fn_args               { $$ = ast_expr_node_new(POOL(scanner), &@1, $1, OP_COMMA, $3); }
      ;
 
 fn_arg:
-    number                                      { $$ = ast_value_node_new_int(ALLOC(scanner), &@1, yylval.ivalue); }
-    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(ALLOC(scanner), &@1, yylval.svalue); }
+    number                                      { $$ = ast_value_node_new_int(POOL(scanner), &@1, yylval.ivalue); }
+    | TOKEN_STRING                              { $$ = ast_value_node_new_str_nodup(POOL(scanner), &@1, yylval.svalue); }
     | fn_call                                   { $$ = $1; }
     ;
 

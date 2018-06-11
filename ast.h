@@ -410,133 +410,133 @@ FileType ast_str_to_type(const char *str);
 FileFlag ast_str_to_flag(const char *str);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @return a new Node
 
-   Creates a new TrueNode from an Allocator.
+   Creates a new TrueNode from a Pool.
  */
-Node *ast_true_node_new(Allocator *alloc, const YYLTYPE *locp);
+Node *ast_true_node_new(Pool *pool, const YYLTYPE *locp);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param value string to assign
    @return a new Node
 
-   Creates a new ValueNode with an assigned string from an Allocator. Only the pointer,
+   Creates a new ValueNode with an assigned string from a Pool. Only the pointer,
    not the full string, is copied to the node.
  */
-Node *ast_value_node_new_str_nodup(Allocator *alloc, const YYLTYPE *locp, char *value);
+Node *ast_value_node_new_str_nodup(Pool *pool, const YYLTYPE *locp, char *value);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param value a number to assign
    @return a new Node
 
-   Creates a new ValueNode with an assigned integer from an Allocator.
+   Creates a new ValueNode with an assigned integer from a Pool.
  */
-Node *ast_value_node_new_int(Allocator *alloc, const YYLTYPE *locp, int value);
+Node *ast_value_node_new_int(Pool *pool, const YYLTYPE *locp, int value);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param type file type
    @return a new Node
 
-   Creates a new ValueNode with an assigned file type from an Allocator.
+   Creates a new ValueNode with an assigned file type from a Pool.
  */
-Node *ast_value_node_new_type(Allocator *alloc, const YYLTYPE *locp, FileType type);
+Node *ast_value_node_new_type(Pool *pool, const YYLTYPE *locp, FileType type);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param flag file flag
    @return a new Node
 
-   Creates a new ValueNode with an assigned file flag from an Allocator.
+   Creates a new ValueNode with an assigned file flag from a Pool.
  */
-Node *ast_value_node_new_flag(Allocator *alloc, const YYLTYPE *locp, FileFlag flag);
+Node *ast_value_node_new_flag(Pool *pool, const YYLTYPE *locp, FileFlag flag);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param type type of the value to store
    @param a first integer to store
    @param b second integer to store
    @return a new Node
 
-   Creates a new ValueNode with an assigned integer pair from an Allocator.
+   Creates a new ValueNode with an assigned integer pair from a Pool.
  */
-Node *ast_value_node_new_int_pair(Allocator *alloc, const YYLTYPE *locp, ValueType type, int a, int b);
+Node *ast_value_node_new_int_pair(Pool *pool, const YYLTYPE *locp, ValueType type, int a, int b);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param first a node
    @param cmp a compare operator
    @param second another node
    @return a new Node
 
-   Creates a new CompareNode from an Allocator.
+   Creates a new CompareNode from a Pool.
  */
-Node *ast_compare_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, CompareType cmp, Node *second);
+Node *ast_compare_node_new(Pool *pool, const YYLTYPE *locp, Node *first, CompareType cmp, Node *second);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param prop a PropertyId
    @param cmp a compare operator
    @param value a ValueNode
    @return a new Node
 
-   Creates a new ConditionNode from an Allocator.
+   Creates a new ConditionNode from a Pool.
  */
-Node *ast_cond_node_new(Allocator *alloc, const YYLTYPE *locp, PropertyId prop, CompareType cmp, ValueNode *value);
+Node *ast_cond_node_new(Pool *pool, const YYLTYPE *locp, PropertyId prop, CompareType cmp, ValueNode *value);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param first a Node
    @param op an operator
    @param second a second node
    @return a new Node
 
-   Creates a new ExpressionNode from an Allocator.
+   Creates a new ExpressionNode from a Pool.
  */
-Node *ast_expr_node_new(Allocator *alloc, const YYLTYPE *locp, Node *first, OperatorType op, Node *second);
+Node *ast_expr_node_new(Pool *pool, const YYLTYPE *locp, Node *first, OperatorType op, Node *second);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param expr a node
    @return a new Node
 
-   Creates a new NotNode from an Allocator.
+   Creates a new NotNode from a Pool.
  */
-Node *ast_not_node_new(Allocator *alloc, const YYLTYPE *locp, Node *expr);
+Node *ast_not_node_new(Pool *pool, const YYLTYPE *locp, Node *expr);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param name functon name
    @param args first argument of the function
    @return a new Node
 
-   Creates a new FuncNode from an Allocator.
+   Creates a new FuncNode from a Pool.
  */
-Node *ast_func_node_new(Allocator *alloc, const YYLTYPE *locp, char *name, Node *args);
+Node *ast_func_node_new(Pool *pool, const YYLTYPE *locp, char *name, Node *args);
 
 /**
-   @param alloc an Allocator
+   @param pool a Pool
    @param locp location information
    @param exprs expressions root node
    @param post_exprs post expressions root node
    @return a new RootNode
 
-   Creates a RootNode from an Allocator.
+   Creates a RootNode from a Pool.
  */
-RootNode *ast_root_node_new(Allocator *alloc, const YYLTYPE *locp, Node *exprs, Node *post_exprs);
+RootNode *ast_root_node_new(Pool *pool, const YYLTYPE *locp, Node *exprs, Node *post_exprs);
 #endif
 

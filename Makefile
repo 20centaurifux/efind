@@ -28,10 +28,10 @@ INIH_CFLAGS?=-DINI_USE_STACK=0 -I"$(PWD)/inih"
 
 CC?=gcc
 CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) -DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" $(INIH_CFLAGS)
-LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.2.0.a -lm
+LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.3.0.a -lm
 INC=-I"$(PWD)/datatypes"
 
-VERSION=0.4.1
+VERSION=0.4.2
 
 all:
 	$(MAKE) -C ./datatypes

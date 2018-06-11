@@ -62,8 +62,8 @@ struct _FileList
 	size_t count;
 	/*! Size allocated for the entries array. */
 	size_t size;
-	/*! Allocator for FileListEntries. */
-	Allocator *alloc;
+	/*! Pool for FileListEntries. */
+	Pool *pool;
 };
 
 /**

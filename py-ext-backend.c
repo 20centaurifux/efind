@@ -681,7 +681,8 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 	{
 		if(PyCallable_Check(callable))
 		{
-			int *sig = assoc_array_lookup(&py_handle->signatures, name);
+			AssocArrayPair *pair = assoc_array_lookup(&py_handle->signatures, name);
+			int *sig = assoc_array_pair_get_value(pair);
 
 			PyObject *tuple = _py_build_function_tuple(filename, argc, argv, sig);
 

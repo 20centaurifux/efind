@@ -38,8 +38,8 @@ typedef struct
 {
 	/*! Buffer used to read strings. */
 	Buffer buffer;
-	/*! Memory allocator for nodes. */
-	Allocator *alloc;
+	/*! Memory pool for nodes. */
+	Pool *pool;
 	/*! List containing pointers of allocated strings. */
 	SList strings;
 	/*! Current column. */

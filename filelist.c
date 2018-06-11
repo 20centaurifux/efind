@@ -150,7 +150,7 @@ file_list_init(FileList *list, const char *orderby)
 		item_size = sizeof(FileInfo);
 	}
 
-	list->alloc = (Allocator *)chunk_allocator_new(item_size, 1024);
+	list->pool = (Pool *)memory_pool_new(item_size, 1024);
 
 	if(orderby)
 	{
@@ -229,7 +229,7 @@ _file_list_entry_new(FileList *list)
 
 	assert(list != NULL);
 
-	entry = list->alloc->alloc(list->alloc);
+	entry = list->pool->alloc(list->pool);
 	memset(entry, 0, sizeof(FileListEntry));
 	entry->filesp = list;
 
@@ -250,7 +250,7 @@ _file_list_entry_new_from_path(FileList *list, const char *cli, const char *path
 	if(file_info_get(&info, _file_list_dup_cli(list, cli), false, path))
 	{
 		entry = _file_list_entry_new(list);
-		entry->info = list->alloc->alloc(list->alloc);
+		entry->info = list->pool->alloc(list->pool);
 		memcpy(entry->info, &info, sizeof(FileInfo));
 	}
 	else
@@ -278,7 +278,7 @@ file_list_free(FileList *list)
 			_file_list_entry_free(list->entries[i]);
 		}
 
-		chunk_allocator_destroy((ChunkAllocator *)list->alloc);
+		memory_pool_destroy((MemoryPool *)list->pool);
 		free(list->entries);
 	}
 }

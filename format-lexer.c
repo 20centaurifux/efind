@@ -94,17 +94,17 @@ _format_lexer_push(FormatLexerResult *result, FormatLexerState state, size_t off
 }
 
 static FormatToken *
-_format_token_new(Allocator *alloc, FormatTokenType type_id, const char *text, size_t len)
+_format_token_new(Pool *pool, FormatTokenType type_id, const char *text, size_t len)
 {
 	FormatToken *token;
 
-	assert(alloc != NULL);
+	assert(pool != NULL);
 	assert(text != NULL);
 	assert(len > 0);
 
 	TRACEF("format", "new Token(type=%#x, len=%ld)", type_id, len);
 
-	token = alloc->alloc(alloc);
+	token = pool->alloc(pool);
 
 	token->type_id = type_id;
 	token->text = text;
@@ -148,13 +148,13 @@ _format_lexer_found_token(FormatLexerResult *result, FormatTokenType type_id)
 		if(_format_lexer_can_copy_text_token(result))
 		{
 			slist_append(&result->ctx.token,
-			             _format_token_new(result->ctx.alloc, type_id, result->ctx.start, result->ctx.tail - result->ctx.start));
+			             _format_token_new(result->ctx.pool, type_id, result->ctx.start, result->ctx.tail - result->ctx.start));
 		}
 	}
 	else if(_format_lexer_is_char_token(type_id))
 	{
 		slist_append(&result->ctx.token,
-		             _format_token_new(result->ctx.alloc, type_id, result->ctx.tail, 1));
+		             _format_token_new(result->ctx.pool, type_id, result->ctx.tail, 1));
 	}
 	else
 	{
@@ -653,10 +653,10 @@ _format_lexer_init(FormatLexerResult *result, const char *format)
 			item_size = sizeof(FormatToken);
 		}
 		
-		result->ctx.alloc = (Allocator *)chunk_allocator_new(item_size, 32);
+		result->ctx.pool = (Pool *)memory_pool_new(item_size, 32);
 
-		stack_init(&result->ctx.state, &direct_compare, NULL, result->ctx.alloc);
-		slist_init(&result->ctx.token, &direct_compare, NULL, result->ctx.alloc);
+		stack_init(&result->ctx.state, &direct_compare, NULL, result->ctx.pool);
+		slist_init(&result->ctx.token, &direct_compare, NULL, result->ctx.pool);
 
 		result->ctx.fmt = utils_strdup(format);
 		result->ctx.tail = result->ctx.fmt;
@@ -707,9 +707,9 @@ format_lexer_result_destroy(FormatLexerResult *result)
 		stack_free(&result->ctx.state);
 		slist_free(&result->ctx.token);
 
-		if(result->ctx.alloc)
+		if(result->ctx.pool)
 		{
-			chunk_allocator_destroy((ChunkAllocator *)result->ctx.alloc);
+			memory_pool_destroy((MemoryPool *)result->ctx.pool);
 		}
 
 		free(result->ctx.fmt);
