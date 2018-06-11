@@ -1200,7 +1200,7 @@ class Printf(unittest.TestCase):
 
         # time zone:
         if not token[6] == "":
-            m = re.match("^[A-Z]{2,3}$", token[6])
+            m = re.match("^[A-Z]{2,4}$", token[6])
 
             assert(m is not None)
 
