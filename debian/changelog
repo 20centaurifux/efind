@@ -1,3 +1,8 @@
+efind (0.4-2) unstable; urgency=low
+  * CHANGE: switched to libdatatypes v0.3.0
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sun, 17 Mar 2018 15:40:34 +0100
+
 efind (0.4-1) unstable; urgency=low
   * FEATURE: load settings from configuration files
   * FEATURE: --skip & --limit options
