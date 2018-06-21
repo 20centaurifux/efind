@@ -250,4 +250,5 @@ expression finds all documents in the current folder with a file size less or eq
 
 ## Planned features
 
-* --Lua support
+* Lua support
+* switch to Python 3
