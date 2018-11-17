@@ -53,7 +53,7 @@ _py_append_global_extension_path(PyObject *path)
 	{
 		DEBUGF("python", "Appending global extension directory to Python path: %s", dir);
 
-		PyList_Append(path, PyString_FromString(dir));
+		PyList_Append(path, PyUnicode_FromString(dir));
 	}
 	else
 	{
@@ -73,7 +73,7 @@ _py_append_local_extension_path(PyObject *path)
 	{
 		DEBUGF("python", "Appending local extension directory to Python path: %s", localpath);
 
-		PyList_Append(path, PyString_FromString(localpath));
+		PyList_Append(path, PyUnicode_FromString(localpath));
 	}
 	else
 	{
@@ -100,7 +100,7 @@ _py_append_extension_paths_from_env(PyObject *path)
 		{
 			DEBUGF("python", "Appending extension directory to Python path: %s", dir);
 
-			PyList_Append(path, PyString_FromString(dir));
+			PyList_Append(path, PyUnicode_FromString(dir));
 		}
 
 		free(dirs);
@@ -245,11 +245,11 @@ _py_get_extension_details(PyObject *module, char *details[3])
 
 		if(attr)
 		{
-			success = PyString_Check(attr);
+			success = PyUnicode_Check(attr);
 
 			if(success)
 			{
-				details[count] = utils_strdup(PyString_AsString(attr));
+				details[count] = utils_strdup(PyUnicode_AsUTF8(attr));
 			}
 			else
 			{
@@ -367,11 +367,11 @@ _py_build_signature_from_sequence(PyObject *seq, uint32_t *argc, int **signature
 
 			if(PyType_Check(arg))
 			{
-				if((PyTypeObject *)arg == &PyInt_Type)
+				if((PyTypeObject *)arg == &PyLong_Type)
 				{
 					(*signature)[i] = CALLBACK_ARG_TYPE_INTEGER;
 				}
-				else if((PyTypeObject *)arg == &PyString_Type)
+				else if((PyTypeObject *)arg == &PyUnicode_Type)
 				{
 					(*signature)[i] = CALLBACK_ARG_TYPE_STRING;
 				}
@@ -484,9 +484,9 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 
 	if(name)
 	{
-		if(PyString_Check(name))
+		if(PyUnicode_Check(name))
 		{
-			char *fn_name = PyString_AsString(name);
+			char *fn_name = PyUnicode_AsUTF8(name);
 
 			assert(fn_name != NULL);
 
@@ -585,7 +585,7 @@ _py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *
 
 	tuple = PyTuple_New(argc + 1);
 
-	PyTuple_SetItem(tuple, 0, PyString_FromString(filename));
+	PyTuple_SetItem(tuple, 0, PyUnicode_FromString(filename));
 
 	for(uint32_t i = 0; i < argc; i++)
 	{
@@ -593,17 +593,17 @@ _py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *
 
 		if(sig[i] == CALLBACK_ARG_TYPE_INTEGER)
 		{
-			arg = PyInt_FromLong(*((int *)(argv[i])));
+			arg = PyLong_FromLong(*((int *)(argv[i])));
 		}
 		else if(sig[i] == CALLBACK_ARG_TYPE_STRING)
 		{
 			if(argv[i])
 			{
-				arg = PyString_FromString(argv[i]);
+				arg = PyUnicode_FromString(argv[i]);
 			}
 			else
 			{
-				arg = PyString_FromString("");
+				arg = PyUnicode_FromString("");
 			}
 		}
 		else
@@ -634,9 +634,9 @@ _py_invoke(PyObject *callable, PyObject *tuple, int *result)
 
 	if(obj)
 	{
-		if(PyInt_Check(obj))
+		if(PyLong_Check(obj))
 		{
-			long value = PyInt_AsLong(obj);
+			long value = PyLong_AsLong(obj);
 
 			if(value >= INT_MIN && value <= INT_MAX)
 			{
