@@ -1,6 +1,9 @@
 #!/bin/bash
 #
-#  efind test suite.
+#  project............: efind
+#  description........: efind test suite.
+#  copyright..........: Sebastian Fedrau
+#  email..............: sebastian.fedrau@gmail.com
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License v3 as published by
@@ -13,15 +16,14 @@
 
 set -e
 
-PYTHON=/usr/bin/python2
+PYTHON=python3
 
 generate_test_files()
 {
 	echo "Generating test files."
 
-	# does test data directory already exist?
+	# generate regular files:
 	if [ ! -d ./test-data ]; then
-		# directory not found => create test files:
 		mkdir -p test-data/00 test-data/01 test-data/02
 
 		truncate ./test-data/00/100b.0 -s100
@@ -80,11 +82,11 @@ case "$1" in
 	""|tests)
 		run
 		;;
-	cleanup)
+	clean)
 		cleanup
 		;;
 	*)
-		echo "Usage: ${0} {tests|cleanup}"
+		echo "Usage: ${0} {tests|clean}"
 		exit 1
 		;;
 

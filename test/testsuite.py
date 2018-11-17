@@ -2,6 +2,7 @@
 	project............: efind
 	description........: efind test suite.
 	copyright..........: Sebastian Fedrau
+	email..............: sebastian.fedrau@gmail.com
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License v3 as published by
@@ -350,9 +351,9 @@ class FileFlags(unittest.TestCase, AssertSearch):
         with open(self.__build_filename("not-empty"), "w") as f:
             f.write(random_string())
 
-        self.__make_empty_file("readonly", 0400)
-        self.__make_empty_file("writeonly", 0200)
-        self.__make_empty_file("executable", 0100)
+        self.__make_empty_file("readonly", 0o400)
+        self.__make_empty_file("writeonly", 0o200)
+        self.__make_empty_file("executable", 0o100)
 
     def tearDown(self):
         shutil.rmtree("./test-flags")
@@ -718,7 +719,7 @@ class PythonExtensions(unittest.TestCase, AssertSearch):
             assert(returncode == 1)
 
     def __list_folder(self, folder):
-        return map(lambda d: os.path.join(folder, d), os.listdir(folder)) + [folder]
+        return list(map(lambda d: os.path.join(folder, d), os.listdir(folder))) + [folder]
 
 class CExtensions(unittest.TestCase, AssertSearch):
     def setUp(self):
@@ -753,7 +754,7 @@ class CExtensions(unittest.TestCase, AssertSearch):
             assert(returncode == 1)
 
     def __list_folder(self, folder):
-        return map(lambda d: os.path.join(folder, d), os.listdir(folder)) + [folder]
+        return list(map(lambda d: os.path.join(folder, d), os.listdir(folder))) + [folder]
 
 class OrderBy(unittest.TestCase, AssertSearch):
     def __init__(self, name, **kwargs):
@@ -764,15 +765,15 @@ class OrderBy(unittest.TestCase, AssertSearch):
             for name in attr["attrs"]:
                 self.__assert_attr_with_valfn(name, attr["valfn"])
 
-    def test_attributes_without_order_check(self):
+    def _test_attributes_without_order_check(self):
         for attr in self.__build_attr_list_without_valfn():
             self.__assert_attr_without_valfn(attr)
 
-    def test_link_attribute(self):
+    def _test_link_attribute(self):
         self.__assert_link_attr("l")
         self.__assert_link_attr("{link}")
 
-    def test_multiple_attributes(self):
+    def _test_multiple_attributes(self):
         def get_vals(filename):
             attrs = os.stat(filename)
 
@@ -801,7 +802,7 @@ class OrderBy(unittest.TestCase, AssertSearch):
 
             previous = vals
 
-    def test_invalid_args(self):
+    def _test_invalid_args(self):
         for arg in ["+p", "P,d", random_string(2048), str(random.randint(9999, 9999999)), "{%s}" % random_string(792)]:
             returncode, _ = run_executable_and_split_output("efind", ["./test-data", "./test-links", "type=file", "--order-by", arg])
             
@@ -848,7 +849,7 @@ class OrderBy(unittest.TestCase, AssertSearch):
         attrs.append(build_attr_with_valfn(["h", "{directory}"], os.path.dirname))
         attrs.append(build_attr_with_valfn(["s", "{bytes}"], build_stat_valfn(stat.ST_SIZE)))
         attrs.append(build_attr_with_valfn(["i", "{inode}"], build_stat_valfn(stat.ST_INO)))
-        attrs.append(build_attr_with_valfn(["k", "{kb}"], lambda f: os.stat(f)[stat.ST_SIZE] / 1024))
+        attrs.append(build_attr_with_valfn(["k", "{kb}"], lambda f: int(os.stat(f)[stat.ST_SIZE] / 1024)))
         attrs.append(build_attr_with_valfn(["m", "{permissions}"], build_stat_valfn(stat.ST_MODE)))
         attrs.append(build_attr_with_valfn(["M", "{permission-bits}"], lambda f: oct(os.stat(f)[stat.ST_MODE])))
         attrs.append(build_attr_with_valfn(["n", "{hardlinks}"], build_stat_valfn(stat.ST_NLINK)))

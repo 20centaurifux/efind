@@ -2,6 +2,7 @@
 	project............: efind
 	description........: efind test suite.
 	copyright..........: Sebastian Fedrau
+	email..............: sebastian.fedrau@gmail.com
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License v3 as published by
@@ -23,7 +24,7 @@ def run_executable(executable, args):
     print("Running %s, argv=[%s]" % (executable, join_args(cmd[1:])))
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output = str(proc.stdout.read())
+    output = proc.stdout.read().decode("utf-8")
     proc.wait()
 
     return proc.returncode, output
@@ -31,7 +32,7 @@ def run_executable(executable, args):
 def run_executable_and_split_output(executable, args):
     returncode, output = run_executable(executable, args)
 
-    return returncode, filter(lambda l: l != "", output.split("\n"))
+    return returncode, list(filter(lambda l: l != "", output.split("\n")))
 
 def assert_sequence_equality(a, b):
     assert(set(a) == set(b))

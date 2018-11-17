@@ -16,6 +16,6 @@ the unit tests:
 This will not affect any files outside of the "test" directory.
 
 If the script should abort without removing the generated test
-files you can delete them with the "cleanup" option:
+files you can delete them with the "clean" option:
 
-	$ ./run.sh cleanup
+	$ ./run.sh clean
