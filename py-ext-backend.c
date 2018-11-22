@@ -338,57 +338,101 @@ _py_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 	return handle;
 }
 
-static bool
-_py_build_signature_from_sequence(PyObject *seq, uint32_t *argc, int **signature)
+static CallbackArgType
+_py_map_typehint(PyObject *annotations, PyObject *key)
 {
-	bool success = true;
+	CallbackArgType type = CALLBACK_ARG_TYPE_UNDEFINED;
 
-	assert(seq != NULL);
-	assert(PySequence_Check(seq));
+	assert(annotations != NULL);
+	assert(PyMapping_Check(annotations));
+	assert(key != NULL);
+	assert(PyUnicode_Check(key));
+
+	if(PyMapping_HasKey(annotations, key))
+	{
+		PyObject *typehint = PyObject_GetItem(annotations, key);
+
+		if(PyType_Check(typehint))
+		{
+			if((PyTypeObject *)typehint == &PyLong_Type)
+			{
+				type = CALLBACK_ARG_TYPE_INTEGER;
+			}
+			else if((PyTypeObject *)typehint == &PyUnicode_Type)
+			{
+				type = CALLBACK_ARG_TYPE_STRING;
+			}
+		}
+		else
+		{
+			DEBUG("python", "Type of found type-hint is invalid.");
+		}
+
+		Py_XDECREF(typehint);
+	}
+
+	return type;
+}
+
+static bool
+_py_build_signature(uint32_t *argc, int **signature, PyObject *co_argcount, PyObject *co_varnames, PyObject *annotations)
+{
+	bool success = false;
+
 	assert(argc != NULL);
 	assert(*argc == 0);
 	assert(signature != NULL);
 	assert(*signature == NULL);
+	assert(co_argcount != NULL);
+	assert(PyLong_Check(co_argcount));
+	assert(co_varnames != NULL);
+	assert(PySequence_Check(co_varnames));
+	assert(annotations != NULL);
+	assert(PyMapping_Check(annotations));
 
-	Py_ssize_t len = PySequence_Length(seq);
+	long argcount = PyLong_AsLong(co_argcount);
 
-	if(len > UINT32_MAX)
+	if(argcount > 0)
 	{
-		DEBUG("python", "Signature exceeds allowed maximum length.");
-	}
-	else if(len)
-	{
-		*argc = (uint32_t)len;
-		*signature = utils_new(len, int);
+		PyObject *var = PySequence_ITEM(co_varnames, 0);
+		CallbackArgType type = _py_map_typehint(annotations, var);
 
-		for(Py_ssize_t i = 0; success && i < len; i++)
+		Py_XDECREF(var);
+
+		if(type == CALLBACK_ARG_TYPE_STRING)
 		{
-			PyObject *arg = PySequence_ITEM(seq, i);
+			*argc = argcount - 1;
+			*signature = utils_new(*argc, int);
 
-			if(PyType_Check(arg))
+			success = true;
+
+			for(long i = 1; i < argcount && success; ++i)
 			{
-				if((PyTypeObject *)arg == &PyLong_Type)
+				var = PySequence_ITEM(co_varnames, i);
+				type = _py_map_typehint(annotations, var);
+
+				success = type != CALLBACK_ARG_TYPE_UNDEFINED;
+
+				if(success)
 				{
-					(*signature)[i] = CALLBACK_ARG_TYPE_INTEGER;
-				}
-				else if((PyTypeObject *)arg == &PyUnicode_Type)
-				{
-					(*signature)[i] = CALLBACK_ARG_TYPE_STRING;
+					(*signature)[i - 1] = type;
 				}
 				else
 				{
-					DEBUG("python", "__signature__ attribute contains an unsupported type.");
-					success = false;
+					DEBUG("python", "Couldn't find valid type-hint.");
 				}
-			}
-			else
-			{
-				DEBUG("python", "__signature__ attribute is invalid, PyType_Check() failed.");
-				success = false;
-			}
 
-			Py_XDECREF(arg);
+				Py_XDECREF(var);
+			}
 		}
+		else
+		{
+			DEBUG("python", "First argument has to be a string.");
+		}
+	}
+	else
+	{
+		DEBUG("python", "Invalid signature, function needs at least one argument.");
 	}
 
 	return success;
@@ -397,7 +441,6 @@ _py_build_signature_from_sequence(PyObject *seq, uint32_t *argc, int **signature
 static bool
 _py_get_signature_from_callable(PyObject *callable, uint32_t *argc, int **signature)
 {
-	PyObject *sig = NULL;
 	bool success = false;
 
 	assert(callable != NULL);
@@ -407,32 +450,53 @@ _py_get_signature_from_callable(PyObject *callable, uint32_t *argc, int **signat
 	assert(signature != NULL);
 	assert(*signature == NULL);
 
-	if(PyObject_HasAttrString(callable, "__signature__"))
+	if(PyObject_HasAttrString(callable, "__code__") && PyObject_HasAttrString(callable, "__annotations__"))
 	{
-		sig = PyObject_GetAttrString(callable, "__signature__");
-	}
+		PyObject *code = PyObject_GetAttrString(callable, "__code__");
+		PyObject *annotations = PyObject_GetAttrString(callable, "__annotations__");
 
-	if(sig && PySequence_Check(sig))
-	{
-		success = _py_build_signature_from_sequence(sig, argc, signature);
+		if(PyMapping_Check(annotations))
+		{
+			if(PyObject_HasAttrString(code, "co_argcount") && PyObject_HasAttrString(code, "co_varnames"))
+			{
+				PyObject *co_argcount = PyObject_GetAttrString(code, "co_argcount");
+				PyObject *co_varnames = PyObject_GetAttrString(code, "co_varnames");
+
+				if(PyLong_Check(co_argcount) && PySequence_Check(co_varnames))
+				{
+					success = _py_build_signature(argc, signature, co_argcount, co_varnames, annotations);
+				}
+				else
+				{
+					DEBUG("python", "Type of __code__.co_argcount or __code__.co_varnames is invalid.");
+				}
+
+				Py_XDECREF(co_argcount);
+				Py_XDECREF(co_varnames);
+			}
+			else
+			{
+				DEBUG("python", "__code__.co_argcount or __code__.co_varnames attribute not found.");
+			}
+		}
+		else
+		{
+			DEBUG("python", "Type of __annotations__ is invalid.");
+		}
+
+		Py_XDECREF(code);
+		Py_XDECREF(annotations);
 	}
 	else
 	{
-		success = !sig || sig == Py_None;
-
-		if(!success)
-		{
-			DEBUG("python", "__signature__ attribute is invalid.");
-		}
+		DEBUG("python", "__code__ attribute not found.");
 	}
-
-	Py_XDECREF(sig);
 
 	return success;
 }
 
 static bool
-_py_register_callable(PyObject *callable, char *fn_name, uint32_t argc, int *signature, RegisterCallback fn, RegistrationCtx *ctx)
+_py_register_callable(PyObject *callable, const char *fn_name, uint32_t argc, int *signature, RegisterCallback fn, RegistrationCtx *ctx)
 {
 	ffi_cif cif;
 	ffi_type *ret_type = &ffi_type_void;
@@ -486,7 +550,7 @@ _py_import_callable(PyHandle *handle, PyObject *callable, RegisterCallback fn, R
 	{
 		if(PyUnicode_Check(name))
 		{
-			char *fn_name = PyUnicode_AsUTF8(name);
+			const char *fn_name = PyUnicode_AsUTF8(name);
 
 			assert(fn_name != NULL);
 
