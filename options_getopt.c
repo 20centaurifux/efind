@@ -235,7 +235,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				break;
 
 			case 0:
-				if(!strcmp(long_options[index].name, "log-level"))
+				if(!strcmp(long_options[index].name, "log-level") && optarg)
 				{
 					opts->log_level = atoi(optarg);
 				}
@@ -246,7 +246,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 						fprintf(stderr, _("Argument of option `%s' is malformed.\n"), "log-color");
 					}
 				}
-				else if(!strcmp(long_options[index].name, "max-depth"))
+				else if(!strcmp(long_options[index].name, "max-depth") && optarg)
 				{
 					opts->max_depth = atoi(optarg);
 				}
@@ -270,11 +270,11 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				{
 					utils_copy_string(optarg, &opts->orderby);
 				}
-				else if(!strcmp(long_options[index].name, "skip"))
+				else if(!strcmp(long_options[index].name, "skip") && optarg)
 				{
 					opts->skip = atoi(optarg);
 				}
-				else if(!strcmp(long_options[index].name, "limit"))
+				else if(!strcmp(long_options[index].name, "limit") && optarg)
 				{
 					opts->limit = atoi(optarg);
 				}
