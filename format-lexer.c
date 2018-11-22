@@ -158,8 +158,8 @@ _format_lexer_found_token(FormatLexerResult *result, FormatTokenType type_id)
 	}
 	else
 	{
-		abort();
 		FATALF("format", "Unknown token type: %#x", type_id);
+		abort();
 	}
 }
 
