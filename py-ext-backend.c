@@ -642,12 +642,10 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 static PyObject *
 _py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *sig)
 {
-	PyObject *tuple = NULL;
-
 	assert(filename != NULL);
 	assert(!argc || sig != NULL);
 
-	tuple = PyTuple_New(argc + 1);
+	PyObject *tuple = PyTuple_New(argc + 1);
 
 	PyTuple_SetItem(tuple, 0, PyUnicode_FromString(filename));
 
