@@ -81,10 +81,10 @@ fs_map_load(void)
 
 			map->mps[map->len] = utils_new(1, MountPoint);
 
-			strncpy(map->mps[map->len]->fs, ent->mnt_type, FS_NAME_MAX);
+			strncpy(map->mps[map->len]->fs, ent->mnt_type, FS_NAME_MAX - 1);
 			map->mps[map->len]->fs[FS_NAME_MAX - 1] = '\0';
 
-			strncpy(map->mps[map->len]->path, ent->mnt_dir, PATH_MAX);
+			strncpy(map->mps[map->len]->path, ent->mnt_dir, PATH_MAX- 1);
 			map->mps[map->len]->path[PATH_MAX - 1] = '\0';
 
 			++map->len;

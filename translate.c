@@ -719,7 +719,8 @@ _append_string_arg(TranslationCtx *ctx, const char *propname, const char *val)
 	}
 	else
 	{
-		strncpy(str, val, PARSER_MAX_EXPRESSION_LENGTH);
+		strncpy(str, val, PARSER_MAX_EXPRESSION_LENGTH - 1);
+		str[PARSER_MAX_EXPRESSION_LENGTH - 1] = '\0';
 	}
 
 	return _translation_ctx_append_args(ctx, propname, str, NULL);
