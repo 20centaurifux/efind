@@ -84,7 +84,7 @@ fs_map_load(void)
 			strncpy(map->mps[map->len]->fs, ent->mnt_type, FS_NAME_MAX - 1);
 			map->mps[map->len]->fs[FS_NAME_MAX - 1] = '\0';
 
-			strncpy(map->mps[map->len]->path, ent->mnt_dir, PATH_MAX- 1);
+			strncpy(map->mps[map->len]->path, ent->mnt_dir, PATH_MAX - 1);
 			map->mps[map->len]->path[PATH_MAX - 1] = '\0';
 
 			++map->len;
