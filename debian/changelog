@@ -1,3 +1,9 @@
+efind (0.5-0) unstable; urgency=low
+  * FEATURE: switch to Python 3
+  * FIX: handle potential string truncations
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sun, 25 Nov 2018 17:38:33 +0100
+
 efind (0.4-2) unstable; urgency=low
   * CHANGE: switched to libdatatypes v0.3.0
 

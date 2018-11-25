@@ -1,3 +1,7 @@
+2018-11-26 v0.5.0
+	* FEATURE: switch to Python 3
+	* FIX: handle potential string truncations
+
 2018-06-21 v0.4.2
 	* CHANGE: switched to libdatatypes v0.3.0
 

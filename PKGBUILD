@@ -1,6 +1,6 @@
 # Maintainer: Sebastian Fedrau <sebastian.fedrau@gmail.com>
 pkgname=efind
-pkgver=0.4.2
+pkgver=0.5.0
 pkgrel=1
 epoch=
 pkgdesc="An extendable wrapper for GNU find."
@@ -8,8 +8,8 @@ arch=('i686' 'x86_64')
 url="http://efind.dixieflatline.de"
 license=('GPL3')
 groups=()
-depends=('findutils>=4.2.0' 'libffi>=3.2.1' 'python2>=2.7.10')
-makedepends=('gcc' 'bison' 'flex' 'make' 'libffi' 'python2' 'gettext')
+depends=('findutils>=4.2.0' 'libffi>=3.2.1' 'python>=3.5.0')
+makedepends=('gcc' 'bison' 'flex' 'make' 'libffi' 'python3' 'gettext')
 checkdepends=()
 optdepends=()
 provides=()
