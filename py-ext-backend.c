@@ -53,7 +53,16 @@ _py_append_global_extension_path(PyObject *path)
 	{
 		DEBUGF("python", "Appending global extension directory to Python path: %s", dir);
 
-		PyList_Append(path, PyUnicode_FromString(dir));
+		PyObject *location = PyUnicode_FromString(dir);
+
+		if(location)
+		{
+			PyList_Append(path, location);
+		}
+		else
+		{
+			fprintf(stderr, "Invalid encoding: %s\n", dir);
+		}
 	}
 	else
 	{
@@ -73,7 +82,16 @@ _py_append_local_extension_path(PyObject *path)
 	{
 		DEBUGF("python", "Appending local extension directory to Python path: %s", localpath);
 
-		PyList_Append(path, PyUnicode_FromString(localpath));
+		PyObject *location = PyUnicode_FromString(localpath);
+
+		if(location)
+		{
+			PyList_Append(path, location);
+		}
+		else
+		{
+			fprintf(stderr, "Invalid encoding: %s\n", localpath);
+		}
 	}
 	else
 	{
@@ -645,35 +663,45 @@ _py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *
 	assert(filename != NULL);
 	assert(!argc || sig != NULL);
 
-	PyObject *tuple = PyTuple_New(argc + 1);
+	PyObject *tuple = NULL;
+	PyObject *path = PyUnicode_FromString(filename);
 
-	PyTuple_SetItem(tuple, 0, PyUnicode_FromString(filename));
-
-	for(uint32_t i = 0; i < argc; i++)
+	if(path)
 	{
-		PyObject *arg = NULL;
+		tuple = PyTuple_New(argc + 1);
 
-		if(sig[i] == CALLBACK_ARG_TYPE_INTEGER)
+		PyTuple_SetItem(tuple, 0, path);
+
+		for(uint32_t i = 0; i < argc; i++)
 		{
-			arg = PyLong_FromLong(*((int *)(argv[i])));
-		}
-		else if(sig[i] == CALLBACK_ARG_TYPE_STRING)
-		{
-			if(argv[i])
+			PyObject *arg = NULL;
+
+			if(sig[i] == CALLBACK_ARG_TYPE_INTEGER)
 			{
-				arg = PyUnicode_FromString(argv[i]);
+				arg = PyLong_FromLong(*((int *)(argv[i])));
+			}
+			else if(sig[i] == CALLBACK_ARG_TYPE_STRING)
+			{
+				if(argv[i])
+				{
+					arg = PyUnicode_FromString(argv[i]);
+				}
+				else
+				{
+					arg = PyUnicode_FromString("");
+				}
 			}
 			else
 			{
-				arg = PyUnicode_FromString("");
+				ERRORF("python", "Unknown datatype in function signature: %#x\n", sig[i]);
 			}
-		}
-		else
-		{
-			ERRORF("python", "Unknown datatype in function signature: %#x\n", sig[i]);
-		}
 
-		PyTuple_SetItem(tuple, i + 1, arg);
+			PyTuple_SetItem(tuple, i + 1, arg);
+		}
+	}
+	else
+	{
+		fprintf(stderr, "Invalid encoding: %s\n", filename);
 	}
 
 	return tuple;
@@ -748,11 +776,16 @@ _py_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 
 			PyObject *tuple = _py_build_function_tuple(filename, argc, argv, sig);
 
-			assert(tuple != NULL);
-
-			ret = _py_invoke(callable, tuple, result);
-
-			Py_DECREF(tuple);
+			if(tuple)
+			{
+				ret = _py_invoke(callable, tuple, result);
+				Py_DECREF(tuple);
+			}
+			else
+			{
+				WARNING("python", "Invocation failed, argument list is empty.");
+				ret = 0;
+			}
 		}
 		else
 		{
