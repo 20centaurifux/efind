@@ -53,7 +53,7 @@ _py_append_global_extension_path(PyObject *path)
 	{
 		DEBUGF("python", "Appending global extension directory to Python path: %s", dir);
 
-		PyObject *location = PyUnicode_FromString(dir);
+		PyObject *location = PyUnicode_DecodeFSDefault(dir);
 
 		if(location)
 		{
@@ -82,7 +82,7 @@ _py_append_local_extension_path(PyObject *path)
 	{
 		DEBUGF("python", "Appending local extension directory to Python path: %s", localpath);
 
-		PyObject *location = PyUnicode_FromString(localpath);
+		PyObject *location = PyUnicode_DecodeFSDefault(localpath);
 
 		if(location)
 		{
@@ -660,11 +660,12 @@ _py_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 static PyObject *
 _py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *sig)
 {
+	PyObject *tuple = NULL;
+
 	assert(filename != NULL);
 	assert(!argc || sig != NULL);
 
-	PyObject *tuple = NULL;
-	PyObject *path = PyUnicode_FromString(filename);
+	PyObject *path = PyUnicode_DecodeFSDefault(filename);
 
 	if(path)
 	{
