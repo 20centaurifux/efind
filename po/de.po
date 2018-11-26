@@ -1,13 +1,13 @@
 # efind translation
-# Copyright (C) 2017, Sebastian Fedrau
+# Copyright (C) 2017-2018, Sebastian Fedrau
 # This file is distributed under the same license as efind.
 # Sebastian Fedrau <sebastian.fedrau@gmail.com>, 2017.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: efind v0.4.1\n"
+"Project-Id-Version: efind v0.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-04 09:04+0100\n"
+"POT-Creation-Date: 2018-11-26 20:47+0100\n"
 "PO-Revision-Date: 2017-08-08 17:16+0200\n"
 "Last-Translator:  <sebastian.fedrau@gmail.com>\n"
 "Language-Team: German\n"
@@ -38,16 +38,16 @@ msgstr ""
 "Die Funktion `%s' hat eine abweichende Signatur, bitte prüfen Sie die "
 "Argumente.\n"
 
-#: extension.c:414
+#: extension.c:416
 msgid "Path to extension file exceeds maximum allowed path length."
 msgstr "Der Pfad zur Erweiterungsdatei ist zu lang."
 
-#: extension.c:432
+#: extension.c:434
 #, c-format
 msgid "Couldn't open directory \"%s\"."
 msgstr "Das Verzeichnis \"%s\" konnte nicht geöffnet werden."
 
-#: fileinfo.c:264
+#: fileinfo.c:270
 #, c-format
 msgid "Couldn't stat file: %s\n"
 msgstr "Der Status der Datei \"%s\" konnte nicht abgerufen werden.\n"
