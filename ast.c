@@ -484,11 +484,11 @@ ast_root_node_new(Pool *pool, const YYLTYPE *locp, Node *exprs, Node *filter_exp
 	{
 		TRACEF("parser", "new RootNode[%#x] (exprs=new Node(type=%#x), filter_exprs=new Node(type=%#x))", NODE_ROOT, exprs->type, filter_exprs->type);
 	}
-	else if(!filter_exprs)
+	else if(exprs)
 	{
 		TRACEF("parser", "new RootNode[%#x] (exprs=new Node(type=%#x), filter_exprs=NULL)", NODE_ROOT, exprs->type);
 	}
-	else
+	else if(filter_exprs)
 	{
 		TRACEF("parser", "new RootNode[%#x] (exprs=NULL, filter_exprs=new Node(type=%#x))", NODE_ROOT, filter_exprs->type);
 	}

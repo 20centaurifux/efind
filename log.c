@@ -62,8 +62,7 @@ _log_prefix(FILE *out, LogLevel level, const char *filename, const char *fn, int
 
 	time(&now);
 	timeinfo = localtime(&now);
-	strcpy(timestamp, asctime(timeinfo));
-	timestamp[strlen(timestamp) - 1] = '\0';
+	strftime(timestamp, 64, "%c", timeinfo);
 
 	if(!domain || !*domain)
 	{

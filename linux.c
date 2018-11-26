@@ -34,9 +34,7 @@ static char *
 _utoa(unsigned int u)
 {
 	int max_len = (int)floor(log10(UINT_MAX)) + 3;
-
 	char *str = utils_malloc(max_len);
-
 	int written = snprintf(str, max_len, "%u", u);
 
 	if(written >= max_len)

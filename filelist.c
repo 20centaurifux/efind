@@ -91,7 +91,7 @@ const char
 	if(ptr)
 	{
 		/* remove whitespace */
-		while(*ptr && *ptr == ' ')
+		while(*ptr == ' ')
 		{
 			++ptr;
 		}
@@ -116,7 +116,7 @@ const char
 			}
 
 			/* find next character */
-			while(*ptr && *ptr == ' ')
+			while(*ptr == ' ')
 			{
 				++ptr;
 			}

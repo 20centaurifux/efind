@@ -295,7 +295,7 @@ utils_whereis(const char *name)
 		}
 		else
 		{
-			ERROR("misc", "String truncation failed.");
+			ERROR("misc", "String truncated.");
 		}
 	}
 

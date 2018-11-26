@@ -105,7 +105,7 @@ _print_extensions(void)
 	}
 	else
 	{
-		FATAL("action", "Creation of ExpressionManager instance failed.");
+		FATAL("action", "Creation of ExtensionManaster instance failed.");
 		fprintf(stderr, _("Couldn't load extensions.\n"));
 	}
 }

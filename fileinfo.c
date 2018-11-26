@@ -54,10 +54,16 @@ static char *
 _file_info_get_dirname(const char *filename)
 {
 	char *dirname = NULL;
+	size_t len = 0;
 
 	assert(filename != NULL);
 
-	if(filename && strlen(filename) < PATH_MAX)
+	if(filename)
+	{
+		len = strlen(filename);
+	}
+
+	if(len > 0 && len < PATH_MAX)
 	{
 		dirname = utils_strdup(filename);
 

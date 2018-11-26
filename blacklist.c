@@ -111,7 +111,7 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 
 		result = getline(&pattern, &bytes, fp);
 
-		while(result > 0)
+		while(result > 0 && count != SIZE_MAX)
 		{
 			size_t len = utils_trim(pattern);
 
