@@ -27,7 +27,7 @@ PYTHON_LDFLAGS?=`python3-config --libs` $(LIBFFI_LDFLAGS)
 INIH_CFLAGS?=-DINI_USE_STACK=0 -I"$(PWD)/inih"
 
 CC?=gcc
-CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) -DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" $(INIH_CFLAGS)
+CFLAGS=-Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -fPIC -D_LARGEFILE64_SOURCE $(PYTHON_CFLAGS) -DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" $(INIH_CFLAGS)
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.3.0.a -lm
 INC=-I"$(PWD)/datatypes"
 
@@ -71,7 +71,8 @@ tags:
 	$(CTAGS) -R .
 
 cppcheck:
-	$(CPPCHECK) --enable=all --std=c99 --force -j2 --template gcc *.h *.c
+	$(CPPCHECK) $(FLAGS) $(INC) --enable=warning --enable=style --enable=performance --enable=portability --enable=information \
+	            --suppress=missingIncludeSystem --template gcc *.h *.c
 
 pot:
 	xgettext --language=C --keyword=_ -o po/efind.pot *.c *.y
