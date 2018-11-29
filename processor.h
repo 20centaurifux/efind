@@ -37,7 +37,7 @@ typedef enum
 } ProcessorFlags;
 
 /**
-   @enum  Processor
+   @struct  Processor
    @brief Base type for processing data. Processors have a source
           and a sink. Multiple processors can be chained together.
  */
@@ -78,7 +78,7 @@ typedef struct _Processor
 } Processor;
 
 /**
-   @enum ProcessorChain
+   @struct ProcessorChain
    @brief Multiple processors can be chained together.
  */
 typedef struct _ProcessorChain

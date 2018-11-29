@@ -120,7 +120,7 @@ processor_chain_write(ProcessorChain *chain, const char *path)
 
 			completed |= processor_is_closed(head);
 		}
-	}
+	} else printf("%s\n", path);
 
 	return completed;
 }
