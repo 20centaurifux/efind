@@ -600,7 +600,7 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 	const char *unit_name = "bytes";
 	bool success = true;
 	uint64_t bytes = val, max_val = (uint64_t)INT64_MAX / 1024;
-	int loops;
+	int loops = 0;
 
 	assert(ctx != NULL);
 
