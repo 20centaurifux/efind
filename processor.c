@@ -41,14 +41,14 @@ processor_read(Processor *processor)
 }
 
 void
-processor_write(Processor *processor, const char *path)
+processor_write(Processor *processor, const char *dir, const char *path)
 {
 	assert(processor != NULL);
 	assert(path != NULL);
 
 	if(!processor_is_closed(processor))
 	{
-		processor->write(processor, path);
+		processor->write(processor, dir, path);
 	}
 }
 
@@ -73,11 +73,11 @@ processor_destroy(Processor *processor)
 }
 
 void
-processor_close(Processor *processor)
+processor_close(Processor *processor, const char *dir)
 {
 	assert(processor != NULL);
 
-	if(processor_is_closed(processor))
+	if(!processor_is_closed(processor))
 	{
 		processor->close(processor);
 	}
@@ -97,7 +97,7 @@ processor_chain_prepend(ProcessorChain *chain, Processor *processor)
 }
 
 bool
-processor_chain_write(ProcessorChain *chain, const char *path)
+processor_chain_write(ProcessorChain *chain, const char *dir, const char *path)
 {
 	bool completed = false;
 
@@ -111,22 +111,22 @@ processor_chain_write(ProcessorChain *chain, const char *path)
 
 		if(!completed)
 		{
-			processor_write(head, path);
+			processor_write(head, dir, path);
 
-			while (processor_is_readable(head))
+			while(processor_is_readable(head))
 			{
-				completed = processor_chain_write(chain->next, processor_read(head));
+				completed = processor_chain_write(chain->next, dir, processor_read(head));
 			}
 
 			completed |= processor_is_closed(head);
 		}
-	} else printf("%s\n", path);
+	}
 
 	return completed;
 }
 
 void
-processor_chain_complete(ProcessorChain *chain)
+processor_chain_complete(ProcessorChain *chain, const char *dir)
 {
 	bool completed = false;
 
@@ -138,12 +138,12 @@ processor_chain_complete(ProcessorChain *chain)
 
 		if(!completed)
 		{
-			while (processor_is_readable(head))
-			{
-				processor_chain_write(chain->next, processor_read(head));
-			}
+			processor_close(head, dir);
 
-			processor_close(head);
+			while(processor_is_readable(head))
+			{
+				processor_chain_write(chain->next, dir, processor_read(head));
+			}
 		}
 	}
 }

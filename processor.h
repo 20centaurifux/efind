@@ -56,11 +56,12 @@ typedef struct _Processor
 
 	/**
 	   @param processor processor to write to
+	   @param dir search directory
 	   @param path found path
 	   
 	   Writes a found path to the processor's sink.
 	 */
-	void (*write)(struct _Processor *processor, const char *path);
+	void (*write)(struct _Processor *processor, const char *dir, const char *path);
 
 	/**
 	   @param processor processor to close
@@ -106,11 +107,12 @@ const char *processor_read(Processor *processor);
 
 /**
    @param processor processor to write to
+   @param dir search directory
    @param path found path
 
    Writes a found path to the processor's sink.
  */
-void processor_write(Processor *processor, const char *path);
+void processor_write(Processor *processor, const char *dir, const char *path);
 
 /**
    @param processor processor to free
@@ -128,10 +130,11 @@ void processor_destroy(Processor *processor);
 
 /**
    @param processor processor to close
+   @param dir search directory
    
    Closes a processor.
  */
-void processor_close(Processor *processor);
+void processor_close(Processor *processor, const char *dir);
 
 /**
    @param chain a processor chain (or NULL if empty)
@@ -144,19 +147,21 @@ ProcessorChain *processor_chain_prepend(ProcessorChain *chain, Processor *proces
 
 /**
    @param chain chain which should process a found path
+   @param dir search directory
    @param path a found path
    @return false if the chain has been closed, no data will be processed anymore
    
    Processes a found path.
  */
-bool processor_chain_write(ProcessorChain *chain, const char *path);
+bool processor_chain_write(ProcessorChain *chain, const char *dir, const char *path);
 
 /**
    @param chain a processor chain
+   @param dir search directory
    
    Closes the first processor of the chain. This will stop any further processing.
  */
-void processor_chain_complete(ProcessorChain *chain);
+void processor_chain_complete(ProcessorChain *chain, const char *dir);
 
 /**
    @param chain chain to destroy

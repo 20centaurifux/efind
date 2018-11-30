@@ -54,11 +54,12 @@ _limit_processor_read(Processor *processor)
 }
 
 static void
-_limit_processor_write(Processor *processor, const char *path)
+_limit_processor_write(Processor *processor, const char *dir, const char *path)
 {
 	RangeProcessor *range = (RangeProcessor *)processor;
 
 	assert(range != NULL);
+	assert(dir != NULL);
 	assert(path != NULL);
 
 	processor->flags |= PROCESSOR_FLAGS_READABLE;
@@ -77,11 +78,12 @@ _skip_processor_read(Processor *processor)
 }
 
 static void
-_skip_processor_write(Processor *processor, const char *path)
+_skip_processor_write(Processor *processor, const char *dir, const char *path)
 {
 	RangeProcessor *range = (RangeProcessor *)processor;
 
 	assert(range != NULL);
+	assert(dir != NULL);
 	assert(path != NULL);
 
 	if(range->count >= range->range)
@@ -105,7 +107,9 @@ _range_processor_close(Processor *processor)
 }
 
 static Processor *
-_range_processor_new(const char *(*read)(Processor *processor), void (*write)(struct _Processor *processor, const char *path), size_t range)
+_range_processor_new(const char *(*read)(Processor *processor),
+                     void (*write)(struct _Processor *processor, const char *dir, const char *path),
+                     size_t range)
 {
 	assert(write != NULL);
 
