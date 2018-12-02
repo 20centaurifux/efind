@@ -250,6 +250,7 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, ProcessorCh
 	assert(chain != NULL);
 
 	arg.chain = chain;
+	arg.dir = NULL;
 
 	item = slist_head(&opts->dirs);
 
@@ -275,7 +276,10 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, ProcessorCh
 		item = slist_item_next(item);
 	}
 
-	processor_chain_complete(chain, arg.dir);
+	if(success && arg.dir)
+	{
+		processor_chain_complete(chain, arg.dir);
+	}
 
 	return success;
 }
