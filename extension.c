@@ -204,15 +204,13 @@ _extension_module_free(ExtensionModule *module)
 static void
 _extension_manager_function_discovered(RegistrationCtx *ctx, const char *name, uint32_t argc, ...)
 {
-	ExtensionCallback *cb = NULL;
-
 	assert(ctx != NULL);
 	assert(name != NULL);
 	assert(argc < 128);
 
 	TRACEF("extension", "Discovered function: name=%s, argc=%d", name, argc);
 
-	cb = _extension_callback_new(name, argc);
+	ExtensionCallback *cb = _extension_callback_new(name, argc);
 
 	if(cb)
 	{

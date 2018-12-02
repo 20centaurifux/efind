@@ -52,6 +52,7 @@ typedef struct
 } TranslationCtx;
 
 #define QUOTE_ARGS(ctx) (ctx->flags & TRANSLATION_FLAG_QUOTE)
+#define NULL_CHARPTR    (char *)NULL
 /*! @endcond */
 
 static void
@@ -532,28 +533,28 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 		case CMP_LT_EQ:
 			snprintf(v0, 64, "%" PRId64 "%s", val, suffix);
 			snprintf(v1, 64, "-%" PRId64 "%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL);
+			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL_CHARPTR);
 			break;
 
 		case CMP_GT_EQ:
 			snprintf(v0, 64, "%" PRId64 "%s", val, suffix);
 			snprintf(v1, 64, "+%" PRId64 "%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL);
+			success = _translation_ctx_append_args(ctx, lparen, arg, v0, "-o", arg, v1, rparen, NULL_CHARPTR);
 			break;
 
 		case CMP_EQ:
 			snprintf(v0, 64, "%" PRId64 "%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
+			success = _translation_ctx_append_args(ctx, arg, v0, NULL_CHARPTR);
 			break;
 
 		case CMP_LT:
 			snprintf(v0, 64, "-%" PRId64 "%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
+			success = _translation_ctx_append_args(ctx, arg, v0, NULL_CHARPTR);
 			break;
 
 		case CMP_GT:
 			snprintf(v0, 64, "+%" PRId64 "%s", val, suffix);
-			success = _translation_ctx_append_args(ctx, arg, v0, NULL);
+			success = _translation_ctx_append_args(ctx, arg, v0, NULL_CHARPTR);
 			break;
 
 		default:
@@ -695,7 +696,7 @@ _append_type_cond(TranslationCtx *ctx, FileType type)
 
 	if(success)
 	{
-		success = _translation_ctx_append_args(ctx, "-type", t, NULL);
+		success = _translation_ctx_append_args(ctx, "-type", t, NULL_CHARPTR);
 	}
 
 	return success;
@@ -723,7 +724,7 @@ _append_string_arg(TranslationCtx *ctx, const char *propname, const char *val)
 		str[PARSER_MAX_EXPRESSION_LENGTH - 1] = '\0';
 	}
 
-	return _translation_ctx_append_args(ctx, propname, str, NULL);
+	return _translation_ctx_append_args(ctx, propname, str, NULL_CHARPTR);
 }
 
 /*
@@ -883,7 +884,7 @@ _process_not(TranslationCtx *ctx, NotNode *node)
 	assert(ctx != NULL);
 	assert(node != NULL);
 
-	if(_translation_ctx_append_args(ctx, "!", NULL))
+	if(_translation_ctx_append_args(ctx, "!", NULL_CHARPTR))
 	{
 		char *lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
 		char *rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";

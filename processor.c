@@ -137,13 +137,11 @@ processor_chain_write(ProcessorChain *chain, const char *dir, const char *path)
 void
 processor_chain_complete(ProcessorChain *chain, const char *dir)
 {
-	bool completed = false;
-
 	if(chain)
 	{
 		Processor *head = chain->processor;
 
-		completed = processor_is_closed(head);
+		bool completed = processor_is_closed(head);
 
 		if(!completed)
 		{
