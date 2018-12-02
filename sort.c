@@ -26,6 +26,8 @@
 #include "fileinfo.h"
 #include "filelist.h"
 #include "utils.h"
+#include "format-fields.h"
+#include "log.h"
 
 /*! @cond INTERNAL */
 typedef struct
@@ -105,7 +107,15 @@ sort_processor_new(const char *orderby)
 {
 	Processor *processor = NULL;
 
-	if(sort_string_test(orderby) != -1)
+	assert(orderby != NULL);
+
+	DEBUGF("processor", "Preparing sort string: %s", orderby);
+
+	char *str = format_substitute(orderby);
+
+	DEBUGF("processor", "Testing sort string: %s", str);
+
+	if(sort_string_test(str) != -1)
 	{
 		processor = (Processor *)utils_malloc(sizeof(SortProcessor));
 
@@ -118,10 +128,16 @@ sort_processor_new(const char *orderby)
 
 		FileList *files = utils_new(1, FileList);
 
-		file_list_init(files, orderby);
+		file_list_init(files, str);
 
 		((SortProcessor *)processor)->files = files;
 	}
+	else
+	{
+		DEBUGF("processor", "Found sort string is malformed: %s", str);
+	}
+
+	free(str);
 
 	return processor;
 }

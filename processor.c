@@ -21,9 +21,10 @@
  */
 
 #include <assert.h>
-#include "utils.h"
 
 #include "processor.h"
+#include "utils.h"
+#include "log.h"
 
 const char *
 processor_read(Processor *processor)
@@ -103,6 +104,8 @@ processor_chain_write(ProcessorChain *chain, const char *dir, const char *path)
 
 	assert(path != NULL);
 
+	TRACE("processor", "Writing to processor chain.");
+
 	if(chain)
 	{
 		Processor *head = chain->processor;
@@ -115,11 +118,17 @@ processor_chain_write(ProcessorChain *chain, const char *dir, const char *path)
 
 			while(processor_is_readable(head))
 			{
+				TRACE("processor", "Reading from processor.");
+
 				completed = processor_chain_write(chain->next, dir, processor_read(head));
 			}
 
 			completed |= processor_is_closed(head);
 		}
+	}
+	else
+	{
+		TRACE("processor", "Chain is empty.");
 	}
 
 	return completed;

@@ -41,21 +41,19 @@
 #include "search.h"
 #include "parser.h"
 #include "utils.h"
-#include "format.h"
 #include "extension.h"
 #include "blacklist.h"
-#include "filelist.h"
-#include "format-fields.h"
 #include "gettext.h"
+#include "processor.h"
+#include "range.h"
+#include "print.h"
+#include "sort.h"
 
 /*! @cond INTERNAL */
 typedef struct
 {
 	const char *dir;
-	FormatParserResult *fmt;
-	FileList *files;
-	int32_t range[2];
-	size_t count[2];
+	ProcessorChain *chain;
 } FoundArg;
 
 #define FILES_TO_SKIP  0
@@ -214,79 +212,16 @@ _print_expr(const Options *opts)
 }
 
 static bool
-_skip_file(FoundArg *arg)
-{
-	bool skip = false;
-
-	if(arg->range[FILES_TO_SKIP] > 0 && arg->count[FILES_TO_SKIP] < (size_t)arg->range[FILES_TO_SKIP])
-	{
-		++arg->count[FILES_TO_SKIP];
-		skip = true;
-	}
-
-	return skip;
-}
-
-static bool
-_exceeds_range_limit(FoundArg *arg)
-{
-	bool exceeds = false;
-
-	if(arg->range[FILES_TO_PRINT] >= 0 && arg->count[FILES_TO_PRINT] >= (size_t)arg->range[FILES_TO_PRINT])
-	{
-		exceeds = true;
-	}
-
-	++arg->count[FILES_TO_PRINT];
-
-	return exceeds;
-}
-
-static bool
 _file_cb(const char *path, void *user_data)
 {
 	FoundArg *arg = (FoundArg *)user_data;
-	bool abort = false;
 
 	assert(path != NULL);
 	assert(arg != NULL);
-
-	if(!_skip_file(arg))
-	{
-		abort = _exceeds_range_limit(arg);
-
-		if(!abort && path)
-		{
-			if(arg->fmt)
-			{
-				assert(arg->dir != NULL);
-				assert(arg->fmt->success == true);
-
-				format_write(arg->fmt, arg->dir, path, stdout);
-			}
-			else
-			{
-				printf("%s\n", path);
-			}
-		}
-	}
-
-	return abort;
-}
-
-static bool
-_collect_cb(const char *path, void *user_data)
-{
-	FoundArg *arg = (FoundArg *)user_data;
-
-	assert(path != NULL);
-	assert(arg != NULL);
-	assert(arg->files != NULL);
+	assert(arg->chain != NULL);
 	assert(arg->dir != NULL);
 
-	file_list_append(arg->files, arg->dir, path);
-
-	return false;
+	return processor_chain_write(arg->chain, arg->dir, path);
 }
 
 static bool
@@ -301,32 +236,20 @@ _error_cb(const char *msg, void *user_data)
 	return false;
 }
 
-static void
-_sort_and_print_files(FoundArg *arg)
-{
-	assert(arg != NULL);
-	assert(arg->files != NULL);
-
-	file_list_sort(arg->files);
-
-	for(size_t i = 0; i < file_list_count(arg->files); i++)
-	{
-		FileListEntry *entry = file_list_at(arg->files, i);
-
-		arg->dir = entry->info->cli;
-
-		if(_file_cb(entry->info->path, arg))
-		{
-			break;
-		}
-	}
-}
-
 static bool
-_search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, FoundArg *arg)
+_search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, ProcessorChain *chain)
 {
 	SListItem *item;
+	FoundArg arg;
 	bool success = true;
+
+	assert(opts != NULL);
+	assert(opts->dirs != NULL);
+	assert(sopts != NULL);
+	assert(cb ! = NULL);
+	assert(chain != NULL);
+
+	arg.chain = chain;
 
 	item = slist_head(&opts->dirs);
 
@@ -336,13 +259,13 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, FoundArg *a
 
 		assert(path != NULL);
 
-		TRACEF("startup", "Searching directory: \"%s\"", path);
+		TRACEF("action", "Searching directory: \"%s\"", path);
 
-		arg->dir = path;
+		arg.dir = path;
 
 		if(path)
 		{
-			success = search_files(path, opts->expr, _get_translation_flags(opts), sopts, cb, _error_cb, arg) >= 0;
+			success = search_files(path, opts->expr, _get_translation_flags(opts), sopts, cb, _error_cb, &arg) >= 0;
 		}
 		else
 		{
@@ -352,74 +275,118 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, FoundArg *a
 		item = slist_item_next(item);
 	}
 
+	processor_chain_complete(chain, arg.dir);
+
 	return success;
 }
 
-static bool
-_parse_printf_arg(const Options *opts, FoundArg *arg)
+static ProcessorChain *
+_prepend_processor(ProcessorChain *chain, Processor *processor)
 {
-	bool success = true;
-
-	if(opts->printf)
+	if(processor)
 	{
-		DEBUGF("action", "Parsing format string: %s", opts->printf);
+		chain = processor_chain_prepend(chain, processor);
+	}
+	else
+	{
+		TRACE("action", "processor is NULL");
 
-		arg->fmt = format_parse(opts->printf);
-
-		if(!arg->fmt->success)
-		{
-			DEBUG("action", "Parsing of format string failed.");
-
-			fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
-			success = false;
-		}
+		processor_chain_destroy(chain);
+		chain = NULL;
 	}
 
-	return success;
+	return chain;
 }
 
-static bool
-_parse_orderby_arg(const Options *opts, FoundArg *arg)
+static ProcessorChain *
+_prepend_output_processor(ProcessorChain *chain, const char *printf)
 {
-	bool success = true;
+	Processor *processor = NULL;
 
-	if(opts->orderby)
+	if(printf)
 	{
-		DEBUGF("action", "Preparing sort string: %s", opts->orderby);
+		TRACE("action", "Prepending print-format processor.");
 
-		char *orderby = format_substitute(opts->orderby);
+		processor = print_format_processor_new(printf);
+	}
+	else
+	{
+		TRACE("action", "Prepending print processor.");
 
-		DEBUGF("action", "Testing sort string: %s", orderby);
+		processor = print_processor_new();
+	}
 
-		if(sort_string_test(orderby) == -1)
+	return _prepend_processor(chain, processor);
+}
+
+static ProcessorChain *
+_prepend_range_processors(ProcessorChain *chain, int32_t skip, int32_t limit)
+{
+	if(limit >= 0)
+	{
+		TRACE("action", "Prepending limit processor.");
+
+		chain = processor_chain_prepend(chain, limit_processor_new(limit));
+	}
+
+	if(skip >= 0)
+	{
+		TRACE("action", "Prepending skip processor.");
+
+		chain = processor_chain_prepend(chain, skip_processor_new(skip));
+	}
+
+	return chain;
+}
+
+static ProcessorChain *
+_prepend_sort_processor(ProcessorChain *chain, const char *orderby)
+{
+	if(orderby)
+	{
+		TRACE("action", "Prepending sort processor.");
+
+		Processor *processor = sort_processor_new(orderby);
+
+		chain = _prepend_processor(chain, processor);
+	}
+
+	return chain;
+}
+
+static ProcessorChain *
+_build_processor_chain(const Options *opts)
+{
+	ProcessorChain *chain = NULL;
+
+	assert(opts != NULL);
+
+	TRACE("action", "Building processor chain.");
+
+	chain = _prepend_output_processor(chain, opts->printf);
+
+	if(chain)
+	{
+		chain = _prepend_range_processors(chain, opts->skip, opts->limit);
+		chain = _prepend_sort_processor(chain, opts->orderby);
+
+		if(!chain)
 		{
-			DEBUG("action", "Parsing of sort string failed.");
-
 			fprintf(stderr, _("Couldn't parse sort string.\n"));
-			success = false;
 		}
-		else
-		{
-			arg->files = utils_new(1, FileList);
-			file_list_init(arg->files, orderby);
-		}
-
-		free(orderby);
+	}
+	else
+	{
+		fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
 	}
 
-	return success;
+	return chain;
 }
-
-/*! @cond INTERNAL */
-#define COLLECT_AND_SORT_FILES(arg) (arg.files != NULL)
-/*! @endcond */
 
 static bool
 _exec_find(const Options *opts)
 {
 	SearchOptions sopts;
-	FoundArg arg;
-	Callback cb = _file_cb;
 	bool success = false;
 
 	assert(opts != NULL);
@@ -427,47 +394,18 @@ _exec_find(const Options *opts)
 
 	TRACE("action", "Preparing file search.");
 
-	memset(&arg, 0, sizeof(FoundArg));
+	ProcessorChain *chain = _build_processor_chain(opts);
 
-	arg.range[FILES_TO_SKIP] = opts->skip;
-	arg.range[FILES_TO_PRINT] = opts->limit;
-
-	if(_parse_printf_arg(opts, &arg) && _parse_orderby_arg(opts, &arg))
+	if(chain)
 	{
-		TRACE("startup", "Starting file search.");
-
-		if(COLLECT_AND_SORT_FILES(arg))
-		{
-			cb = _collect_cb;
-		}
-
 		_build_search_options(opts, &sopts);
 
-		success = _search_dirs(opts, &sopts, cb, &arg);
-
-		if(COLLECT_AND_SORT_FILES(arg) && file_list_count(arg.files) > 0)
-		{
-			_sort_and_print_files(&arg);
-		}
+		success = _search_dirs(opts, &sopts, _file_cb, chain);
 
 		TRACE("action", "Cleaning up file search.");
 
 		search_options_free(&sopts);
-	}
-
-	TRACE("action", "Cleaning up format parser.");
-
-	if(arg.fmt)
-	{
-		format_parser_result_free(arg.fmt);
-	}
-
-	TRACE("action", "Cleaning up file list & sort options.");
-
-	if(arg.files)
-	{
-		file_list_free(arg.files);
-		free(arg.files);
+		processor_chain_destroy(chain);
 	}
 
 	DEBUGF("action", "Action %#x finished with result=%d.", ACTION_EXEC, success);
