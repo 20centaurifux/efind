@@ -57,7 +57,7 @@ typedef enum
 	ACTION_ABORT,
 	/*! Search files. */
 	ACTION_EXEC,
-	/*! Translate and print search expression. */
+	/*! Translate and print search expressions. */
 	ACTION_PRINT,
 	/*! Print help and exit. */
 	ACTION_PRINT_HELP,
