@@ -309,6 +309,11 @@ _prepend_output_processor(ProcessorChain *chain, const char *printf)
 		TRACE("action", "Prepending print-format processor.");
 
 		processor = print_format_processor_new(printf);
+
+		if(!processor)
+		{
+			fprintf(stderr, _("Couldn't parse format string: %s\n"), printf);
+		}
 	}
 	else
 	{
@@ -349,6 +354,11 @@ _prepend_sort_processor(ProcessorChain *chain, const char *orderby)
 
 		Processor *processor = sort_processor_new(orderby);
 
+		if(!processor)
+		{
+			fprintf(stderr, _("Couldn't parse sort string.\n"));
+		}
+
 		chain = _prepend_processor(chain, processor);
 	}
 
@@ -364,21 +374,19 @@ _build_processor_chain(const Options *opts)
 
 	TRACE("action", "Building processor chain.");
 
-	chain = _prepend_output_processor(chain, opts->printf);
-
-	if(chain)
+	if(!(chain = _prepend_output_processor(chain, opts->printf)))
 	{
-		chain = _prepend_range_processors(chain, opts->skip, opts->limit);
-		chain = _prepend_sort_processor(chain, opts->orderby);
-
-		if(!chain)
-		{
-			fprintf(stderr, _("Couldn't parse sort string.\n"));
-		}
+		return NULL;
 	}
-	else
+
+	if(!(chain = _prepend_range_processors(chain, opts->skip, opts->limit)))
 	{
-		fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
+		return NULL;
+	}
+
+	if(!(chain = _prepend_sort_processor(chain, opts->orderby)))
+	{
+		return NULL;
 	}
 
 	return chain;
