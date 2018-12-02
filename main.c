@@ -55,9 +55,6 @@ typedef struct
 	const char *dir;
 	ProcessorChain *chain;
 } FoundArg;
-
-#define FILES_TO_SKIP  0
-#define FILES_TO_PRINT 1
 /*! @endcond */
 
 static void
