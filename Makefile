@@ -31,7 +31,7 @@ CFLAGS=$(PYTHON_CFLAGS) $(INIH_CFLAGS) -Wall -Wextra -Wno-unused-parameter -std=
 LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.3.0.a -lm
 INC=-I"$(PWD)/datatypes"
 
-VERSION=0.5.0
+VERSION=0.5.1
 
 all:
 	$(MAKE) -C ./datatypes
