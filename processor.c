@@ -21,6 +21,8 @@
  */
 
 #include <assert.h>
+#include <string.h>
+#include <stdarg.h>
 
 #include "processor.h"
 #include "utils.h"
@@ -163,5 +165,76 @@ void processor_chain_destroy(ProcessorChain *chain)
 		processor_chain_destroy(chain->next);
 		free(chain);
 	}
+}
+
+void
+processor_chain_builder_init(ProcessorChainBuilder *builder, const void *user_data)
+{
+	assert(builder != NULL);
+
+	memset(builder, 0, sizeof(ProcessorChainBuilder));
+	builder->user_data = user_data;
+}
+
+void
+processor_chain_builder_do(ProcessorChainBuilder *builder, ProcessorChainBuilderFn fn, ...)
+{
+	assert(builder != NULL);
+
+	ProcessorChainBuilderFn f = fn;
+	va_list ap;
+
+	va_start(ap, fn);
+
+	while(f && !builder->failed)
+	{
+		f(builder);
+		f = va_arg(ap, ProcessorChainBuilderFn);
+	}
+
+	va_end(ap);
+}
+
+bool
+processor_chain_builder_try_prepend(ProcessorChainBuilder *builder, Processor *processor)
+{
+
+	assert(builder != NULL);
+
+	if(processor && !builder->failed)
+	{
+		builder->chain = processor_chain_prepend(builder->chain, processor);
+	}
+	else
+	{
+		processor_chain_builder_fail(builder);
+	}
+
+	return !builder->failed;
+}
+
+void
+processor_chain_builder_fail(ProcessorChainBuilder *builder)
+{
+	assert(builder != NULL);
+
+	if(!builder->failed)
+	{
+		if(builder->chain)
+		{
+			processor_chain_destroy(builder->chain);
+			builder->chain = NULL;
+		}
+
+		builder->failed = true;
+	}
+}
+
+ProcessorChain *
+processor_chain_builder_get_chain(ProcessorChainBuilder *builder)
+{
+	assert(builder != NULL);
+
+	return builder->chain;
 }
 

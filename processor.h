@@ -91,6 +91,30 @@ typedef struct _ProcessorChain
 	struct _ProcessorChain *next;
 } ProcessorChain;
 
+/**
+   @struct ProcessorChainBuilder
+   @brief Utility for building processor chains.
+ */
+typedef struct
+{
+	/*! Set if a chain couldn't be prepended. */
+	bool failed;
+	/*! Chain to build. */
+	ProcessorChain *chain;
+	/*! User data. */
+	const void *user_data;
+} ProcessorChainBuilder;
+
+/**
+   @param builder a ProcessorChainBuilder
+
+   A function applied to a ProcessorChainBuilder.
+ */
+typedef void (*ProcessorChainBuilderFn)(ProcessorChainBuilder *builder);
+
+/*! Sentinel value to terminate a variadic argument list of ProcessorChainBuilderFn functions. */
+#define PROCESSOR_CHAIN_BUILDER_NULL_FN (ProcessorChainBuilderFn *)NULL
+
 /*! Checks if data can be read from a processor. */
 #define processor_is_readable(p) (p->flags & PROCESSOR_FLAGS_READABLE)
 
@@ -170,5 +194,46 @@ void processor_chain_complete(ProcessorChain *chain, const char *dir);
  */
 void processor_chain_destroy(ProcessorChain *chain);
 
+/**
+   @param builder ProcessorChainBuilder to initialize
+   @param user_data custom data assigned to the builder
+   
+   Initializes a ProcessorChainBuilder.
+ */
+void processor_chain_builder_init(ProcessorChainBuilder *builder, const void *user_data);
+
+/**
+   @param builder ProcessorChainBuilder to apply functions to
+   @param fn first function to apply
+   
+   Applies functions to a ProcessorChainBuilder instance. Stops when the state
+   changes to failed.
+ */
+void processor_chain_builder_do(ProcessorChainBuilder *builder, ProcessorChainBuilderFn fn, ...);
+
+/**
+   @param builder a ProcessorChainBuilder
+   @param processor processor to prepend to the wrapped ProcessorChain
+   @return true on success
+
+   Prepends a processor to the chain wrapped by the ProcessorChainBuilder. If processor
+   is NULL the builder's state changes to failed and the chain is destroyed.
+ */
+bool processor_chain_builder_try_prepend(ProcessorChainBuilder *builder, Processor *processor);
+
+/**
+   @param builder a ProcessorChainBuilder
+
+   Sets the builder's state to failed and destroys the already built chain.
+ */
+void processor_chain_builder_fail(ProcessorChainBuilder *builder);
+
+/**
+   @param builder a ProcessorChainBuilder
+   @return the build ProcessorChain or NULL
+
+   Gets the build chain. Returns NULL if an error occurred during build.
+ */
+ProcessorChain *processor_chain_builder_get_chain(ProcessorChainBuilder *builder);
 #endif
 

@@ -281,115 +281,109 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, ProcessorCh
 	return success;
 }
 
-static ProcessorChain *
-_prepend_processor(ProcessorChain *chain, Processor *processor)
+static void
+_prepend_sort_processor(ProcessorChainBuilder *builder)
 {
-	if(processor)
-	{
-		chain = processor_chain_prepend(chain, processor);
-	}
-	else
-	{
-		TRACE("action", "processor is NULL");
+	assert(builder != NULL);
+	assert(builder->user_data != NULL);
 
-		processor_chain_destroy(chain);
-		chain = NULL;
-	}
+	const Options *opts = (Options *)builder->user_data;
 
-	return chain;
+	if(opts->orderby)
+	{
+		TRACE("action", "Prepending sort processor.");
+
+		Processor *sort = sort_processor_new(opts->orderby);
+
+		if(!processor_chain_builder_try_prepend(builder, sort))
+		{
+			fprintf(stderr, _("Couldn't parse sort string.\n"));
+		}
+	}
 }
 
-static ProcessorChain *
-_prepend_output_processor(ProcessorChain *chain, const char *printf)
+static void
+_prepend_skip_processor(ProcessorChainBuilder *builder)
 {
-	Processor *processor = NULL;
+	assert(builder != NULL);
+	assert(builder->user_data != NULL);
 
-	if(printf)
+	const Options *opts = (Options *)builder->user_data;
+
+	if(opts->skip > 0)
+	{
+		TRACE("action", "Prepending skip processor.");
+
+		Processor *skip = skip_processor_new(opts->skip);
+
+		processor_chain_builder_try_prepend(builder, skip);
+	}
+}
+
+static void
+_prepend_limit_processor(ProcessorChainBuilder *builder)
+{
+	assert(builder != NULL);
+	assert(builder->user_data != NULL);
+
+	const Options *opts = (Options *)builder->user_data;
+
+	if(opts->limit >= 0)
+	{
+		TRACE("action", "Prepending limit processor.");
+
+		Processor *limit = limit_processor_new(opts->limit);
+
+		processor_chain_builder_try_prepend(builder, limit);
+	}
+}
+
+static void
+_prepend_print_processor(ProcessorChainBuilder *builder)
+{
+	assert(builder != NULL);
+	assert(builder->user_data != NULL);
+
+	const Options *opts = (Options *)builder->user_data;
+
+	if(opts->printf)
 	{
 		TRACE("action", "Prepending print-format processor.");
 
-		processor = print_format_processor_new(printf);
+		Processor *format = print_format_processor_new(opts->printf);
 
-		if(!processor)
+		if(!processor_chain_builder_try_prepend(builder, format))
 		{
-			fprintf(stderr, _("Couldn't parse format string: %s\n"), printf);
+			fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
 		}
 	}
 	else
 	{
 		TRACE("action", "Prepending print processor.");
 
-		processor = print_processor_new();
+		Processor *print = print_processor_new();
+
+		processor_chain_builder_try_prepend(builder, print);
 	}
-
-	return _prepend_processor(chain, processor);
-}
-
-static ProcessorChain *
-_prepend_range_processors(ProcessorChain *chain, int32_t skip, int32_t limit)
-{
-	if(limit >= 0)
-	{
-		TRACE("action", "Prepending limit processor.");
-
-		chain = processor_chain_prepend(chain, limit_processor_new(limit));
-	}
-
-	if(skip >= 0)
-	{
-		TRACE("action", "Prepending skip processor.");
-
-		chain = processor_chain_prepend(chain, skip_processor_new(skip));
-	}
-
-	return chain;
-}
-
-static ProcessorChain *
-_prepend_sort_processor(ProcessorChain *chain, const char *orderby)
-{
-	if(orderby)
-	{
-		TRACE("action", "Prepending sort processor.");
-
-		Processor *processor = sort_processor_new(orderby);
-
-		if(!processor)
-		{
-			fprintf(stderr, _("Couldn't parse sort string.\n"));
-		}
-
-		chain = _prepend_processor(chain, processor);
-	}
-
-	return chain;
 }
 
 static ProcessorChain *
 _build_processor_chain(const Options *opts)
 {
-	ProcessorChain *chain = NULL;
-
 	assert(opts != NULL);
 
-	TRACE("action", "Building processor chain.");
+	ProcessorChainBuilder builder;
 
-	if(!(chain = _prepend_output_processor(chain, opts->printf)))
-	{
-		return NULL;
-	}
+	processor_chain_builder_init(&builder, opts);
 
-	if(!(chain = _prepend_range_processors(chain, opts->skip, opts->limit)))
-	{
-		return NULL;
-	}
+	processor_chain_builder_do(&builder,
+	                           _prepend_print_processor,
+	                           _prepend_limit_processor,
+	                           _prepend_skip_processor,
+	                           _prepend_sort_processor,
+	                           PROCESSOR_CHAIN_BUILDER_NULL_FN);
 
-	if(!(chain = _prepend_sort_processor(chain, opts->orderby)))
-	{
-		return NULL;
-	}
-
-	return chain;
+	return processor_chain_builder_get_chain(&builder);
 }
 
 static bool
