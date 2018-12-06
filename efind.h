@@ -107,6 +107,8 @@ typedef struct
 	char *regex_type;
 	/*! Format string. */
 	char *printf;
+	/*! List of --exec argument lists. */
+	SList exec;
 	/*! Sort string. */
 	char *orderby;
 	/*! Number of files to skip before printing to stdout. */

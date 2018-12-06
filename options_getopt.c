@@ -25,6 +25,7 @@
 #include <assert.h>
 
 #include "efind.h"
+#include "exec-args.h"
 #include "utils.h"
 #include "gettext.h"
 
@@ -322,20 +323,120 @@ _get_opt_index_of_first_option(int argc, char *argv[])
 	return index;
 }
 
+static void
+_get_opt_free_argv(int argc, char ***argv)
+{
+	assert(argv != NULL);
+
+	if(*argv)
+	{
+		for(int i = 0; i < argc; ++i)
+		{
+			free((*argv)[i]);
+		}
+
+		free(*argv);
+	}
+}
+
+static bool
+_get_opt_steal_exec_args(int argc, char *argv[], int *new_argc, char ***new_argv, Options *opts)
+{
+	bool success = true;
+
+	assert(argc > 0);
+	assert(argv == NULL);
+	assert(new_argc != NULL);
+	assert(new_argv != NULL);
+	assert(opts != NULL);
+
+	*new_argv = (char **)utils_malloc(sizeof(char *) * argc);
+	*new_argc = 0;
+
+	bool open = false;
+	bool malformed = false;
+	int start = 0;
+
+	for(int i = 0; i < argc && !malformed; ++i)
+	{
+		if(open)
+		{
+			if(!strcmp(argv[i], ";"))
+			{
+				open = false;
+
+				if(i - start)
+				{
+					ExecArgs *args = exec_args_new();
+
+					for(int offset = start; offset < i; ++offset)
+					{
+						exec_args_append(args, argv[offset]);
+					}
+
+					slist_append(&opts->exec, args);
+				}
+				else
+				{
+					malformed = true;
+				}
+			}
+		}
+		else if(!strcmp(argv[i], "--exec"))
+		{
+			open = true;
+			start = i + 1;
+		}
+		else
+		{
+			(*new_argv)[*new_argc] = utils_strdup(argv[i]);
+			++(*new_argc);
+		}
+	}
+
+	success = !open && !malformed;
+
+	if(open)
+	{
+		fprintf(stderr, _("Invalid --exec option, `;' argument is missing.\n"));
+	}
+	else if(malformed)
+	{
+		fprintf(stderr, _("Invalid --exec option, argument list is empty.\n"));
+	}
+
+	if(!success)
+	{
+		_get_opt_free_argv(*new_argc, new_argv);
+	}
+
+	return success;
+}
+
 Action
 options_getopt(Options *opts, int argc, char *argv[])
 {
+	Action action = ACTION_ABORT;
+
 	assert(opts != NULL);
 	assert(argc > 0);
 	assert(argv != NULL);
 
-	int offset = _get_opt_index_of_first_option(argc, argv);
+	int no_exec_argc = 0;
+	char **no_exec_argv = NULL;
 
-	Action action = _get_opt(argc, argv, offset, opts);
-
-	if(action != ACTION_ABORT)
+	if(_get_opt_steal_exec_args(argc, argv, &no_exec_argc, &no_exec_argv, opts))
 	{
-		_get_opt_append_search_dirs_and_expr_from_argv(argv, offset, opts);
+		int offset = _get_opt_index_of_first_option(no_exec_argc, no_exec_argv);
+
+		action = _get_opt(no_exec_argc, no_exec_argv, offset, opts);
+
+		if(action != ACTION_ABORT)
+		{
+			_get_opt_append_search_dirs_and_expr_from_argv(no_exec_argv, offset, opts);
+		}
+
+		_get_opt_free_argv(no_exec_argc, &no_exec_argv);
 	}
 
 	return action;

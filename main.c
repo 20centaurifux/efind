@@ -38,6 +38,7 @@
 
 #include "efind.h"
 #include "log.h"
+#include "exec.h"
 #include "search.h"
 #include "parser.h"
 #include "utils.h"
@@ -367,6 +368,30 @@ _prepend_print_processor(ProcessorChainBuilder *builder)
 	}
 }
 
+static void
+_prepend_exec_processors(ProcessorChainBuilder *builder)
+{
+	assert(builder != NULL);
+	assert(builder->user_data != NULL);
+
+	const Options *opts = (Options *)builder->user_data;
+	SListItem *item = slist_head(&opts->exec);
+	bool success = true;
+
+	while(item && success)
+	{
+		TRACE("action", "Prepending exec processor.");
+
+		ExecArgs *args = (ExecArgs *)slist_item_get_data(item);
+
+		Processor *processor = exec_processor_new(args);
+
+		success = processor_chain_builder_try_prepend(builder, processor);
+
+		item = slist_item_next(item);
+	}
+}
+
 static ProcessorChain *
 _build_processor_chain(const Options *opts)
 {
@@ -377,6 +402,7 @@ _build_processor_chain(const Options *opts)
 	processor_chain_builder_init(&builder, opts);
 
 	processor_chain_builder_do(&builder,
+	                           _prepend_exec_processors,
 	                           _prepend_print_processor,
 	                           _prepend_limit_processor,
 	                           _prepend_skip_processor,
@@ -693,7 +719,9 @@ _options_init(Options *opts)
 	assert(opts != NULL);
 
 	memset(opts, 0, sizeof(Options));
-	slist_init(&opts->dirs, str_compare, &free, NULL);
+
+	slist_init(&opts->dirs, str_compare, free, NULL);
+	slist_init(&opts->exec, direct_compare, (FreeFunc)exec_args_destroy, NULL);
 
 	opts->flags = FLAG_STDIN;
 	opts->max_depth = -1;
@@ -708,6 +736,7 @@ _options_free(Options *opts)
 	assert(opts != NULL);
 
 	slist_free(&opts->dirs);
+	slist_free(&opts->exec);
 
 	if(opts->expr)
 	{
