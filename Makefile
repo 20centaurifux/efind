@@ -21,8 +21,8 @@ CTAGS?=ctags
 LIBFFI_CFLAGS=`pkg-config --cflags libffi`
 LIBFFI_LDFLAGS=`pkg-config --libs libffi`
 
-PYTHON_CFLAGS?=-DWITH_PYTHON `python3-config --cflags` $(LIBFFI_CFLAGS)
-PYTHON_LDFLAGS?=`python3-config --libs` $(LIBFFI_LDFLAGS)
+PYTHON_CFLAGS?=-DWITH_PYTHON `pkg-config python3 --cflags` $(LIBFFI_CFLAGS)
+PYTHON_LDFLAGS?=`pkg-config python3 --libs` $(LIBFFI_LDFLAGS)
 
 INIH_CFLAGS?=-DINI_USE_STACK=0 -I"$(PWD)/inih"
 
