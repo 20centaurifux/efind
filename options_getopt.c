@@ -345,7 +345,7 @@ _get_opt_steal_exec_args(int argc, char *argv[], int *new_argc, char ***new_argv
 	bool success = true;
 
 	assert(argc > 0);
-	assert(argv == NULL);
+	assert(argv != NULL);
 	assert(new_argc != NULL);
 	assert(new_argv != NULL);
 	assert(opts != NULL);
