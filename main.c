@@ -242,9 +242,8 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, ProcessorCh
 	bool success = true;
 
 	assert(opts != NULL);
-	assert(opts->dirs != NULL);
 	assert(sopts != NULL);
-	assert(cb ! = NULL);
+	assert(cb != NULL);
 	assert(chain != NULL);
 
 	arg.chain = chain;
