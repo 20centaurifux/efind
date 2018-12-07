@@ -82,7 +82,14 @@ processor_close(Processor *processor, const char *dir)
 
 	if(!processor_is_closed(processor))
 	{
-		processor->close(processor);
+		if(processor->close)
+		{
+			processor->close(processor);
+		}
+		else
+		{
+			processor->flags |= PROCESSOR_FLAGS_CLOSED;
+		}
 	}
 }
 

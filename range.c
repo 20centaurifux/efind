@@ -98,14 +98,6 @@ _skip_processor_write(Processor *processor, const char *dir, const char *path)
 	}
 }
 
-static void
-_range_processor_close(Processor *processor)
-{
-	assert(processor != NULL);
-
-	processor->flags |= PROCESSOR_FLAGS_CLOSED;
-}
-
 static Processor *
 _range_processor_new(const char *(*read)(Processor *processor),
                      void (*write)(struct _Processor *processor, const char *dir, const char *path),
@@ -119,7 +111,6 @@ _range_processor_new(const char *(*read)(Processor *processor),
 
 	processor->read = read;
 	processor->write = write;
-	processor->close = _range_processor_close;
 
 	((RangeProcessor *)processor)->count = 0;
 	((RangeProcessor *)processor)->range = range;

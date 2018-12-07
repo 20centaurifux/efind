@@ -61,14 +61,6 @@ _print_processor_write(Processor *processor, const char *dir, const char *path)
 	print->path = path;
 }
 
-static void
-_print_processor_close(Processor *processor)
-{
-	assert(processor != NULL);
-
-	processor->flags |= PROCESSOR_FLAGS_CLOSED;
-}
-
 Processor *
 print_processor_new(void)
 {
@@ -78,7 +70,6 @@ print_processor_new(void)
 
 	processor->read = _print_processor_read;
 	processor->write = _print_processor_write;
-	processor->close = _print_processor_close;
 
 	return processor;
 }
@@ -119,14 +110,6 @@ _print_format_processor_write(Processor *processor, const char *dir, const char 
 }
 
 static void
-_print_format_processor_close(Processor *processor)
-{
-	assert(processor != NULL);
-
-	processor->flags |= PROCESSOR_FLAGS_CLOSED;
-}
-
-static void
 _print_format_processor_free(Processor *processor)
 {
 	assert(processor != NULL);
@@ -151,7 +134,6 @@ print_format_processor_new(const char *format)
 
 		processor->read = _print_format_processor_read;
 		processor->write = _print_format_processor_write;
-		processor->close = _print_format_processor_close;
 		processor->free = _print_format_processor_free;
 
 		((FormatProcessor *)processor)->format = result;
