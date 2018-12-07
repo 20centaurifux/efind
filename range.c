@@ -62,9 +62,17 @@ _limit_processor_write(Processor *processor, const char *dir, const char *path)
 	assert(dir != NULL);
 	assert(path != NULL);
 
-	processor->flags |= PROCESSOR_FLAGS_READABLE;
-	++range->count;
-	range->path = path;
+	if(range->range)
+	{
+		processor->flags |= PROCESSOR_FLAGS_READABLE;
+		++range->count;
+		range->path = path;
+	}
+	else
+	{
+		processor->flags &= ~PROCESSOR_FLAGS_READABLE;
+		processor->flags |= PROCESSOR_FLAGS_CLOSED;
+	}
 }
 
 static const char *
