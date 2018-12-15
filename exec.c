@@ -21,6 +21,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -29,15 +30,22 @@
 #include "exec.h"
 #include "log.h"
 #include "utils.h"
+#include "format-parser.h"
 #include "format.h"
+#include "gettext.h"
 
 /*! @cond INTERNAL */
 typedef struct
 {
 	Processor padding;
+	const char *dir;
 	const char *path;
 	const ExecArgs *args;
+	FormatParserResult **formats;
 	char **argv;
+	FILE *fp;
+	char *buffer;
+	size_t buffer_len;
 } ExecProcessor;
 /*! @endcond */
 
@@ -54,6 +62,8 @@ _exec_processor_read(Processor *processor)
 static bool
 _exec_build_argv(ExecProcessor *processor)
 {
+	bool success = true;
+
 	assert(processor != NULL);
 	assert(processor->args != NULL);
 	assert(processor->args->path != NULL);
@@ -63,14 +73,26 @@ _exec_build_argv(ExecProcessor *processor)
 
 	utils_copy_string(processor->args->path, &processor->argv[0]);
 
-	for(size_t i = 0; i < processor->args->argc; ++i)
+	for(size_t i = 0; i < processor->args->argc && success; ++i)
 	{
 		TRACEF("exec", "Appending argument: `%s'", processor->args->argv[i]);
 
-		utils_copy_string(processor->args->argv[i], &processor->argv[i + 1]);
+		fseek(processor->fp, 0, SEEK_SET);
+
+		success = format_write(processor->formats[i], processor->dir, processor->path, processor->fp);
+
+		if(success)
+		{
+			fflush(processor->fp);
+			utils_copy_string(processor->buffer, &processor->argv[i + 1]);
+		}
+		else
+		{
+			fprintf(stderr, "Couldn't write format string at position %ld.", i + 2);
+		}
 	}
 
-	return true;
+	return success;
 }
 
 static int
@@ -144,21 +166,14 @@ _exec_processor_write(Processor *processor, const char *dir, const char *path)
 	ExecProcessor *exec = (ExecProcessor *)processor;
 
 	processor->flags |= PROCESSOR_FLAGS_READABLE;
+	exec->dir = dir;
 	exec->path = path;
 
 	_exec_fork(dir, exec);
 }
 
 static void
-_exec_processor_close(Processor *processor)
-{
-	assert(processor != NULL);
-
-	processor->flags |= PROCESSOR_FLAGS_CLOSED;
-}
-
-static void
-_exec_processor_free(Processor *processor)
+_exec_free_argv(Processor *processor)
 {
 	assert(processor != NULL);
 
@@ -166,13 +181,108 @@ _exec_processor_free(Processor *processor)
 
 	if(exec->argv)
 	{
-		for(size_t i = 0; i <= exec->args->argc; ++i)
+		bool finished = false;
+
+		for(size_t i = 0; i <= exec->args->argc && !finished; ++i)
 		{
-			free(exec->argv[i]);
+			if(exec->argv[i])
+			{
+				free(exec->argv[i]);
+			}
+			else
+			{
+				finished = true;
+			}
 		}
 
 		free(exec->argv);
 	}
+}
+
+static void
+_exec_free_formats(Processor *processor)
+{
+	assert(processor != NULL);
+
+	ExecProcessor *exec = (ExecProcessor *)processor;
+
+	if(exec->formats)
+	{
+		bool finished = false;
+
+		for(size_t i = 0; i < exec->args->argc && !finished; ++i)
+		{
+			if(exec->formats[i])
+			{
+				format_parser_result_free(exec->formats[i]);
+			}
+			else
+			{
+				finished = true;
+			}
+		}
+
+		free(exec->formats);;
+	}
+}
+
+static void
+_exec_processor_free(Processor *processor)
+{
+	assert(processor != NULL);
+
+	_exec_free_argv(processor);
+	_exec_free_formats(processor);
+
+	ExecProcessor *exec = (ExecProcessor *)processor;
+
+	if(exec->fp)
+	{
+		fclose(exec->fp);
+
+		if(exec->buffer)
+		{
+			free(exec->buffer);
+		}
+	}
+}
+
+static FormatParserResult **
+_exec_processor_parse_args(const ExecArgs *args)
+{
+	FormatParserResult **formats;
+
+	assert(args != NULL);
+
+	if(args->argc)
+	{
+		bool success = true;
+		size_t tail = 0;
+
+		formats = utils_new(args->argc, FormatParserResult *);
+
+		for(size_t i = 0; i < args->argc && success; ++i)
+		{
+			formats[i] = format_parse(args->argv[i]);
+			success = formats[i]->success;
+			++tail;
+		}
+
+		if(!success)
+		{
+			fprintf(stderr, _("Couldn't parse --exec argument at position %ld.\n"), tail + 1);
+
+			for(size_t i = 0; i < tail; ++i)
+			{
+				format_parser_result_free(formats[i]);
+			}
+
+			free(formats);
+			formats = NULL;
+		}
+	}
+
+	return formats;
 }
 
 Processor *
@@ -184,19 +294,38 @@ exec_processor_new(const ExecArgs *args)
 
 	if(args->argc < SIZE_MAX - 2)
 	{
-		processor = (Processor *)utils_malloc(sizeof(ExecProcessor));
+		FormatParserResult **formats = _exec_processor_parse_args(args);
 
-		memset(processor, 0, sizeof(ExecProcessor));
+		if(formats)
+		{
+			processor = (Processor *)utils_malloc(sizeof(ExecProcessor));
 
-		processor->read = _exec_processor_read;
-		processor->write = _exec_processor_write;
-		processor->close = _exec_processor_close;
-		processor->free = _exec_processor_free;
+			memset(processor, 0, sizeof(ExecProcessor));
 
-		ExecProcessor *exec = (ExecProcessor *)processor;
+			processor->read = _exec_processor_read;
+			processor->write = _exec_processor_write;
+			processor->free = _exec_processor_free;
 
-		exec->args = args;
-		exec->argv = utils_new(args->argc + 2, char *);
+			ExecProcessor *exec = (ExecProcessor *)processor;
+
+			exec->args = args;
+			exec->argv = utils_new(args->argc + 2, char *);
+			exec->formats = formats;
+
+			exec->fp = open_memstream(&exec->buffer, &exec->buffer_len);
+
+			if(!exec->fp)
+			{
+				ERROR("exec", "open_memstream() failed.");
+
+				perror("open_memstream()");
+
+				_exec_processor_free(processor);
+				free(processor);
+
+				processor = NULL;
+			}
+		}
 	}
 	else
 	{

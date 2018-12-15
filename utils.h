@@ -98,7 +98,7 @@ char *utils_strdup(const char *str);
    @param src string to copy
    @param dst location to write copied string to
 
-   Copies a string. Frees memory allocated by dst if necessary.
+   Copies a string. If \p src doesn't fit into \p dst it will be resized.
  */
 void utils_copy_string(const char *src, char **dst);
 
