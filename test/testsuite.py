@@ -1535,7 +1535,9 @@ class TestOptionOrder(unittest.TestCase):
 
 class TestExec(unittest.TestCase):
     def test_single_exec(self):
-        returncode, output = run_executable_and_split_output("efind", ['./test-data', 'type=file', '--exec', 'bash', '-c', 'echo %{path} | rev', ';'])
+        returncode, output = run_executable_and_split_output("efind", ['./test-data', 'type=file',
+                                                                       '--exec', 'bash', '-c', 'echo %{path} | rev', ';',
+                                                                       '--printf', '%p\n'])
 
         assert(returncode == 0)
 
@@ -1587,7 +1589,7 @@ class TestExec(unittest.TestCase):
     def test_invalid_command(self):
         returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';'])
 
-        assert(returncode != 0)
+        assert(returncode == 0)
 
     def test_failed_exit_status(self):
         returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'ls', '-%s' % random_string(), '%{filename}', ';'])
