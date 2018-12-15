@@ -144,15 +144,14 @@ _exec_fork(ExecProcessor *processor)
 			{
 				if(WIFEXITED(status))
 				{
+				
 					exit_code = WEXITSTATUS(status);
-
 					DEBUGF("exec", "Child %ld finished with exit code %d.", pid, exit_code);
 				}
 			}
 			else if(rc == -1)
 			{
 				ERRORF("exec", "`waitpid' failed, rc=%d.", rc);
-				perror("waitpid()");
 			}
 		}
 	}
@@ -251,24 +250,26 @@ _exec_processor_free(Processor *processor)
 	}
 }
 
-static FormatParserResult **
-_exec_processor_parse_args(const ExecArgs *args)
+static bool
+_exec_processor_parse_args(const ExecArgs *args, FormatParserResult ***formats)
 {
-	FormatParserResult **formats;
+	bool success = true;
 
 	assert(args != NULL);
+	assert(formats != NULL);
+
+	*formats = NULL;
 
 	if(args->argc)
 	{
-		bool success = true;
 		size_t tail = 0;
 
-		formats = utils_new(args->argc, FormatParserResult *);
+		*formats = utils_new(args->argc, FormatParserResult *);
 
 		for(size_t i = 0; i < args->argc && success; ++i)
 		{
-			formats[i] = format_parse(args->argv[i]);
-			success = formats[i]->success;
+			(*formats)[i] = format_parse(args->argv[i]);
+			success = (*formats)[i]->success;
 			++tail;
 		}
 
@@ -278,15 +279,15 @@ _exec_processor_parse_args(const ExecArgs *args)
 
 			for(size_t i = 0; i < tail; ++i)
 			{
-				format_parser_result_free(formats[i]);
+				format_parser_result_free((*formats)[i]);
 			}
 
-			free(formats);
+			free(*formats);
 			formats = NULL;
 		}
 	}
 
-	return formats;
+	return success;
 }
 
 Processor *
@@ -298,9 +299,9 @@ exec_processor_new(const ExecArgs *args)
 
 	if(args->argc < SIZE_MAX - 2)
 	{
-		FormatParserResult **formats = _exec_processor_parse_args(args);
+		FormatParserResult **formats = NULL;
 
-		if(formats)
+		if(_exec_processor_parse_args(args, &formats))
 		{
 			processor = (Processor *)utils_malloc(sizeof(ExecProcessor));
 
