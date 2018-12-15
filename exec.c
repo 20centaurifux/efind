@@ -84,11 +84,23 @@ _exec_build_argv(ExecProcessor *processor)
 		if(success)
 		{
 			fflush(processor->fp);
-			utils_copy_string(processor->buffer, &processor->argv[i + 1]);
+
+			long int pos = ftell(processor->fp);
+
+			if(pos != -1)
+			{
+				processor->buffer[pos] = '\0';
+				utils_copy_string(processor->buffer, &processor->argv[i + 1]);
+			}
+			else
+			{
+				ERROR("exec", "ftell() failed.");
+				perror("ftell()");
+			}
 		}
 		else
 		{
-			fprintf(stderr, "Couldn't write format string at position %ld.", i + 2);
+			fprintf(stderr, _("Couldn't write format string at position %ld."), i + 2);
 		}
 	}
 
@@ -96,12 +108,11 @@ _exec_build_argv(ExecProcessor *processor)
 }
 
 static int
-_exec_fork(const char *wd, ExecProcessor *processor)
+_exec_fork(ExecProcessor *processor)
 {
 	int exit_code = EXIT_FAILURE;
 
 	assert(processor != NULL);
-	assert(wd != NULL);
 	assert(processor->args != NULL);
 
 	if(_exec_build_argv(processor))
@@ -117,13 +128,6 @@ _exec_fork(const char *wd, ExecProcessor *processor)
 		}
 		else if(pid == 0)
 		{
-			TRACEF("exec", "Changing working directory: `%s'", wd);
-
-			if(chdir(wd))
-			{
-				WARNINGF("exec", "Couldn't change to working directory `%s'.", wd);
-			}
-
 			if(execvp(processor->args->path, processor->argv) == -1)
 			{
 				perror("execl()");
@@ -169,7 +173,7 @@ _exec_processor_write(Processor *processor, const char *dir, const char *path)
 	exec->dir = dir;
 	exec->path = path;
 
-	_exec_fork(dir, exec);
+	_exec_fork(exec);
 }
 
 static void
@@ -317,7 +321,6 @@ exec_processor_new(const ExecArgs *args)
 			if(!exec->fp)
 			{
 				ERROR("exec", "open_memstream() failed.");
-
 				perror("open_memstream()");
 
 				_exec_processor_free(processor);
