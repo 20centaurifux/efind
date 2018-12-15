@@ -285,7 +285,7 @@ _exec_processor_parse_args(const ExecArgs *args, FormatParserResult ***formats)
 			}
 
 			free(*formats);
-			formats = NULL;
+			*formats = NULL;
 		}
 	}
 
