@@ -357,7 +357,7 @@ _prepend_print_processor(ProcessorChainBuilder *builder)
 			fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
 		}
 	}
-	else
+	else if(slist_count(&opts->exec) == 0)
 	{
 		TRACE("action", "Prepending print processor.");
 

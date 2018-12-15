@@ -366,7 +366,6 @@ _search_wait_for_child(ParentCtx *ctx, int status)
 	else if(rc == -1)
 	{
 		ERRORF("search", "`waitpid' failed, rc=%d.", rc);
-		perror("waitpid()");
 		status = PROCESS_STATUS_ERROR;
 	}
 
