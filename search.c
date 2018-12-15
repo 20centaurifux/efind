@@ -206,9 +206,8 @@ _search_child_process(char **argv)
 		if(execv(exe, argv) == -1)
 		{
 			perror("execl()");
+			exit(EXIT_FAILURE);
 		}
-
-		free(exe);
 	}
 	else
 	{

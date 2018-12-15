@@ -113,7 +113,7 @@ processor_chain_write(ProcessorChain *chain, const char *dir, const char *path)
 
 	assert(path != NULL);
 
-	TRACE("processor", "Writing to processor chain.");
+	TRACEF("processor", "Writing to processor chain: dir=%s, path=%s", dir, path);
 
 	if(chain)
 	{

@@ -130,8 +130,10 @@ _exec_fork(ExecProcessor *processor)
 		{
 			if(execvp(processor->args->path, processor->argv) == -1)
 			{
-				perror("execl()");
+				perror("execvp()");
 			}
+
+			exit(EXIT_FAILURE);
 		}
 		else
 		{
