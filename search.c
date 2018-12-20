@@ -321,7 +321,7 @@ _search_flush_and_process_buffer(ReaderArgs *args)
 
 	if(args->cb && !buffer_is_empty(args->buffer))
 	{
-		int status = _search_process_lines_from_buffer(args);
+		status = _search_process_lines_from_buffer(args);
 
 		if(status == PROCESS_STATUS_OK && buffer_flush(args->buffer, &args->line, &args->llen))
 		{
