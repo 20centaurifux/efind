@@ -26,12 +26,13 @@
 void
 gettext_init(void)
 {
-	if(!bindtextdomain(EFIND_DOMAIN_NAME, LOCALEDIR))
+	if(bindtextdomain(EFIND_DOMAIN_NAME, LOCALEDIR))
 	{
 		textdomain(EFIND_DOMAIN_NAME);
+	}
+	else
+	{
 		fprintf(stderr, "Couldn't set text domain.\n");
 	}
-
-	textdomain(EFIND_DOMAIN_NAME);
 }
 
