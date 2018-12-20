@@ -109,6 +109,8 @@ typedef struct
 	char *printf;
 	/*! List of --exec argument lists. */
 	SList exec;
+	/*! Don't stop if command exits with non-zero result. */
+	bool exec_ignore_errors;
 	/*! Sort string. */
 	char *orderby;
 	/*! Number of files to skip before printing to stdout. */

@@ -151,6 +151,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		{ "limit", required_argument, 0, 0 },
 		{ "regex-type", required_argument, 0, 0 },
 		{ "printf", required_argument, 0, 0 },
+		{ "exec-ignore-errors", optional_argument, 0, 0 },
 		{ "order-by", required_argument, 0, 0 },
 		{ "print-extensions", no_argument, 0, 0 },
 		{ "print-blacklist", no_argument, 0, 0 },
@@ -258,6 +259,18 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				else if(!strcmp(long_options[index].name, "print-blacklist"))
 				{
 					action = ACTION_PRINT_BLACKLIST;
+				}
+				else if(!strcmp(long_options[index].name, "exec-ignore-errors"))
+				{
+					if(optarg == NULL)
+					{
+						opts->exec_ignore_errors = true;
+					}
+					else if(!utils_parse_bool(optarg, &opts->exec_ignore_errors))
+					{
+						fprintf(stderr, _("Argument of option `%s' is malformed.\n"), "exec-ignore-errors");
+						action = ACTION_ABORT;
+					}
 				}
 				else if(!strcmp(long_options[index].name, "regex-type"))
 				{

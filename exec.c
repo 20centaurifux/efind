@@ -38,6 +38,7 @@
 typedef struct
 {
 	Processor padding;
+	int32_t flags;
 	const char *dir;
 	const char *path;
 	const ExecArgs *args;
@@ -54,7 +55,7 @@ _exec_processor_read(Processor *processor)
 {
 	assert(processor != NULL);
 
-	processor->flags &= ~PROCESSOR_FLAGS_READABLE;
+	processor->flags &= ~PROCESSOR_FLAG_READABLE;
 
 	return ((ExecProcessor *)processor)->path;
 }
@@ -83,19 +84,27 @@ _exec_build_argv(ExecProcessor *processor)
 
 		if(success)
 		{
-			fflush(processor->fp);
+			success = !fflush(processor->fp);
 
-			long int pos = ftell(processor->fp);
-
-			if(pos != -1)
+			if(success)
 			{
-				processor->buffer[pos] = '\0';
-				utils_copy_string(processor->buffer, &processor->argv[i + 1]);
+				long int pos = ftell(processor->fp);
+
+				if(pos != -1)
+				{
+					processor->buffer[pos] = '\0';
+					utils_copy_string(processor->buffer, &processor->argv[i + 1]);
+				}
+				else
+				{
+					ERROR("exec", "ftell() failed.");
+					perror("ftell()");
+				}
 			}
 			else
 			{
-				ERROR("exec", "ftell() failed.");
-				perror("ftell()");
+				ERROR("exec", "fflush() failed.");
+				perror("fflush()");
 			}
 		}
 		else
@@ -124,23 +133,23 @@ _exec_fork(ExecProcessor *processor)
 		if(pid == -1)
 		{
 			FATALF("exec", "`fork' failed with result %ld.", pid);
-			perror("fork()");
+			perror(processor->args->path);
 		}
 		else if(pid == 0)
 		{
 			if(execvp(processor->args->path, processor->argv) == -1)
 			{
-				perror("execvp()");
+				perror(processor->args->path);
 			}
 
 			exit(EXIT_FAILURE);
 		}
 		else
 		{
+			DEBUGF("exec", "Waiting for child process with pid %ld.", pid);
+
 			int rc;
 			int status;
-
-			DEBUGF("exec", "Waiting for child process with pid %ld.", pid);
 
 			if((rc = waitpid(pid, &status, 0)) == pid)
 			{
@@ -170,11 +179,15 @@ _exec_processor_write(Processor *processor, const char *dir, const char *path)
 
 	ExecProcessor *exec = (ExecProcessor *)processor;
 
-	processor->flags |= PROCESSOR_FLAGS_READABLE;
+	processor->flags |= PROCESSOR_FLAG_READABLE;
 	exec->dir = dir;
 	exec->path = path;
 
-	_exec_fork(exec);
+	if(_exec_fork(exec) && !(exec->flags & EXEC_FLAG_IGNORE_ERROR))
+	{
+		processor->flags &= ~PROCESSOR_FLAG_READABLE;
+		processor->flags |= PROCESSOR_FLAG_CLOSED | PROCESSOR_FLAG_ERROR;
+	}
 }
 
 static void
@@ -243,7 +256,10 @@ _exec_processor_free(Processor *processor)
 
 	if(exec->fp)
 	{
-		fclose(exec->fp);
+		if(fclose(exec->fp))
+		{
+			WARNING("exec", "fclose() failed.");
+		}
 
 		if(exec->buffer)
 		{
@@ -293,7 +309,7 @@ _exec_processor_parse_args(const ExecArgs *args, FormatParserResult ***formats)
 }
 
 Processor *
-exec_processor_new(const ExecArgs *args)
+exec_processor_new(const ExecArgs *args, int32_t flags)
 {
 	Processor *processor = NULL;
 
@@ -315,6 +331,7 @@ exec_processor_new(const ExecArgs *args)
 
 			ExecProcessor *exec = (ExecProcessor *)processor;
 
+			exec->flags = flags;
 			exec->args = args;
 			exec->argv = utils_new(args->argc + 2, char *);
 			exec->formats = formats;

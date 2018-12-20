@@ -24,17 +24,31 @@
 #define EXEC_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "processor.h"
 #include "exec-args.h"
 
 /**
+   @enum TranslationFlags
+   @brief Translation flags.
+ */
+typedef enum
+{
+	/*! No flags. */
+	EXEC_FLAG_NONE  = 0,
+	/*! Don't stop if command exits with non-zero value. */
+	EXEC_FLAG_IGNORE_ERROR = 1
+} ExecFlags;
+
+/**
    @param args command & arguments to execute
+   @param flags execution flags
    @return a new Processor
 
    Excecutes shell commands.
  */
-Processor *exec_processor_new(const ExecArgs *args);
+Processor *exec_processor_new(const ExecArgs *args, int32_t flags);
 
 #endif
 
