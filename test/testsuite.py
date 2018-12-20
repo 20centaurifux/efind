@@ -1571,6 +1571,13 @@ class TestExec(unittest.TestCase):
             assert(bytes == stat_bytes)
             assert(inode == stat_inode)
 
+    def test_without_print(self):
+        returncode, output = run_executable_and_split_output("efind", ['./test-data', 'type=file',
+                                                                       '--exec', 'echo', '%p', ';'])
+
+        assert(returncode == 0)
+        assert(len(output) == len(set(output)))
+
     def test_without_sentinel(self):
         returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'echo', '%f'])
 
@@ -1587,12 +1594,35 @@ class TestExec(unittest.TestCase):
         assert(returncode != 0)
 
     def test_invalid_command(self):
-        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';'])
+        returncode, x = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';'])
+
+        assert(returncode != 0)
+
+        returncode, x = run_executable("efind", ['./test-data', 'type=file',
+                                                 '--exec', 'echo', '%f', ';',
+                                                 '--exec', random_string(), ';'])
+
+        assert(returncode != 0)
+
+    def test_ignore_invalid_command(self):
+        returncode, x = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';', '--exec-ignore-errors'])
 
         assert(returncode == 0)
 
     def test_failed_exit_status(self):
         returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'ls', '-%s' % random_string(), '%{filename}', ';'])
+
+        assert(returncode != 0)
+
+
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file',
+                                                 '--exec', 'echo', '%f', ';',
+                                                 '--exec', 'ls', '-%s' % random_string(), '%{filename}', ';'])
+
+        assert(returncode != 0)
+
+    def test_ignore_failed_exit_status(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'ls', '-%s' % random_string(), '%{filename}', ';', '--exec-ignore-errors'])
 
         assert(returncode == 0)
 
