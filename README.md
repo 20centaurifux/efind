@@ -250,4 +250,4 @@ expression finds all documents in the current folder with a file size less or eq
 
 ## Planned features
 
-* Lua support
+* --exec option
