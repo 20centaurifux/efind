@@ -43,11 +43,11 @@ _limit_processor_read(Processor *processor)
 
 	assert(range != NULL);
 
-	processor->flags &= ~PROCESSOR_FLAGS_READABLE;
+	processor->flags &= ~PROCESSOR_FLAG_READABLE;
 
 	if(range->count >= range->range)
 	{
-		processor->flags |= PROCESSOR_FLAGS_CLOSED;
+		processor->flags |= PROCESSOR_FLAG_CLOSED;
 	}
 
 	return range->path;
@@ -64,14 +64,14 @@ _limit_processor_write(Processor *processor, const char *dir, const char *path)
 
 	if(range->range)
 	{
-		processor->flags |= PROCESSOR_FLAGS_READABLE;
+		processor->flags |= PROCESSOR_FLAG_READABLE;
 		++range->count;
 		range->path = path;
 	}
 	else
 	{
-		processor->flags &= ~PROCESSOR_FLAGS_READABLE;
-		processor->flags |= PROCESSOR_FLAGS_CLOSED;
+		processor->flags &= ~PROCESSOR_FLAG_READABLE;
+		processor->flags |= PROCESSOR_FLAG_CLOSED;
 	}
 }
 
@@ -80,7 +80,7 @@ _skip_processor_read(Processor *processor)
 {
 	assert(processor != NULL);
 
-	processor->flags &= ~PROCESSOR_FLAGS_READABLE;
+	processor->flags &= ~PROCESSOR_FLAG_READABLE;
 
 	return ((RangeProcessor *)processor)->path;
 }
@@ -96,13 +96,13 @@ _skip_processor_write(Processor *processor, const char *dir, const char *path)
 
 	if(range->count >= range->range)
 	{
-		processor->flags |= PROCESSOR_FLAGS_READABLE;
+		processor->flags |= PROCESSOR_FLAG_READABLE;
 		range->path = path;
 	}
 	else
 	{
 		++range->count;
-		processor->flags &= ~PROCESSOR_FLAGS_READABLE;
+		processor->flags &= ~PROCESSOR_FLAG_READABLE;
 	}
 }
 

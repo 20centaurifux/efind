@@ -41,11 +41,11 @@ typedef struct
 static const char *
 _sort_processor_read(Processor *processor)
 {
-	SortProcessor *sort = (SortProcessor *)processor;
-
 	assert(processor != NULL);
 
-	processor->flags |= PROCESSOR_FLAGS_READABLE;
+	SortProcessor *sort = (SortProcessor *)processor;
+
+	processor->flags |= PROCESSOR_FLAG_READABLE;
 
 	FileListEntry *entry = file_list_at(sort->files, sort->offset);
 	const char *path = entry->info->path;
@@ -54,8 +54,8 @@ _sort_processor_read(Processor *processor)
 
 	if(sort->offset == file_list_count(sort->files))
 	{
-		processor->flags &= ~PROCESSOR_FLAGS_READABLE;
-		processor->flags |= PROCESSOR_FLAGS_CLOSED;
+		processor->flags &= ~PROCESSOR_FLAG_READABLE;
+		processor->flags |= PROCESSOR_FLAG_CLOSED;
 	}
 
 	return path;
@@ -64,11 +64,11 @@ _sort_processor_read(Processor *processor)
 static void
 _sort_processor_write(Processor *processor, const char *dir, const char *path)
 {
-	SortProcessor *sort = (SortProcessor *)processor;
-
 	assert(processor != NULL);
 	assert(dir != NULL);
 	assert(path != NULL);
+
+	SortProcessor *sort = (SortProcessor *)processor;
 
 	file_list_append(sort->files, dir, path);
 }
@@ -76,27 +76,27 @@ _sort_processor_write(Processor *processor, const char *dir, const char *path)
 static void
 _sort_processor_close(Processor *processor)
 {
-	SortProcessor *sort = (SortProcessor *)processor;
-
 	assert(processor != NULL);
+
+	SortProcessor *sort = (SortProcessor *)processor;
 
 	if(file_list_count(sort->files))
 	{
-		processor->flags |= PROCESSOR_FLAGS_READABLE;
+		processor->flags |= PROCESSOR_FLAG_READABLE;
 		file_list_sort(sort->files);
 	}
 	else
 	{
-		processor->flags |= PROCESSOR_FLAGS_CLOSED;
+		processor->flags |= PROCESSOR_FLAG_CLOSED;
 	}
 }
 
 static void
 _sort_processor_free(Processor *processor)
 {
-	SortProcessor *sort = (SortProcessor *)processor;
-
 	assert(processor != NULL);
+
+	SortProcessor *sort = (SortProcessor *)processor;
 
 	file_list_free(sort->files);
 	free(sort->files);
