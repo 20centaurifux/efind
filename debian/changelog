@@ -1,3 +1,12 @@
+efind (0.5-1) unstable; urgency=low
+  * FIX: handle Python string arguments with invalid encoding
+  * FIX: import Python functions without additional arguments
+  * FIX: don't initialize textdomain twice
+  * FIX: handle --limit=0 option correctly
+  * CHANGE: use pkg-config instead of python3-config
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Thu, 20 Dec 2018 12:38:53 +0100
+
 efind (0.5-0) unstable; urgency=low
   * FEATURE: switch to Python 3
   * CHANGE: upgraded libdatatypes
