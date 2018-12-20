@@ -420,7 +420,15 @@ _py_build_signature(uint32_t *argc, int **signature, PyObject *co_argcount, PyOb
 		if(type == CALLBACK_ARG_TYPE_STRING)
 		{
 			*argc = argcount - 1;
-			*signature = utils_new(*argc, int);
+
+			if(*argc)
+			{
+				*signature = utils_new(*argc, int);
+			}
+			else
+			{
+				*signature = NULL;
+			}
 
 			success = true;
 
