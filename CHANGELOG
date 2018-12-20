@@ -1,3 +1,10 @@
+2018-12-20 v0.5.1
+	* FIX: handle Python string arguments with invalid encoding
+	* FIX: import Python functions without additional arguments
+	* FIX: don't initialize textdomain twice
+	* FIX: handle --limit=0 option correctly
+	* CHANGE: use pkg-config instead of python3-config
+
 2018-11-26 v0.5.0
 	* FEATURE: switch to Python 3
 	* CHANGE: upgraded libdatatypes
