@@ -17,9 +17,9 @@ Follow symbolic links.
 .IP "\fB\-\-max-depth\fR=\fIlevels"
 Maximum search depth.
 .IP "\fB\-\-skip\fR=\fInumber"
-Number of files to skip before printing to stdout.
+Skip \fInumber\fR files.
 .IP "\fB\-\-limit\fR=\fInumber"
-Maximum number of files to print to stdout.
+Exit \fBefind\fR after \fInumber\fR files.
 .IP "\fB\-\-regex-type\fR=\fItype"
 Changes the understood regular expression syntax. Currently-implemented types
 are emacs (this is the default), posix-awk, posix-basic, posix-egrep and
@@ -179,6 +179,13 @@ File's user name, or numeric user ID if the user has no name.
 .IP "%U, %{uid}"
 File's numeric user ID.
 .RE
+.IP "\fB\-\-exec\fR=\fIcommand\fR ;"
+Execute command. All following arguments to \fBefind\fR are taken to be arguments
+to the command until an argument consisting  of  `;'  is  encountered.
+Arguments are interpreted as printf format strings. By default \fBefind\fR stops
+if the command exits with non-zero result.
+.IP "\fB\-\-exec-ignore-errors\fR=\fI<yes|no>\fR [default: no]"
+If set \fBefind\fR doesn't quit if a command exits with non-zero result.
 .IP "\fB\-\-order-by\fR=\fIfields"
 Fields to sort search result by. The same field names as in the --printf
 option are supported. Prepend `-' to a field to sort in descending order.
@@ -400,6 +407,10 @@ You can skip found files and limit the output with the --skip and --limit option
 
 The forked GNU find process is killed if the number of printed files exceeds the
 specified limit argument and no --order-by option is set.
+
+Find files ending with .py and print their contents to stdout:
+
+.B efind . 'name="*.py"' --exec cat %{path} \;
 
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.
