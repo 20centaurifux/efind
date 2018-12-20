@@ -681,7 +681,9 @@ _py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *
 
 		PyTuple_SetItem(tuple, 0, path);
 
-		for(uint32_t i = 0; i < argc; i++)
+		bool success = true;
+
+		for(uint32_t i = 0; i < argc && success; i++)
 		{
 			PyObject *arg = NULL;
 
@@ -705,7 +707,21 @@ _py_build_function_tuple(const char *filename, uint32_t argc, void **argv, int *
 				ERRORF("python", "Unknown datatype in function signature: %#x\n", sig[i]);
 			}
 
-			PyTuple_SetItem(tuple, i + 1, arg);
+			if(arg)
+			{
+				PyTuple_SetItem(tuple, i + 1, arg);
+			}
+			else
+			{
+				WARNING("python", "Built argument is NULL. This could be an encoding error.");
+				success = false;
+			}
+		}
+
+		if(!success)
+		{
+			Py_DECREF(tuple);
+			tuple = NULL;
 		}
 	}
 	else
