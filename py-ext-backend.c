@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file py-ext-backend.c
-   @brief Plugable post-processing hooks backend using libpython2.
+   @brief Plugable post-processing hooks backend using libpython3.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifdef WITH_PYTHON
@@ -118,7 +118,16 @@ _py_append_extension_paths_from_env(PyObject *path)
 		{
 			DEBUGF("python", "Appending extension directory to Python path: %s", dir);
 
-			PyList_Append(path, PyUnicode_FromString(dir));
+			PyObject *location = PyUnicode_FromString(dir);
+
+			if(location)
+			{
+				PyList_Append(path, location);
+			}
+			else
+			{
+				fprintf(stderr, "Invalid encoding: %s\n", dir);
+			}
 		}
 
 		free(dirs);

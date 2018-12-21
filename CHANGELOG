@@ -1,3 +1,7 @@
+201?-??-?? v0.5.2
+	* FIX: handle invalid encoded EFIND_EXTENSION_PATH environment
+	  variable properly
+
 2018-12-20 v0.5.1
 	* FIX: handle Python string arguments with invalid encoding
 	* FIX: import Python functions without additional arguments
