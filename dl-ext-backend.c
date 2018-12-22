@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file dl-ext-backend.c
-   @brief Plugable post-processing hooks backend using libdl.
+   @brief libdl filter function backend.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <dlfcn.h>
@@ -48,6 +48,13 @@ _dl_ext_backend_load(const char *filename, RegisterExtension fn, RegistrationCtx
 		{
 			registration(ctx, fn);
 		}
+		else
+		{
+			WARNINGF("extension", "No registration() function found in file `%s'.", filename);
+
+			dlclose(handle);
+			handle = NULL;
+		}
 	}
 
 	return handle;
@@ -66,6 +73,10 @@ _dl_ext_discover(void *handle, RegisterCallback fn, RegistrationCtx *ctx)
 	if(discover)
 	{
 		discover(ctx, fn);
+	}
+	else
+	{
+		DEBUG("extension", "discover() function not found.");
 	}
 }
 
@@ -89,7 +100,7 @@ _dl_ext_backend_invoke(void *handle, const char *name, const char *filename, uin
 	}
 	else
 	{
-		DEBUGF("extension", "dlsym() failed: couldn't find symbol `%s'.", name);
+		DEBUGF("extension", "dlsym() failed, symbol `%s' not found.", name);
 
 		fprintf(stderr, _("Function `%s' not found.\n"), name);
 	}

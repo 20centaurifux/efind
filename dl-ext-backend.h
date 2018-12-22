@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file dl-ext-backend.h
-   @brief Plugable post-processing hooks backend using libdl.
+   @brief libdl filter function backend.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef DL_EXT_BACKEND_H
