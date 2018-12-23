@@ -101,15 +101,15 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 static bool
 _translation_ctx_append_args(TranslationCtx *ctx, ...)
 {
-	const char *arg;
-	va_list ap;
 	bool success = true;
 
 	assert(ctx != NULL);
 
+	va_list ap;
+
 	va_start(ap, ctx);
 
-	arg = va_arg(ap, const char *);
+	const char *arg = va_arg(ap, const char *);
 
 	while(arg && success)
 	{
@@ -125,19 +125,17 @@ _translation_ctx_append_args(TranslationCtx *ctx, ...)
 static ssize_t
 _vprintf_error(const Node *node, char *buf, size_t size, const char *format, va_list ap)
 {
-	const YYLTYPE *locp;
-	char tmp[64];
-	size_t len;
 	ssize_t ret = -1;
 
 	assert(node != NULL);
 	assert(buf != NULL);
 	assert(format != NULL);
 
-	locp = &node->loc;
+	const YYLTYPE *locp = &node->loc;
+	char tmp[64];
 
-	memset(buf, 0, size);
 	memset(tmp, 0, sizeof(tmp));
+	memset(buf, 0, size);
 
 	/* write line number(s) to buffer */
 	if(locp->first_line == locp->last_line)
@@ -149,7 +147,7 @@ _vprintf_error(const Node *node, char *buf, size_t size, const char *format, va_
 		snprintf(tmp, sizeof(tmp), _("line: %d-%d, "), locp->first_line, locp->last_line);
 	}
 
-	len = utils_strlcat(buf, tmp, size);
+	size_t len = utils_strlcat(buf, tmp, size);
 
 	if(len > size)
 	{
@@ -193,9 +191,6 @@ out:
 static void
 _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 {
-	char msg[4096];
-	va_list ap;
-
 	assert(ctx != NULL);
 	assert(fmt != NULL);
 
@@ -204,6 +199,9 @@ _set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
 		WARNING("translate", "Error message already set.");
 		return;
 	}
+
+	char msg[4096];
+	va_list ap;
 
 	va_start(ap, fmt);
 
@@ -512,9 +510,6 @@ _test_property(TranslationCtx *ctx, const ConditionNode *node, bool (*test_prope
 static bool
 _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, int64_t val, const char *suffix)
 {
-	char v0[64];
-	char v1[64];
-	char *lparen, *rparen;
 	bool success = true;
 
 	assert(ctx != NULL);
@@ -525,8 +520,10 @@ _append_numeric_cond_arg(TranslationCtx *ctx, const char *arg, CompareType cmp, 
 		suffix = "";
 	}
 
-	lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
-	rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
+	char *lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
+	char *rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
+	char v0[64];
+	char v1[64];
 
 	switch(cmp)
 	{
@@ -598,12 +595,12 @@ _append_time_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 static bool
 _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val, UnitType unit)
 {
-	const char *unit_name = "bytes";
 	bool success = true;
-	uint64_t bytes = val, max_val = (uint64_t)INT64_MAX / 1024;
-	int loops = 0;
 
 	assert(ctx != NULL);
+
+	const char *unit_name = "bytes";
+	int loops = 0;
 
 	switch(unit)
 	{
@@ -631,6 +628,8 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 			success = false;
 	}
 
+	uint64_t bytes = val, max_val = (uint64_t)INT64_MAX / 1024;
+
 	for(int i = 0; success && i < loops; ++i)
 	{
 		if(bytes > max_val)
@@ -654,10 +653,11 @@ _append_size_cond(TranslationCtx *ctx, PropertyId prop, CompareType cmp, int val
 static bool
 _append_type_cond(TranslationCtx *ctx, FileType type)
 {
-	const char *t;
 	bool success = true;
 
 	assert(ctx != NULL);
+
+	const char *t;
 
 	switch(type)
 	{
@@ -705,14 +705,14 @@ _append_type_cond(TranslationCtx *ctx, FileType type)
 static bool
 _append_string_arg(TranslationCtx *ctx, const char *propname, const char *val)
 {
-	char str[PARSER_MAX_EXPRESSION_LENGTH];
-
 	assert(ctx != NULL);
 
 	if(!val)
 	{
 		val = "";
 	}
+
+	char str[PARSER_MAX_EXPRESSION_LENGTH];
 
 	if(QUOTE_ARGS(ctx))
 	{
@@ -735,6 +735,9 @@ static bool _process_node(TranslationCtx *ctx, Node *root);
 static bool
 _open_parenthese(ExpressionNode *node, Node *child)
 {
+	assert(node != NULL);
+	assert(child != NULL);
+
 	if(node->op == OP_AND && child->type == NODE_EXPRESSION)
 	{
 		return ((ExpressionNode *)child)->op == OP_OR;
@@ -746,8 +749,6 @@ _open_parenthese(ExpressionNode *node, Node *child)
 static bool
 _process_expression(TranslationCtx *ctx, ExpressionNode *node)
 {
-	char *lparen, *rparen;
-	bool open = false;
 	bool success = false;
 
 	assert(ctx != NULL);
@@ -755,13 +756,15 @@ _process_expression(TranslationCtx *ctx, ExpressionNode *node)
 	assert(node->first != NULL);
 	assert(node->second != NULL);
 
-	lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
-	rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
+	char *lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
+	char *rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
 
 	if(node->op != OP_AND && node->op != OP_OR)
 	{
 		FATALF("translate", "Unsupported operator: %#x", node->op);
 	}
+
+	bool open = false;
 
 	if(_open_parenthese(node, node->first))
 	{
@@ -949,8 +952,7 @@ _translate(TranslationCtx *ctx)
 bool
 translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char **err)
 {
-	TranslationCtx ctx;
-	bool success;
+	bool success = true;
 
 	assert(argc != NULL);
 	assert(argv != NULL);
@@ -960,6 +962,8 @@ translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char *
 
 	if(root)
 	{
+		TranslationCtx ctx;
+
 		_translation_ctx_init(&ctx, root, flags);
 
 		success = _translate(&ctx);
@@ -971,7 +975,6 @@ translate(Node *root, TranslationFlags flags, size_t *argc, char ***argv, char *
 	else
 	{
 		TRACE("translate", "Root node not set.");
-		success = true;
 	}
 
 	TRACEF("translate", "Translation completed with status %d.", success);

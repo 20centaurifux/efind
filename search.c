@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file search.c
-   @brief A find-wrapper.
+   @brief GNU find wrapper.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 /*! @cond INTERNAL */
@@ -95,14 +95,14 @@ search_options_free(SearchOptions *opts)
 static void
 _search_merge_options(size_t *argc, char ***argv, const char *path, const SearchOptions *opts)
 {
-	char **nargv;
-	size_t maxsize;
-	size_t index = 0;
-
 	assert(argc != NULL);
 	assert(argv != NULL);
 	assert(path != NULL);
 	assert(opts != NULL);
+
+	char **nargv;
+	size_t maxsize;
+	size_t index = 0;
 
 	/* initialize argument vector */
 	maxsize = (*argc) + 8; /* "find" + path + *argv + options + NULL */
@@ -154,9 +154,6 @@ _search_merge_options(size_t *argc, char ***argv, const char *path, const Search
 static ParserResult *
 _search_translate_expr(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, size_t *argc, char ***argv)
 {
-	ParserResult *result;
-	char *err = NULL;
-
 	assert(path != NULL);
 	assert(expr != NULL);
 	assert(opts != NULL);
@@ -166,10 +163,12 @@ _search_translate_expr(const char *path, const char *expr, TranslationFlags flag
 	*argc = 0;
 	*argv = NULL;
 
-	result = parse_string(expr);
+	ParserResult *result = parse_string(expr);
 
 	if(result->success)
 	{
+		char *err = NULL;
+
 		if(translate(result->root->exprs, flags, argc, argv, &err))
 		{
 			_search_merge_options(argc, argv, path, opts);
@@ -199,6 +198,8 @@ _search_translate_expr(const char *path, const char *expr, TranslationFlags flag
 static void
 _search_child_process(char **argv)
 {
+	assert(argv != NULL);
+
 	char *exe;
 
 	if((exe = utils_whereis("find")))
@@ -219,11 +220,12 @@ _search_child_process(char **argv)
 static EvalResult
 _search_filter(const char *filename, void *user_data)
 {
-	FilterArgs *args = (FilterArgs *)user_data;
 	EvalResult result = EVAL_RESULT_TRUE;
 
 	assert(filename != NULL);
-	assert(args != NULL);
+	assert(user_data != NULL);
+
+	FilterArgs *args = (FilterArgs *)user_data;
 
 	if(args->result->root->filter_exprs)
 	{
@@ -341,13 +343,13 @@ _search_flush_and_process_buffer(ReaderArgs *args)
 static int
 _search_wait_for_child(ParentCtx *ctx, int status)
 {
-	int child_status;
-	int rc;
-
 	assert(ctx != NULL);
 	assert(ctx->child_pid > 0);
 
 	DEBUGF("search", "Waiting for child process with pid %ld.", ctx->child_pid);
+
+	int child_status;
+	int rc;
 
 	if((rc = waitpid(ctx->child_pid, &child_status, 0)) == ctx->child_pid)
 	{
@@ -396,7 +398,7 @@ _search_kill_child(pid_t pid)
 static void
 _search_reader_args_init(ReaderArgs *args, FilterArgs *filter_args, void *user_data)
 {
-assert(args != NULL);
+	assert(args != NULL);
 
 	memset(args, 0, sizeof(ReaderArgs));
 	args->filter_args = filter_args;
@@ -417,17 +419,17 @@ _search_reader_args_free(ReaderArgs *args)
 static int
 _search_parent_process(ParentCtx *ctx)
 {
+	assert(ctx != NULL);
+	assert(ctx->child_pid > 0);
+	assert(ctx->outfd > 0);
+	assert(ctx->errfd > 0);
+
 	fd_set rfds;
 	Buffer outbuf;
 	Buffer errbuf;
 	ReaderArgs reader_args;
 	int lc = 0;
 	int status = PROCESS_STATUS_OK;
-
-	assert(ctx != NULL);
-	assert(ctx->child_pid > 0);
-	assert(ctx->outfd > 0);
-	assert(ctx->errfd > 0);
 
 	DEBUG("search", "Initializing parent process.");
 
@@ -662,13 +664,14 @@ _search_filter_args_free(FilterArgs *args)
 int
 search_files(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data)
 {
-	int outfds[2];
-	int errfds[2];
 	int ret = -1;
 
 	assert(path != NULL);
 	assert(expr != NULL);
 	assert(opts != NULL);
+
+	int outfds[2];
+	int errfds[2];
 
 	memset(outfds, 0, sizeof(outfds));
 	memset(errfds, 0, sizeof(errfds));
@@ -771,9 +774,6 @@ search_files(const char *path, const char *expr, TranslationFlags flags, const S
 bool
 search_debug(FILE *out, FILE *err, const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts)
 {
-	size_t argc = 0;
-	char **argv = NULL;
-	ParserResult *result;
 	bool success = false;
 
 	assert(out != NULL);
@@ -784,7 +784,10 @@ search_debug(FILE *out, FILE *err, const char *path, const char *expr, Translati
 
 	TRACEF("search", "Translating expression: %s, flags=%#x", expr, flags);
 
-	result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
+	size_t argc = 0;
+	char **argv = NULL;
+
+	ParserResult *result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
 
 	assert(result != NULL);
 

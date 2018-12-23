@@ -116,16 +116,18 @@ log_enable_color(bool enable)
 static bool
 _log_check_level(LogLevel level)
 {
+	bool success = false;
+
 	if(_log_settings.verbosity > LOG_LEVEL_NONE)
 	{
 		if(level >= LOG_LEVEL_TRACE && level <= LOG_LEVEL_FATAL)
 		{
-			return level > LOG_LEVEL_FATAL - _log_settings.verbosity;
+			success = level > LOG_LEVEL_FATAL - _log_settings.verbosity;
 		}
 
 	}
 
-	return false;
+	return success;
 }
 
 static FILE *

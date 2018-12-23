@@ -58,7 +58,7 @@ typedef struct
 	FormatTokenType type_id;
 	/*! Text of the found token (not terminated by '\0'). */
 	const char *text;
-	/*! Lenght of the text. */
+	/*! Length of the text. */
 	size_t len;
 } FormatToken;
 

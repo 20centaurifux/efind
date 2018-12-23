@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file extension.c
-   @brief Plugable post-processing hooks.
+   @brief Load filter functions from various backends.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <string.h>
@@ -54,6 +54,8 @@ static ExtensionModuleType
 _extension_map_file_extension(const char *filename)
 {
 	ExtensionModuleType mod_type = EXTENSION_MODULE_TYPE_UNDEFINED;
+
+	assert(filename != NULL);
 
 	if(filename)
 	{
@@ -206,7 +208,6 @@ _extension_manager_function_discovered(RegistrationCtx *ctx, const char *name, u
 {
 	assert(ctx != NULL);
 	assert(name != NULL);
-	assert(argc < 128);
 
 	TRACEF("extension", "Discovered function: name=%s, argc=%d", name, argc);
 
@@ -306,15 +307,17 @@ _extension_manager_import_module(ExtensionManager *manager, const char *filename
 static ExtensionModule *
 _extension_manager_find_callback(ExtensionManager *manager, const char *name, ExtensionCallback **cb)
 {
-	AssocArrayIter iter;
+	ExtensionModule *found = NULL;
 
 	assert(manager != NULL);
 	assert(name != NULL);
 	assert(cb != NULL);
 
+	AssocArrayIter iter;
+
 	assoc_array_iter_init(manager->modules, &iter);
 
-	while(assoc_array_iter_next(&iter))
+	while(assoc_array_iter_next(&iter) && !found)
 	{
 		ExtensionModule *module= (ExtensionModule *)assoc_array_iter_get_value(&iter);
 
@@ -326,11 +329,11 @@ _extension_manager_find_callback(ExtensionManager *manager, const char *name, Ex
 		{
 			*cb = assoc_array_pair_get_value(pair);
 
-			return module;
+			found = module;
 		}
 	}
 
-	return NULL;
+	return found;
 }
 
 ExtensionManager *
@@ -362,17 +365,18 @@ bool
 extension_manager_load_directory(ExtensionManager *manager, const char *path, char **err)
 {
 	bool success = false;
-	DIR *pdir;
-	Blacklist *blacklist;
-	char msg[PATH_MAX + 64];
 
 	assert(manager != NULL);
 	assert(path != NULL);
 
 	DEBUGF("extension", "Loading extensions from directory: %s", path);
 
-	blacklist = blacklist_new();
+	Blacklist *blacklist = blacklist_new();
+
 	blacklist_load_default(blacklist);
+
+	DIR *pdir;
+	char msg[PATH_MAX + 64];
 
 	if((pdir = opendir(path)))
 	{
@@ -447,8 +451,11 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 static bool
 _extension_manager_load_local(ExtensionManager *manager)
 {
-	char path[PATH_MAX];
 	bool success = false;
+
+	assert(manager);
+
+	char path[PATH_MAX];
 
 	if(path_builder_local_extensions(path, PATH_MAX))
 	{
@@ -468,8 +475,11 @@ _extension_manager_load_local(ExtensionManager *manager)
 static bool
 _extension_manager_load_global(ExtensionManager *manager)
 {
-	char path[PATH_MAX];
 	bool success = false;
+
+	assert(manager != NULL);
+
+	char path[PATH_MAX];
 
 	if(path_builder_global_extensions(path, PATH_MAX))
 	{
@@ -490,6 +500,8 @@ static int
 _extension_manager_load_env(ExtensionManager *manager)
 {
 	int count = 0;
+
+	assert(manager != NULL);
 
 	TRACE("extension", "Testing if EFIND_EXTENSION_PATH is set.");
 
@@ -552,7 +564,16 @@ extension_manager_load_default(ExtensionManager *manager)
 		count++;
 	}
 
-	count += _extension_manager_load_env(manager);
+	int from_env = _extension_manager_load_env(manager);
+
+	if(INT_MAX - count >= from_env)
+	{
+		count += from_env;
+	}
+	else
+	{
+		count = INT_MAX;
+	}
 
 	return count;
 }
@@ -560,7 +581,6 @@ extension_manager_load_default(ExtensionManager *manager)
 ExtensionCallbackStatus
 extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, CallbackArgType *types)
 {
-	ExtensionCallback *cb;
 	ExtensionCallbackStatus result = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 
 	assert(manager != NULL);
@@ -568,6 +588,8 @@ extension_manager_test_callback(ExtensionManager *manager, const char *name, uin
 
 	if(name)
 	{
+		ExtensionCallback *cb;
+
 		if(_extension_manager_find_callback(manager, name, &cb))
 		{
 			if(cb->argc != argc)
@@ -597,14 +619,15 @@ ExtensionCallbackStatus
 extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void *argv[], int *result)
 {
 	ExtensionCallbackStatus status = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
-	ExtensionModule *module;
-	ExtensionCallback *cb;
 
 	assert(manager != NULL);
 	assert(name != NULL);
 	assert(filename != NULL);
 
 	TRACEF("extension", "Invoking function `%s' with %d parameter(s).", name, argc);
+
+	ExtensionModule *module;
+	ExtensionCallback *cb;
 
 	if((module = _extension_manager_find_callback(manager, name, &cb)))
 	{
@@ -632,10 +655,10 @@ extension_manager_invoke(ExtensionManager *manager, const char *name, const char
 void
 extension_manager_export(ExtensionManager *manager, FILE *out)
 {
-	AssocArrayIter iter;
-
 	assert(manager != NULL);
 	assert(out != NULL);
+
+	AssocArrayIter iter;
 
 	assoc_array_iter_init(manager->modules, &iter);
 
@@ -755,6 +778,7 @@ extension_callback_args_set_string(ExtensionCallbackArgs *args, uint32_t offset,
 	if(args->argv[offset])
 	{
 		free(args->argv[offset]);
+		args->argv[offset] = NULL;
 	}
 
 	if(string)

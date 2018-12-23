@@ -47,7 +47,7 @@ typedef enum
 } LogLevel;
 
 /**
-   @param level set verbosity
+   @param level verbosity
 
    Sets the verbosity.
  */
@@ -148,7 +148,7 @@ void log_printf(LogLevel level, const char *filename, const char *fn, int line, 
    @param format format string
    @param args variable number of arguments
 
-   Prints a formatted log message.
+   Logs a formatted message.
  */
 #define LOG_PRINTF(level, domain, format, args...) log_printf(level, __FILE__, __func__, __LINE__, domain, format, args)
 

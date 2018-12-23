@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file options_getopt.c
-   @brief Read command line options.
+   @brief Read command-line options.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <getopt.h>
@@ -43,13 +43,12 @@ _get_opt_append_single_search_dir(char *argv[], Options *opts)
 static void
 _get_opt_append_multiple_search_dirs(char *argv[], int offset, Options *opts)
 {
-	int limit = offset;
-
 	assert(argv != NULL);
 	assert(opts != NULL);
 
-	/* handle all arguments as directories if expression is already set */
-	if(opts->expr)
+	int limit = offset;
+
+	if(opts->expr) // handle all arguments as directories if expression is already set
 	{
 		++limit;
 	}
@@ -90,11 +89,10 @@ _get_opt_append_search_dirs_and_expr_from_argv(char *argv[], int offset, Options
 static bool
 _get_opt_parse_flag(const char *value, Options *opts, const char *name, int flag)
 {
-	bool set;
-
 	assert(value != NULL);
 	assert(opts != NULL);
 
+	bool set;
 	bool success = utils_parse_bool(optarg, &set);
 
 	if(success)
@@ -120,6 +118,10 @@ static char **
 _get_opt_copy_argv(int argc, char *argv[], int offset)
 {
 	char **argv_c = NULL;
+
+	assert(argc >= 1);
+	assert(argv != NULL);
+	assert(offset >= 0);
 
 	if(offset && offset < argc)
 	{
@@ -161,7 +163,6 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 	};
 
 	Action action = ACTION_EXEC;
-	int index = 0;
 
 	assert(argc >= 1);
 	assert(argv != NULL);
@@ -175,6 +176,8 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 	{
 		argv_ptr = argv_heap;
 	}
+
+	int index = 0;
 
 	while(action != ACTION_ABORT)
 	{

@@ -103,18 +103,18 @@ void file_info_init(FileInfo *info);
 /**
    @param info a FileInfo instance
 
-   Resets all fields of a FileInfo instance.
+   Resets all fields of a FileInfo instance and frees resources.
  */
 void file_info_clear(FileInfo *info);
 
 /**
    @param info a FileInfo instance
    @param cli command line argument under which the file was found
-   @param dup_cli true to duplicate cli string and free it when clearing FileInfo instance
+   @param dup_cli true to duplicate cli string and free it when clearing the FileInfo instance
    @param path name of the file to read attributes from
    @return true on success
 
-   Prepare a FileInfo instance for attribute reading.
+   Prepares a FileInfo instance for attribute reading.
  */
 bool file_info_get(FileInfo *info, const char *cli, bool dup_cli, const char *path);
 
@@ -131,7 +131,7 @@ bool file_info_get_attr(FileInfo *info, FileAttr *attr, char field);
 /**
    @param attr a FileAttr instance
 
-   Frees memory allocated by the FileAttr insance.
+   Frees memory allocated by the FileAttr instance.
  */
 void file_attr_free(FileAttr *attr);
 

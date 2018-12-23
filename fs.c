@@ -67,7 +67,7 @@ fs_map_load(void)
 		{
 			if(map->len == map->size - 1)
 			{
-				if(map->size >= SIZE_MAX / 2)
+				if(map->size > SIZE_MAX / 2)
 				{
 					FATAL("misc", "Integer overflow.");
 
@@ -81,11 +81,11 @@ fs_map_load(void)
 
 			map->mps[map->len] = utils_new(1, MountPoint);
 
+			memset(map->mps[map->len]->fs, 0, FS_NAME_MAX);
 			strncpy(map->mps[map->len]->fs, ent->mnt_type, FS_NAME_MAX - 1);
-			map->mps[map->len]->fs[FS_NAME_MAX - 1] = '\0';
 
+			memset(map->mps[map->len]->path, 0, PATH_MAX);
 			strncpy(map->mps[map->len]->path, ent->mnt_dir, PATH_MAX - 1);
-			map->mps[map->len]->path[PATH_MAX - 1] = '\0';
 
 			++map->len;
 			ent = getmntent(fp);
@@ -101,7 +101,7 @@ fs_map_load(void)
 	}
 	else
 	{
-		perror("setmntent()");
+		fprintf(stderr, "setmntent() failed.\n");
 	}
 
 	return map;
@@ -125,10 +125,10 @@ fs_map_destroy(FSMap *map)
 const char *
 fs_map_path(FSMap *map, const char *path)
 {
-	char filename[PATH_MAX];
-
 	assert(map != NULL);
 	assert(path != NULL);
+
+	char filename[PATH_MAX];
 
 	if(realpath(path, filename))
 	{

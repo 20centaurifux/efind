@@ -26,23 +26,24 @@
 #include <pwd.h>
 #include <math.h>
 #include <limits.h>
+#include <assert.h>
 
 #include "linux.h"
 #include "utils.h"
+#include "log.h"
 
 static char *
 _utoa(unsigned int u)
 {
-	int max_len = (int)floor(log10(UINT_MAX)) + 3;
+	int max_len = (int)floor(log10(UINT_MAX)) + 2;
 	char *str = utils_malloc(max_len);
 	int written = snprintf(str, max_len, "%u", u);
 
-	if(written >= max_len)
+	assert(written < max_len);
+
+	if(written < 0)
 	{
-		str[max_len - 1] = '\0';
-	}
-	else if(written < 0)
-	{
+		WARNINGF("misc", "Unsigned integer to string conversion failed with error code %d.", written);
 		*str = '\0';
 	}
 
@@ -52,10 +53,8 @@ _utoa(unsigned int u)
 char *
 linux_map_gid(gid_t gid)
 {
-	struct group *grp;
 	char *name = NULL;
-
-	grp = getgrgid(gid);
+	struct group *grp = getgrgid(gid);
 	
 	if(grp && grp->gr_name && *grp->gr_name)
 	{
@@ -72,10 +71,8 @@ linux_map_gid(gid_t gid)
 char *
 linux_map_uid(uid_t uid)
 {
-	struct passwd *pw;
 	char *name = NULL;
-
-	pw = getpwuid(uid);
+	struct passwd *pw = getpwuid(uid);
 	
 	if(pw && pw->pw_name && *pw->pw_name)
 	{

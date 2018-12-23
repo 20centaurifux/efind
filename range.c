@@ -19,7 +19,6 @@
    @brief Limit output.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #include <assert.h>
 #include <string.h>
 
@@ -39,9 +38,9 @@ typedef struct
 static const char *
 _limit_processor_read(Processor *processor)
 {
-	RangeProcessor *range = (RangeProcessor *)processor;
+	assert(processor != NULL);
 
-	assert(range != NULL);
+	RangeProcessor *range = (RangeProcessor *)processor;
 
 	processor->flags &= ~PROCESSOR_FLAGS_READABLE;
 
@@ -56,11 +55,11 @@ _limit_processor_read(Processor *processor)
 static void
 _limit_processor_write(Processor *processor, const char *dir, const char *path)
 {
-	RangeProcessor *range = (RangeProcessor *)processor;
-
-	assert(range != NULL);
+	assert(processor != NULL);
 	assert(dir != NULL);
 	assert(path != NULL);
+
+	RangeProcessor *range = (RangeProcessor *)processor;
 
 	if(range->range)
 	{
@@ -88,11 +87,11 @@ _skip_processor_read(Processor *processor)
 static void
 _skip_processor_write(Processor *processor, const char *dir, const char *path)
 {
-	RangeProcessor *range = (RangeProcessor *)processor;
-
-	assert(range != NULL);
+	assert(processor != NULL);
 	assert(dir != NULL);
 	assert(path != NULL);
+
+	RangeProcessor *range = (RangeProcessor *)processor;
 
 	if(range->count >= range->range)
 	{
@@ -111,6 +110,7 @@ _range_processor_new(const char *(*read)(Processor *processor),
                      void (*write)(struct _Processor *processor, const char *dir, const char *path),
                      size_t range)
 {
+	assert(read != NULL);
 	assert(write != NULL);
 
 	Processor *processor = (Processor *)utils_malloc(sizeof(RangeProcessor));

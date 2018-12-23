@@ -19,7 +19,6 @@
    @brief Limit output.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #ifndef RANGE_H
 #define RANGE_H
 

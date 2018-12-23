@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file extension.h
-   @brief Plugable post-processing hooks.
+   @brief Load filter functions from various backends.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef EXTENSION_H
@@ -130,15 +130,15 @@ void extension_manager_destroy(ExtensionManager *manager);
    @param manager an ExtensionManager
    @param path path of the directory to load extensions from
    @param err destination to store error messages
-   @return true on success
+   @return true if no error occurred during the import
 
-   Loads extensions from found in a directory.
+   Loads extensions from a directory.
  */
 bool extension_manager_load_directory(ExtensionManager *manager, const char *path, char **err);
 
 /**
    @param manager an ExtensionManager
-   @return number of successfully read extension directories
+   @return number of successfully imported extension directories
 
    Tries to load extensions from ~/.efind/extensions and
    /etc/efind/extensions.
@@ -171,7 +171,7 @@ ExtensionCallbackStatus extension_manager_invoke(ExtensionManager *manager, cons
 
 /**
    @param manager an ExtensionManager
-   @param out a stream
+   @param out stream to write registered extensions to
 
    Lists registered extensions and writes them to the specified stream.
  */
@@ -209,5 +209,6 @@ void extension_callback_args_set_integer(ExtensionCallbackArgs *args, uint32_t o
    Copies a string to the specified position of the argument vector.
  */
 void extension_callback_args_set_string(ExtensionCallbackArgs *args, uint32_t offset, const char *value);
+
 #endif
 

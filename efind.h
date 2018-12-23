@@ -117,11 +117,10 @@ typedef struct
 
 /**
    @param opts Options to set
-   @return Action to run.
 
    Reads and sets options from INI files.
  */
-Action options_load_ini(Options *opts);
+void options_load_ini(Options *opts);
 
 /**
    @param opts Options to set

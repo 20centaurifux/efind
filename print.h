@@ -19,7 +19,6 @@
    @brief Print found files.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #ifndef PRINT_H
 #define PRINT_H
 
@@ -30,7 +29,7 @@
 /**
    @return a new Processor
 
-   Prints a found path to stdout.
+   Prints a found file to stdout.
  */
 Processor *print_processor_new(void);
 
@@ -38,7 +37,7 @@ Processor *print_processor_new(void);
    @param format a format string
    @return a new Processor
 
-   Prints a found path using a format string.
+   Prints a found file using a format string.
  */
 Processor *print_format_processor_new(const char *format);
 

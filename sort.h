@@ -19,7 +19,6 @@
    @brief Sort found files.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #ifndef SORT_H
 #define SORT_H
 

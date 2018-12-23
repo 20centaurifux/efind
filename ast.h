@@ -387,9 +387,9 @@ OperatorType ast_str_to_operator(const char *str);
 
 /**
    @param str string to convert
-   @return An UnitType.
+   @return A UnitType.
 
-   Converts a string to an UnitType.
+   Converts a string to a UnitType.
  */
 UnitType ast_str_to_unit(const char *str);
 
@@ -432,7 +432,7 @@ Node *ast_value_node_new_str_nodup(Pool *pool, const YYLTYPE *locp, char *value)
 /**
    @param pool a Pool
    @param locp location information
-   @param value a number to assign
+   @param value number to assign
    @return a new Node
 
    Creates a new ValueNode with an assigned integer from a Pool.
@@ -520,7 +520,7 @@ Node *ast_not_node_new(Pool *pool, const YYLTYPE *locp, Node *expr);
 /**
    @param pool a Pool
    @param locp location information
-   @param name functon name
+   @param name function name
    @param args first argument of the function
    @return a new Node
 
@@ -531,12 +531,13 @@ Node *ast_func_node_new(Pool *pool, const YYLTYPE *locp, char *name, Node *args)
 /**
    @param pool a Pool
    @param locp location information
-   @param exprs expressions root node
-   @param post_exprs post expressions root node
+   @param exprs root node of the expression tree
+   @param post_exprs root node of the filter function tree
    @return a new RootNode
 
    Creates a RootNode from a Pool.
  */
 RootNode *ast_root_node_new(Pool *pool, const YYLTYPE *locp, Node *exprs, Node *post_exprs);
+
 #endif
 

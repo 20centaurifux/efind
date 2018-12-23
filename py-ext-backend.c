@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file py-ext-backend.c
-   @brief Plugable post-processing hooks backend using libpython3.
+   @brief Python 3 filter function backend.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifdef WITH_PYTHON
@@ -443,6 +443,8 @@ _py_build_signature(uint32_t *argc, int **signature, PyObject *co_argcount, PyOb
 
 			for(long i = 1; i < argcount && success; ++i)
 			{
+				assert(*signature != NULL);
+
 				var = PySequence_ITEM(co_varnames, i);
 				type = _py_map_typehint(annotations, var);
 

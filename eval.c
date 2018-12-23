@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file eval.c
-   @brief Evalutes a post processing expression.
+   @brief Evaluates a filter expression.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <stdio.h>
@@ -70,6 +70,11 @@ static bool
 _eval_build_args_from_node(EvalContext *ctx, FuncNode *fn, int *argc, ExtensionCallbackArgs *args)
 {
 	bool success = true;
+
+	assert(ctx != NULL);
+	assert(fn != NULL);
+	assert(argc != NULL);
+	assert(args != NULL);
 
 	if(fn->args)
 	{
@@ -158,6 +163,7 @@ _eval_func_node(Node *node, EvalContext *ctx, int *fn_result)
 	bool success = false;
 
 	assert(node != NULL);
+	assert(ctx != NULL);
 	assert(fn_result != NULL);
 
 	FuncNode *fn = (FuncNode *)node;
@@ -198,6 +204,10 @@ static EvalResult
 _eval_expression_node(Node *node, EvalContext *ctx)
 {
 	EvalResult result = EVAL_RESULT_ABORTED;
+
+	assert(node != NULL);
+	assert(ctx != NULL);
+
 	ExpressionNode *expr = (ExpressionNode *)node;
 
 	assert(expr->first != NULL);
@@ -237,6 +247,7 @@ _eval_node_get_int(Node *node, EvalContext *ctx, int *result)
 	bool success = false;
 
 	assert(node != NULL);
+	assert(ctx != NULL);
 	assert(result != NULL);
 
 	if(node->type == NODE_FUNC)
@@ -268,6 +279,9 @@ _eval_node_get_int(Node *node, EvalContext *ctx, int *result)
 static EvalResult
 _eval_compare_node(Node *node, EvalContext *ctx)
 {
+	assert(node != NULL);
+	assert(ctx != NULL);
+
 	EvalResult result = EVAL_RESULT_ABORTED;
 	CompareNode *cmp = (CompareNode *)node;
 	int a, b;
@@ -361,6 +375,9 @@ _eval_node(Node *node, EvalContext *ctx)
 {
 	EvalResult result = EVAL_RESULT_ABORTED;
 
+	assert(node != NULL);
+	assert(ctx != NULL);
+
 	if(node)
 	{
 		switch(node->type)
@@ -392,13 +409,13 @@ _eval_node(Node *node, EvalContext *ctx)
 EvalResult
 evaluate(ExtensionManager *manager, Node *node, const char *filename)
 {
-	EvalContext ctx;
-
 	assert(node != NULL);
 	assert(manager != NULL);
 	assert(filename != NULL);
 
 	TRACE("eval", "Evaluating syntax tree.");
+
+	EvalContext ctx;
 
 	memset(&ctx, 0, sizeof(EvalContext));
 

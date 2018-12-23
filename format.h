@@ -31,7 +31,7 @@
    @param out stream to write output to
    @return true on success
 
-   Print file attributes according to the specified format.
+   Prints file attributes according to the specified format.
  */
 bool format_write(const FormatParserResult *result, const char *arg, const char *filename, FILE *out);
 

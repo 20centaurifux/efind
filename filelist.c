@@ -35,8 +35,11 @@
 int
 sort_string_test(const char *str)
 {
-	const char *ptr = str;
 	int result = 0;
+
+	assert(str != NULL);
+
+	const char *ptr = str;
 
 	while(result >= 0 && ptr && *ptr)
 	{
@@ -76,10 +79,9 @@ sort_string_test(const char *str)
 	return result;
 }
 
-const char
-*sort_string_pop(const char *str, char *field, bool *asc)
+static const char *
+_sort_string_pop(const char *str, char *field, bool *asc)
 {
-	const char *ptr = str;
 	const char *rest = NULL;
 
 	assert(field != NULL);
@@ -87,6 +89,8 @@ const char
 
 	*field = '\0';
 	*asc = true;
+
+	const char *ptr = str;
 
 	if(ptr)
 	{
@@ -134,9 +138,9 @@ const char
 void
 file_list_init(FileList *list, const char *orderby)
 {
-	size_t item_size = sizeof(FileListEntry);
-
 	assert(list != NULL);
+
+	size_t item_size = sizeof(FileListEntry);
 
 	memset(list, 0, sizeof(FileList));
 
@@ -171,14 +175,14 @@ file_list_init(FileList *list, const char *orderby)
 				list->fields = utils_new(count, char);
 				list->fields_asc = utils_new(count, bool);
 
-				const char *rest = sort_string_pop(orderby, list->fields, list->fields_asc);
+				const char *rest = _sort_string_pop(orderby, list->fields, list->fields_asc);
 
 				TRACEF("filelist", "Found field '%c', ascending=%d.", *list->fields, *list->fields_asc);
 
 				while(rest)
 				{
 					++offset;
-					rest = sort_string_pop(rest, &list->fields[offset], &list->fields_asc[offset]);
+					rest = _sort_string_pop(rest, &list->fields[offset], &list->fields_asc[offset]);
 
 					TRACEF("filelist", "Found field '%c', ascending=%d.", list->fields[offset], list->fields_asc[offset]);
 				}
@@ -240,10 +244,11 @@ static FileListEntry *
 _file_list_entry_new_from_path(FileList *list, const char *cli, const char *path)
 {
 	FileListEntry *entry = NULL;
-	FileInfo info;
 
 	assert(list != NULL);
 	assert(path != NULL);
+
+	FileInfo info;
 
 	file_info_init(&info);
 
@@ -286,42 +291,50 @@ file_list_free(FileList *list)
 bool
 file_list_append(FileList *list, const char *cli, const char *path)
 {
-	FileListEntry *entry = NULL;
 	bool success = false;
 
 	assert(list != NULL);
 	assert(path != NULL);
 
+	FileListEntry *entry = NULL;
+
 	TRACEF("filelist", "Appending file: %s", path);
 
-	if(list->size == list->count)
+	if(list->count != SIZE_MAX)
 	{
-		list->size *= 2;
-
-		if(list->size > list->count)
+		if(list->size == list->count)
 		{
-			list->entries = utils_renew(list->entries, list->size, FileListEntry *);
+			list->size *= 2;
+
+			if(list->size > list->count)
+			{
+				list->entries = utils_renew(list->entries, list->size, FileListEntry *);
+			}
+			else
+			{
+				FATAL("filelist", "Integer overflow.");
+
+				fprintf(stderr, _("Couldn't allocate memory.\n"));
+				abort();
+			}
+		}
+
+		entry = _file_list_entry_new_from_path(list, cli, path);
+
+		if(entry)
+		{
+			list->entries[list->count] = entry;
+			list->count++;
+			success = true;
 		}
 		else
 		{
-			FATAL("filelist", "Integer overflow.");
-
-			fprintf(stderr, _("Couldn't allocate memory.\n"));
-			abort();
+			DEBUG("filelist", "Couldn't create list entry.");
 		}
-	}
-
-	entry = _file_list_entry_new_from_path(list, cli, path);
-
-	if(entry)
-	{
-		list->entries[list->count] = entry;
-		list->count++;
-		success = true;
 	}
 	else
 	{
-		DEBUG("filelist", "Couldn't create list entry.");
+		FATAL("filelist", "Integer overflow.");
 	}
 
 	return success;

@@ -19,7 +19,6 @@
    @brief Print found files.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -49,11 +48,11 @@ _print_processor_read(Processor *processor)
 static void
 _print_processor_write(Processor *processor, const char *dir, const char *path)
 {
-	PrintProcessor *print = (PrintProcessor *)processor;
-
 	assert(processor != NULL);
 	assert(dir != NULL);
 	assert(path != NULL);
+
+	PrintProcessor *print = (PrintProcessor *)processor;
 
 	printf("%s\n", path);
 
@@ -97,11 +96,11 @@ _print_format_processor_read(Processor *processor)
 static void
 _print_format_processor_write(Processor *processor, const char *dir, const char *path)
 {
-	FormatProcessor *print = (FormatProcessor *)processor;
-
 	assert(processor != NULL);
 	assert(dir != NULL);
 	assert(path != NULL);
+
+	FormatProcessor *print = (FormatProcessor *)processor;
 
 	format_write(print->format, dir, path, stdout);
 

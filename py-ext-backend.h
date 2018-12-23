@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file py-ext-backend.h
-   @brief Plugable post-processing hooks backend using libpython3.
+   @brief Python 3 filter function backend.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifdef WITH_PYTHON

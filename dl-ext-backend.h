@@ -30,5 +30,6 @@
    Extension backend functions for libdl.
  */
 void dl_extension_backend_get_class(ExtensionBackendClass *cls);
+
 #endif
 

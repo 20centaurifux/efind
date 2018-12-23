@@ -30,7 +30,7 @@
 
 /*! Maximum format string length. */
 #define FORMAT_TEXT_BUFFER_MAX 4096
-/*! Maxium date-time format string length. */
+/*! Maximum date-time format string length. */
 #define FORMAT_FMT_BUFFER_MAX  128
 
 /**
@@ -75,7 +75,7 @@ typedef struct
 
 /**
    @struct FormatAttrNode
-   @brief A node representing a file attrbute. */
+   @brief A node representing a file attribute. */
 typedef struct
 {
 	/*! Base structure. */
@@ -120,7 +120,7 @@ typedef struct
    @param fmt format to parse
    @return a newly-allocated FormatParserResult instance
 
-   Parse a format string.
+   Parses a format string.
  */
 FormatParserResult *format_parse(const char *fmt);
 

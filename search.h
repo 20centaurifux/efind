@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file search.h
-   @brief A find-wrapper.
+   @brief GNU find wrapper.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef SEARCH_H
@@ -66,8 +66,8 @@ typedef bool (*Callback)(const char *str, void *user_data);
    @param user_data user data
    @return number of found files
 
-   Translates an expression and executes GNU find. If specified the result is filtered
-   by a post-processing expression.
+   Translates an expression and executes GNU find. If specified, the result is filtered
+   by evaluating a tree of filter functions.
  */
 int search_files(const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts, Callback found_file, Callback err_message, void *user_data);
 
@@ -80,8 +80,9 @@ int search_files(const char *path, const char *expr, TranslationFlags flags, con
    @param opts search options
    @return true on success
 
-   Converts an expression to GNU find arguments an writes the result to the desired stream.
+   Converts an expression to GNU find arguments an writes the result to the specified stream.
  */
 bool search_debug(FILE *out, FILE *err, const char *path, const char *expr, TranslationFlags flags, const SearchOptions *opts);
+
 #endif
 

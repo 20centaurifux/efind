@@ -34,6 +34,10 @@
 static void
 _ini_handle_logging_section(Options *opts, const char *name, const char *value)
 {
+	assert(opts != NULL);
+	assert(name != NULL);
+	assert(value != NULL);
+
 	if(!strcmp(name, "verbosity"))
 	{
 		long int level = 0;
@@ -52,9 +56,13 @@ _ini_handle_logging_section(Options *opts, const char *name, const char *value)
 static void
 _ini_handle_general_section(Options *opts, const char *name, const char *value)
 {
+	assert(opts != NULL);
+	assert(name != NULL);
+	assert(value != NULL);
+
 	if(!strcmp(name, "quote"))
 	{
-		bool set = false;
+		bool set;
 
 		if(utils_parse_bool(value, &set))
 		{
@@ -99,6 +107,9 @@ static int
 _ini_handler(void *user_data, const char *section, const char *name, const char *value)
 {
 	assert(user_data != NULL);
+	assert(section != NULL);
+	assert(name != NULL);
+	assert(value != NULL);
 
 	Options *opts = user_data;
 
@@ -114,7 +125,7 @@ _ini_handler(void *user_data, const char *section, const char *name, const char 
 	return 1;
 }
 
-Action
+void
 options_load_ini(Options *opts)
 {
 	char path[PATH_MAX];
@@ -140,7 +151,5 @@ options_load_ini(Options *opts)
 			fprintf(stderr, _("Error in line %d of local configuration file: \"%s\"\n"), line, path);
 		}
 	}
-
-	return ACTION_EXEC;
 }
 

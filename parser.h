@@ -40,7 +40,7 @@ typedef struct
 	Buffer buffer;
 	/*! Memory pool for nodes. */
 	Pool *pool;
-	/*! List containing pointers of allocated strings. */
+	/*! List of allocated strings. */
 	SList strings;
 	/*! Current column. */
 	int column;
@@ -56,7 +56,7 @@ typedef struct
 {
 	/*! Parser data. */
 	ParserExtra data;
-	/*! true if parsing was successfully. */
+	/*! true if parsing was successful. */
 	bool success;
 	/*! Root node of the parsed abstract syntax tree. */
 	RootNode *root;
@@ -78,5 +78,6 @@ ParserResult *parse_string(const char *str);
    Frees a ParserResult.
   */
 void parser_result_free(ParserResult *result);
+
 #endif
 

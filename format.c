@@ -31,11 +31,12 @@
 static bool
 _format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision, int flags, const char *conversion)
 {
-	char *offset = fmt;
 	bool success = false;
 
 	assert(fmt != NULL);
 	assert(conversion != NULL);
+
+	char *offset = fmt;
 
 	if(len > 1)
 	{
@@ -81,14 +82,14 @@ _format_build_fmt_string(char *fmt, size_t len, ssize_t width, ssize_t precision
 		{
 			int required = 1;
 			
-			if(utils_int_add_checkoverflow(required, (int)floor(log10(width)), &required))
+			if(utils_int_add_checkoverflow(required, (int)floor(log10(width)) + 1, &required))
 			{
 				return false;
 			}
 
 			if(precision > 0)
 			{
-				if(utils_int_add_checkoverflow(required, (int)floor(log10(precision)), &required))
+				if(utils_int_add_checkoverflow(required, (int)floor(log10(precision)) + 1, &required))
 				{
 					return false;
 				}

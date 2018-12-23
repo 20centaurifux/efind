@@ -68,6 +68,9 @@ utils_realloc(void *ptr, size_t size)
 void *
 utils_realloc_n(void *ptr, size_t nmemb, size_t size)
 {
+	assert(nmemb > 0);
+	assert(size > 0);
+
 	if(SIZE_MAX / size < nmemb)
 	{
 		fprintf(stderr, _("Couldn't resize array due to integer overflow.\n"));
@@ -107,7 +110,7 @@ utils_strdup(const char *str)
 
 		if(!ptr)
 		{
-			perror("strdup()");
+			fprintf(stderr, "strdup() failed.\n");
 			abort();
 		}
 	}
@@ -132,12 +135,13 @@ utils_copy_string(const char *src, char **dst)
 size_t
 utils_strlcat(char *dst, const char *src, size_t size)
 {
-	char *d = dst;
-	const char *s = src;
-	size_t n = size;
 	size_t ret = 0;
 
 	assert(dst != NULL);
+
+	char *d = dst;
+	const char *s = src;
+	size_t n = size;
 
 	if(src)
 	{
@@ -185,7 +189,8 @@ utils_trim(char *str)
 		return 0;
 	}
 
-	size_t start = 0, end = strlen(str);
+	size_t start = 0;
+	size_t end = strlen(str);
 
 	if(!end)
 	{
@@ -259,20 +264,18 @@ utils_int_add_checkoverflow(int a, int b, int *dst)
 char *
 utils_whereis(const char *name)
 {
-	char *rest;
-	char *token;
-	char path[PATH_MAX];
-	struct stat sb;
 	char *exe = NULL;
 
 	assert(name != NULL);
 
-	rest = getenv("PATH");
+	char *rest = getenv("PATH");
 
-	if(!rest || !rest[0])
+	if(!rest || !*rest)
 	{
 		return NULL;
 	}
+
+	char *token;
 
 	while(!exe && (token = strtok_r(rest, ":", &rest)))
 	{
@@ -283,8 +286,12 @@ utils_whereis(const char *name)
 			continue;
 		}
 
+		char path[PATH_MAX];
+
 		if(utils_path_join(token, name, path, PATH_MAX))
 		{
+			struct stat sb;
+
 			if(!stat(path, &sb))
 			{
 				if((sb.st_mode & S_IFMT) == S_IFREG && (sb.st_mode & S_IXUSR || sb.st_mode & S_IXGRP))

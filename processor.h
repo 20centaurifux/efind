@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file processor.h
-   @brief Base types for building processor chains.
+   @brief Base types and functions for building processor chains.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef PROCESSOR_H
@@ -57,9 +57,9 @@ typedef struct _Processor
 	/**
 	   @param processor processor to write to
 	   @param dir search directory
-	   @param path found path
+	   @param path found file
 	   
-	   Writes a found path to the processor's sink.
+	   Writes a found file to the processor's sink.
 	 */
 	void (*write)(struct _Processor *processor, const char *dir, const char *path);
 
@@ -86,7 +86,6 @@ typedef struct _ProcessorChain
 {
 	/*! A processor. */
 	Processor *processor;
-
 	/*! Pointer to next processor. */
 	struct _ProcessorChain *next;
 } ProcessorChain;
@@ -132,9 +131,9 @@ const char *processor_read(Processor *processor);
 /**
    @param processor processor to write to
    @param dir search directory
-   @param path found path
+   @param path found file
 
-   Writes a found path to the processor's sink.
+   Writes a found file to the processor's sink.
  */
 void processor_write(Processor *processor, const char *dir, const char *path);
 
@@ -170,12 +169,12 @@ void processor_close(Processor *processor, const char *dir);
 ProcessorChain *processor_chain_prepend(ProcessorChain *chain, Processor *processor);
 
 /**
-   @param chain chain which should process a found path
+   @param chain chain which should process a found file
    @param dir search directory
-   @param path a found path
+   @param path a found file
    @return false if the chain has been closed, no data will be processed anymore
    
-   Processes a found path.
+   Processes a found file.
  */
 bool processor_chain_write(ProcessorChain *chain, const char *dir, const char *path);
 
@@ -230,10 +229,11 @@ void processor_chain_builder_fail(ProcessorChainBuilder *builder);
 
 /**
    @param builder a ProcessorChainBuilder
-   @return the build ProcessorChain or NULL
+   @return the built ProcessorChain or NULL
 
-   Gets the build chain. Returns NULL if an error occurred during build.
+   Gets the built chain. Returns NULL if an error occurred during build.
  */
 ProcessorChain *processor_chain_builder_get_chain(ProcessorChainBuilder *builder);
+
 #endif
 

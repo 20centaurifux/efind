@@ -29,7 +29,7 @@
    @param path_len maximum buffer size
    @return true on success
 
-   Builds the path to global configuration file.
+   Builds the path to the global configuration file.
  */
 bool path_builder_global_ini(char *path, size_t path_len);
 
@@ -38,7 +38,7 @@ bool path_builder_global_ini(char *path, size_t path_len);
    @param path_len maximum buffer size
    @return true on success
 
-   Builds the path to local configuration file.
+   Builds the path to the local configuration file.
  */
 bool path_builder_local_ini(char *path, size_t path_len);
 
@@ -47,7 +47,7 @@ bool path_builder_local_ini(char *path, size_t path_len);
    @param path_len maximum buffer size
    @return true on success
 
-   Builds the path to global installed extensions.
+   Builds the path to globally installed extensions.
  */
 bool path_builder_global_extensions(char *path, size_t path_len);
 
@@ -56,7 +56,7 @@ bool path_builder_global_extensions(char *path, size_t path_len);
    @param path_len maximum buffer size
    @return true on success
 
-   Builds the path to local installed extensions.
+   Builds the path to locally installed extensions.
  */
 bool path_builder_local_extensions(char *path, size_t path_len);
 
@@ -65,7 +65,7 @@ bool path_builder_local_extensions(char *path, size_t path_len);
    @param path_len maximum buffer size
    @return true on success
 
-   Builds the path to the current user's blacklist.
+   Builds the path to the user's blacklist.
  */
 bool path_builder_blacklist(char *path, size_t path_len);
 

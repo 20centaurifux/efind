@@ -59,6 +59,9 @@ typedef enum
 static bool
 _format_lexer_get_current_state(FormatLexerResult *result, FormatLexerState *state)
 {
+	assert(result != NULL);
+	assert(state != NULL);
+
 	void *val;
 	bool success = false;
 
@@ -74,9 +77,9 @@ _format_lexer_get_current_state(FormatLexerResult *result, FormatLexerState *sta
 static void
 _format_lexer_pop(FormatLexerResult *result)
 {
-	void *state;
-
 	assert(result != NULL);
+
+	void *state;
 
 	stack_pop(&result->ctx.state, &state);
 	result->ctx.start = result->ctx.tail;
@@ -96,15 +99,13 @@ _format_lexer_push(FormatLexerResult *result, FormatLexerState state, size_t off
 static FormatToken *
 _format_token_new(Pool *pool, FormatTokenType type_id, const char *text, size_t len)
 {
-	FormatToken *token;
-
 	assert(pool != NULL);
 	assert(text != NULL);
 	assert(len > 0);
 
 	TRACEF("format", "new Token(type=%#x, len=%ld)", type_id, len);
 
-	token = pool->alloc(pool);
+	FormatToken *token = pool->alloc(pool);
 
 	token->type_id = type_id;
 	token->text = text;
@@ -228,10 +229,11 @@ _format_lexer_process_width(FormatLexerResult *result)
 static bool
 _format_lexer_step_number(FormatLexerResult *result)
 {
-	FormatLexerState state;
 	bool success = true;
 
 	assert(result != NULL);
+
+	FormatLexerState state;
 
 	if(_format_lexer_get_current_state(result, &state))
 	{
@@ -266,9 +268,10 @@ static bool
 _format_lexer_substitute_current_field_char(FormatLexerResult *result)
 {
 	bool success = false;
-	char name[FORMAT_TEXT_BUFFER_MAX];
 
 	assert(result != NULL);
+
+	char name[FORMAT_TEXT_BUFFER_MAX];
 
 	_format_lexer_copy_found_field_name(result, name);
 
@@ -578,17 +581,19 @@ _format_lexer_step_string(FormatLexerResult *result)
 static bool
 _format_lexer_no_characters_left(const FormatLexerResult *result)
 {
+	assert(result != NULL);
+
 	return !(result->ctx.len - (result->ctx.tail - result->ctx.fmt)) && result->ctx.start == result->ctx.tail;
 }
 
 static FormatLexerStepResult
 _format_lexer_step(FormatLexerResult *result)
 {
-	FormatLexerState state;
-	bool success = true;
 	FormatLexerStepResult next_step = FORMAT_LEXER_RESULT_CONTINUE;
 
 	assert(result != NULL);
+
+	FormatLexerState state;
 
 	if(!_format_lexer_get_current_state(result, &state))
 	{
@@ -599,6 +604,8 @@ _format_lexer_step(FormatLexerResult *result)
 	{
 		return FORMAT_LEXER_RESULT_FINISHED;
 	}
+
+	bool success = true;
 
 	switch(state)
 	{
@@ -640,9 +647,11 @@ static bool
 _format_lexer_init(FormatLexerResult *result, const char *format)
 {
 	bool success = false;
-	size_t item_size = sizeof(SListItem);
 
 	assert(result != NULL);
+	assert(format != NULL);
+
+	size_t item_size = sizeof(SListItem);
 
 	memset(result, 0, sizeof(FormatLexerResult));
 
@@ -672,13 +681,11 @@ _format_lexer_init(FormatLexerResult *result, const char *format)
 FormatLexerResult *
 format_lexer_scan(const char *format)
 {
-	FormatLexerResult *result;
-
 	assert(format != NULL);
 
 	TRACEF("format", "Scanning format string: %s", format);
 
-	result = utils_new(1, FormatLexerResult);
+	FormatLexerResult *result = utils_new(1, FormatLexerResult);
 
 	if(_format_lexer_init(result, format))
 	{
@@ -691,7 +698,7 @@ format_lexer_scan(const char *format)
 			status = _format_lexer_step(result);
 		} while(status == FORMAT_LEXER_RESULT_CONTINUE);
 
-		result->success =  (status == FORMAT_LEXER_RESULT_FINISHED);
+		result->success = (status == FORMAT_LEXER_RESULT_FINISHED);
 	}
 
 	return result;

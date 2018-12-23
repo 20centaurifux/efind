@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file eval.h
-   @brief Evalutes a post processing expression.
+   @brief Evaluates a filter expression.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef EVAL_H
@@ -40,13 +40,14 @@ typedef enum
 } EvalResult;
 
 /**
-   @param manager an ExtensionManager
+   @param manager available extensions
    @param node node to evaluate
    @param filename name of the found file
    @return the evaluation result
 
-   Evaluates an abstract post-processing syntax tree.
+   Evaluates a filter expression.
  */
 EvalResult evaluate(ExtensionManager *manager, Node *node, const char *filename);
+
 #endif
 

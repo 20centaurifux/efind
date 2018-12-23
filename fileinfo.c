@@ -38,7 +38,7 @@
 #include "utils.h"
 #include "gettext.h"
 
-/*! A FSMap instance used to get the filesystem of a file. */
+/*! Shared FSMap instance to get the filesystem of a file. */
 static FSMap *_fs_map = NULL;
 
 static void
@@ -53,10 +53,10 @@ _fs_map_free(void)
 static char *
 _file_info_get_dirname(const char *filename)
 {
+	assert(filename != NULL);
+
 	char *dirname = NULL;
 	size_t len = 0;
-
-	assert(filename != NULL);
 
 	if(filename)
 	{
@@ -85,10 +85,10 @@ _file_info_get_dirname(const char *filename)
 static char *
 _file_info_readlink(const char *filename)
 {
+	assert(filename != NULL);
+
 	ssize_t size;
 	char *buffer = utils_new(PATH_MAX, char);
-
-	assert(filename != NULL);
 
 	size = readlink(filename, buffer, PATH_MAX);
 
@@ -98,8 +98,12 @@ _file_info_readlink(const char *filename)
 	}
 	else
 	{
-		perror("readlink()");
 		*buffer = '\0';
+
+		if(size == -1)
+		{
+			perror("readlink()");
+		}
 	}
 
 	return buffer;
@@ -166,10 +170,10 @@ _file_info_permissions(mode_t mode)
 static const char *
 _file_info_remove_cli(const char *cli, const char *path)
 {
-	size_t len;
-
 	assert(cli != NULL);
 	assert(path != NULL);
+
+	size_t len;
 
 	len = strlen(cli);
 
@@ -234,7 +238,6 @@ file_info_clear(FileInfo *info)
 bool
 file_info_get(FileInfo *info, const char *cli, bool dup_cli, const char *path)
 {
-	int rc;
 	bool success = false;
 
 	assert(info != NULL);
@@ -243,10 +246,10 @@ file_info_get(FileInfo *info, const char *cli, bool dup_cli, const char *path)
 
 	#ifdef _LARGEFILE64_SOURCE
 	struct stat64 sb;
-	rc = lstat64(path, &sb);
+	int rc = lstat64(path, &sb);
 	#else
 	struct stat sb;
-	rc = lstat(path, &sb);
+	int rc = lstat(path, &sb);
 	#endif
 
 	if(!rc)
@@ -281,11 +284,12 @@ file_info_get(FileInfo *info, const char *cli, bool dup_cli, const char *path)
 bool
 file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 {
-	static const char *empty = "";
 	bool success = true;
 
 	assert(info != NULL);
 	assert(attr != NULL);
+
+	static const char *empty = "";
 
 	switch(field)
 	{

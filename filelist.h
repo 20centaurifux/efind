@@ -75,14 +75,6 @@ struct _FileList
 int sort_string_test(const char *str);
 
 /**
-   @param str sort string
-   @param field memory location to store found field
-   @param asc memory location to store sort direction
-   @return pointer to next field or NULL
-  */
-const char *sort_string_pop(const char *str, char *field, bool *asc);
-
-/**
    @param list FileList instance to initialize
    @param orderby sort string
 
@@ -116,16 +108,7 @@ void file_list_sort(FileList *list);
 
 /**
    @param list FileList instance
-   @param f function called for each file stored in the list
-   @param user_data user_data
-
-   Iterate over the list.
-  */
-void file_list_foreach(FileList *list, Callback f, void *user_data);
-
-/**
-   @param list FileList instance
-   @return number of store files
+   @return number of stored files
 
    Gets the number of stored files.
   */

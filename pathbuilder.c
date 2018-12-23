@@ -20,14 +20,19 @@
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <stdlib.h>
+#include <assert.h>
 
 #include "utils.h"
 
 static bool
 _path_build_local(const char *filename, char *path, size_t path_len)
 {
-	const char *home = getenv("HOME");
 	bool success = false;
+
+	assert(filename != NULL);
+	assert(path != NULL);
+
+	const char *home = getenv("HOME");
 
 	if(home && *home)
 	{
@@ -40,18 +45,24 @@ _path_build_local(const char *filename, char *path, size_t path_len)
 bool
 path_builder_global_ini(char *path, size_t path_len)
 {
+	assert(path != NULL);
+
 	return utils_path_join(SYSCONFDIR, "efind/config", path, path_len);
 }
 
 bool
 path_builder_local_ini(char *path, size_t path_len)
 {
+	assert(path != NULL);
+
 	return _path_build_local(".efind/config", path, path_len);
 }
 
 bool
 path_builder_global_extensions(char *path, size_t path_len)
 {
+	assert(path != NULL);
+
 	const char *libdir = getenv("EFIND_LIBDIR");
 
 	if(!libdir || !*libdir)
@@ -65,12 +76,16 @@ path_builder_global_extensions(char *path, size_t path_len)
 bool
 path_builder_local_extensions(char *path, size_t path_len)
 {
+	assert(path != NULL);
+
 	return _path_build_local(".efind/extensions", path, path_len);
 }
 
 bool
 path_builder_blacklist(char *path, size_t path_len)
 {
+	assert(path != NULL);
+
 	return _path_build_local(".efind/blacklist", path, path_len);
 }
 

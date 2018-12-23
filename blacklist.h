@@ -46,7 +46,7 @@ void blacklist_destroy(Blacklist *blacklist);
 
 /**
    @param blacklist Blacklist
-   @param pattern pattern
+   @param pattern glob pattern
    @return number of added files
 
    Adds files matching the given pattern to the blacklist.
@@ -81,10 +81,11 @@ size_t blacklist_load_default(Blacklist *blacklist);
 
 /**
    @param blacklist a Blacklist
- *\return head of the list
- *
- * Gets the head of the list.
+   @return head of the list
+  
+   Gets the head of the list.
  */
 #define blacklist_head(blacklist) list_head(blacklist)
+
 #endif
 

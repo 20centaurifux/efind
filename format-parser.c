@@ -216,6 +216,11 @@ _format_parser_begin_width(FormatParserCtx *ctx, const FormatToken *token)
 			ctx->width = atoi(str);
 		}
 	}
+	else
+	{
+		ctx->width = 0;
+		ctx->precision = 0;
+	}
 
 	return FORMAT_PARSER_STEP_RESULT_NEXT;
 }
@@ -588,18 +593,18 @@ _format_parser_step_date_attribute(FormatParserCtx *ctx, const FormatToken *toke
 static bool
 _format_parse(FormatParserCtx *ctx, FormatLexerResult *lexer)
 {
-	SListItem *iter;
-	void *state;
 	bool success = false;
 
 	assert(ctx != NULL);
 	assert(lexer != NULL);
 	assert(lexer->success == true);
 
+	void *state;
+
 	stack_push(&ctx->state, (void *)FORMAT_PARSER_STATE_NONE);
 	_format_parser_reset_cache(ctx);
 
-	iter = format_lexer_result_first_token(lexer);
+	SListItem *iter = format_lexer_result_first_token(lexer);
 
 	FormatParserStepResult result = FORMAT_PARSER_STEP_RESULT_NEXT;
 
@@ -658,13 +663,11 @@ _format_parse(FormatParserCtx *ctx, FormatLexerResult *lexer)
 static void
 _format_parser_ctx_init(FormatParserCtx *ctx)
 {
-	size_t item_size = sizeof(SListItem);
-
 	assert(ctx != NULL);
 
 	memset(ctx, 0, sizeof(FormatParserCtx));
 
- 	ctx->pool = (Pool *)memory_pool_new(item_size, 32);
+ 	ctx->pool = (Pool *)memory_pool_new(sizeof(SListItem), 32);
 
 	stack_init(&ctx->state, &direct_compare, NULL, ctx->pool);
 	ctx->nodes = slist_new(&direct_compare, &free, NULL);
@@ -704,19 +707,17 @@ _format_parser_ctx_free(FormatParserCtx *ctx)
 FormatParserResult *
 format_parse(const char *fmt)
 {
-	FormatLexerResult *lexer;
-	FormatParserCtx ctx;
-	FormatParserResult *result;
-
 	assert(fmt != NULL);
 
 	DEBUGF("format", "Parsing format string: %s", fmt);
 
-	result = utils_new(1, FormatParserResult);
-	lexer = format_lexer_scan(fmt);
+	FormatParserResult *result = utils_new(1, FormatParserResult);
+	FormatLexerResult *lexer = format_lexer_scan(fmt);
 
 	if(lexer->success)
 	{
+		FormatParserCtx ctx;
+
 		_format_parser_ctx_init(&ctx);
 
 		if(_format_parse(&ctx, lexer))

@@ -16,10 +16,9 @@
  ***************************************************************************/
 /**
    @file processor.c
-   @brief Base types for building processor chains.
+   @brief Base types and functions for building processor chains.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #include <assert.h>
 #include <string.h>
 #include <stdarg.h>
@@ -205,7 +204,6 @@ processor_chain_builder_do(ProcessorChainBuilder *builder, ProcessorChainBuilder
 bool
 processor_chain_builder_try_prepend(ProcessorChainBuilder *builder, Processor *processor)
 {
-
 	assert(builder != NULL);
 
 	if(processor && !builder->failed)
