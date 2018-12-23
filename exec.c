@@ -109,7 +109,7 @@ _exec_build_argv(ExecProcessor *processor)
 		}
 		else
 		{
-			fprintf(stderr, _("Couldn't write format string at position %ld."), i + 2);
+			fprintf(stderr, _("Couldn't write format string at position %ld.\n"), i + 2);
 		}
 	}
 

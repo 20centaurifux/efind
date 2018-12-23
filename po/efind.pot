@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-11-26 20:47+0100\n"
+"POT-Creation-Date: 2018-12-23 21:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,78 +17,88 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dl-ext-backend.c:94 eval.c:182
+#: dl-ext-backend.c:105 eval.c:188
 #, c-format
 msgid "Function `%s' not found.\n"
 msgstr ""
 
-#: eval.c:139
+#: eval.c:144
 #, c-format
 msgid ""
 "Stack overflow in function `%s', more than %d arguments are not supported.\n"
 msgstr ""
 
-#: eval.c:187
+#: eval.c:193
 #, c-format
 msgid ""
 "Function `%s' has a different signature, please check specified arguments.\n"
 msgstr ""
 
-#: extension.c:416
+#: exec.c:112
+#, c-format
+msgid "Couldn't write format string at position %ld.\n"
+msgstr ""
+
+#: exec.c:296
+#, c-format
+msgid "Couldn't parse --exec argument at position %ld.\n"
+msgstr ""
+
+#: extension.c:418
 msgid "Path to extension file exceeds maximum allowed path length."
 msgstr ""
 
-#: extension.c:434
+#: extension.c:436
 #, c-format
 msgid "Couldn't open directory \"%s\"."
 msgstr ""
 
-#: fileinfo.c:270
+#: fileinfo.c:273
 #, c-format
 msgid "Couldn't stat file: %s\n"
 msgstr ""
 
-#: filelist.c:115
+#: filelist.c:119
 #, c-format
 msgid "Found unexpected character in sort string: '%c'.\n"
 msgstr ""
 
-#: filelist.c:189 main.c:398
+#: filelist.c:193 main.c:302
 #, c-format
 msgid "Couldn't parse sort string.\n"
 msgstr ""
 
-#: filelist.c:309 fs.c:74
+#: filelist.c:317 fs.c:74 utils.c:134
 #, c-format
 msgid "Couldn't allocate memory.\n"
 msgstr ""
 
-#: filelist.c:356 filelist.c:363
+#: filelist.c:369 filelist.c:376
 #, c-format
 msgid "Couldn't read attribute from file %s.\n"
 msgstr ""
 
-#: format-lexer.c:463
+#: format-lexer.c:466
 #, c-format
 msgid "Missing text after '%%'.\n"
 msgstr ""
 
-#: format-lexer.c:543
+#: format-lexer.c:546
 #, c-format
 msgid "Invalid escape sequence.\n"
 msgstr ""
 
-#: format-parser.c:389
+#: format-parser.c:394
 #, c-format
 msgid "Unsupported escape sequence.\n"
 msgstr ""
 
-#: format-parser.c:394 format-parser.c:417
+#: format-parser.c:399 format-parser.c:422
 #, c-format
 msgid "String exceeds allowed maximum length.\n"
 msgstr ""
 
-#: format-parser.c:577
+#: format-parser.c:582
 #, c-format
 msgid "Date-format exceeds allowed maximum length.\n"
 msgstr ""
@@ -98,17 +108,17 @@ msgstr ""
 msgid "Couldn't retrieve real path from file: %s\n"
 msgstr ""
 
-#: main.c:101
+#: main.c:97
 #, c-format
 msgid "No extensions loaded.\n"
 msgstr ""
 
-#: main.c:109
+#: main.c:105
 #, c-format
 msgid "Couldn't load extensions.\n"
 msgstr ""
 
-#: main.c:118
+#: main.c:114
 #, c-format
 msgid ""
 "%s %d.%d.%d (%s)\n"
@@ -117,149 +127,179 @@ msgid ""
 "This program is released under the terms of the %s (%s)\n"
 msgstr ""
 
-#: main.c:130
+#: main.c:126
 #, c-format
 msgid "Usage: %s [options]\n"
 msgstr ""
 
-#: main.c:131
+#: main.c:127
 #, c-format
 msgid "       %s [starting-points] [options]\n"
 msgstr ""
 
-#: main.c:132
+#: main.c:128
 #, c-format
 msgid ""
 "       %s [starting-points] [expression] [options]\n"
 "\n"
 msgstr ""
 
+#: main.c:129
+#, c-format
+msgid ""
+"  -e, --expr expression          expression to evaluate when finding files\n"
+msgstr ""
+
+#: main.c:130
+#, c-format
+msgid ""
+"  -q, --quote <yes|no>           quote special characters in translated "
+"expression\n"
+msgstr ""
+
+#: main.c:131
+#, c-format
+msgid ""
+"  -d, --dir path                 directory to search (multiple directories "
+"are possible)\n"
+msgstr ""
+
+#: main.c:132
+#, c-format
+msgid "  -L, --follow <yes|no>          follow symbolic links\n"
+msgstr ""
+
 #: main.c:133
 #, c-format
-msgid "  -e, --expr expression  expression to evaluate when finding files\n"
+msgid ""
+"  --regex-type type              set regular expression type; see manpage\n"
 msgstr ""
 
 #: main.c:134
 #, c-format
 msgid ""
-"  -q, --quote <yes|no>   quote special characters in translated expression\n"
+"  --printf format                print format on standard output; see "
+"manpage\n"
 msgstr ""
 
 #: main.c:135
 #, c-format
-msgid ""
-"  -d, --dir path         directory to search (multiple directories are "
-"possible)\n"
+msgid "  --exec command ;               execute command\n"
 msgstr ""
 
 #: main.c:136
 #, c-format
-msgid "  -L, --follow <yes|no>  follow symbolic links\n"
+msgid ""
+"  --exec-ignore-errors <yes|no>  don't stop if command exits with non-zero "
+"result\n"
 msgstr ""
 
 #: main.c:137
 #, c-format
-msgid "  --regex-type type      set regular expression type; see manpage\n"
+msgid ""
+"  --order-by fields              fields to order search result by; see "
+"manpage\n"
 msgstr ""
 
 #: main.c:138
 #, c-format
-msgid "  --printf format        print format on standard output; see manpage\n"
+msgid "  --max-depth levels             maximum search depth\n"
 msgstr ""
 
 #: main.c:139
 #, c-format
-msgid ""
-"  --order-by fields      fields to order search result by; see manpage\n"
+msgid "  --skip number                  number of files to skip\n"
 msgstr ""
 
 #: main.c:140
 #, c-format
-msgid "  --max-depth levels     maximum search depth\n"
+msgid "  --limit number                 maximum number of files to process\n"
 msgstr ""
 
 #: main.c:141
 #, c-format
-msgid "  --skip number          number of files to skip before printing\n"
+msgid ""
+"  -p, --print                    don't search files but print expression to "
+"stdout\n"
 msgstr ""
 
 #: main.c:142
 #, c-format
-msgid "  --limit number         maximum number of files to print\n"
+msgid "  --print-extensions             print a list of installed extensions\n"
 msgstr ""
 
 #: main.c:143
 #, c-format
-msgid ""
-"  -p, --print            don't search files but print expression to stdout\n"
+msgid "  --print-blacklist              print blacklisted extensions\n"
 msgstr ""
 
 #: main.c:144
 #, c-format
-msgid "  --print-extensions     print a list of installed extensions\n"
+msgid "  --log-level level              set the log level (0-6)\n"
 msgstr ""
 
 #: main.c:145
 #, c-format
-msgid "  --print-blacklist      print blacklisted extensions\n"
+msgid "  --log-color <yes|no>           enable/disable colored log messages\n"
 msgstr ""
 
 #: main.c:146
 #, c-format
-msgid "  --log-level level      set the log level (0-6)\n"
+msgid "  -v, --version                  print version and exit\n"
 msgstr ""
 
 #: main.c:147
 #, c-format
-msgid "  --log-color <yes|no>   enable/disable colored log messages\n"
+msgid "  -h, --help                     display this help and exit\n"
 msgstr ""
 
-#: main.c:148
-#, c-format
-msgid "  -v, --version          print version and exit\n"
-msgstr ""
-
-#: main.c:149
-#, c-format
-msgid "  -h, --help             display this help and exit\n"
-msgstr ""
-
-#: main.c:373
+#: main.c:359
 #, c-format
 msgid "Couldn't parse format string: %s\n"
 msgstr ""
 
-#: main.c:535
+#: main.c:512
 #, c-format
 msgid "Expression cannot be empty.\n"
 msgstr ""
 
-#: main.c:607
+#: main.c:584
 #, c-format
 msgid "The specified directory is invalid: %s\n"
 msgstr ""
 
-#: main.c:664
+#: main.c:641
 #, c-format
 msgid "Couldn't detect home directory.\n"
 msgstr ""
 
-#: main.c:855
+#: main.c:832
 #, c-format
 msgid "Try '%s --help' for more information.\n"
 msgstr ""
 
-#: options_getopt.c:113 options_getopt.c:232 options_getopt.c:246
+#: options_getopt.c:112 options_getopt.c:237 options_getopt.c:251
+#: options_getopt.c:274
 #, c-format
 msgid "Argument of option `%s' is malformed.\n"
 msgstr ""
 
-#: options_ini.c:130
+#: options_getopt.c:417
+#, c-format
+msgid "Invalid --exec option, `;' argument is missing.\n"
+msgstr ""
+
+#: options_getopt.c:421
+#, c-format
+msgid "Invalid --exec option, argument list is empty.\n"
+msgstr ""
+
+#: options_ini.c:145
 #, c-format
 msgid "Error in line %d of global configuration file: \"%s\"\n"
 msgstr ""
 
-#: options_ini.c:140
+#: options_ini.c:155
 #, c-format
 msgid "Error in line %d of local configuration file: \"%s\"\n"
 msgstr ""
@@ -269,47 +309,47 @@ msgstr ""
 msgid "Couldn't find `find' executable.\n"
 msgstr ""
 
-#: search.c:238
+#: search.c:239
 #, c-format
 msgid "Evaluation aborted.\n"
 msgstr ""
 
-#: search.c:243
+#: search.c:244
 #, c-format
 msgid "Couldn't evaluate expression, no extensions loaded.\n"
 msgstr ""
 
-#: translate.c:144 parser.y:48
+#: translate.c:143 parser.y:48
 #, c-format
 msgid "line: %d, "
 msgstr ""
 
-#: translate.c:148 parser.y:52
+#: translate.c:147 parser.y:52
 #, c-format
 msgid "line: %d-%d, "
 msgstr ""
 
-#: translate.c:161
+#: translate.c:160
 #, c-format
 msgid "column: %d: "
 msgstr ""
 
-#: translate.c:165
+#: translate.c:164
 #, c-format
 msgid "column: %d-%d: "
 msgstr ""
 
-#: translate.c:496
+#: translate.c:495
 #, c-format
 msgid "Cannot compare a value of type \"%s\" value to property \"%s\"."
 msgstr ""
 
-#: translate.c:503
+#: translate.c:502
 #, c-format
 msgid "Values of type \"%s\" don't support the \"%s\" operator."
 msgstr ""
 
-#: utils.c:73
+#: utils.c:76
 #, c-format
 msgid "Couldn't resize array due to integer overflow.\n"
 msgstr ""
