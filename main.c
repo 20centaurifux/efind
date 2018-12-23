@@ -237,7 +237,7 @@ _error_cb(const char *msg, void *user_data)
 }
 
 static bool
-_search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, ProcessorChain *chain)
+_search_dirs(const Options *opts, const SearchOptions *sopts, Callback cb, ProcessorChain *chain)
 {
 	SListItem *item;
 	FoundArg arg;
@@ -453,7 +453,7 @@ _exec_find(const Options *opts)
 }
 
 static int
-_run_action(Action action, char argc, char **argv, const Options *opts)
+_run_action(Action action, int argc, char **argv, const Options *opts)
 {
 	int result = EXIT_FAILURE;
 
@@ -503,7 +503,7 @@ _run_action(Action action, char argc, char **argv, const Options *opts)
 }
 
 static bool
-_test_expr_is_not_empty(Options *opts)
+_test_expr_is_not_empty(const Options *opts)
 {
 	bool success = true;
 
@@ -536,7 +536,7 @@ _dir_is_valid(const char *path)
 }
 
 static const char *
-_find_invalid_search_dir(Options *opts)
+_find_invalid_search_dir(const Options *opts)
 {
 	SListItem *item;
 	const char *dir = NULL;
@@ -571,7 +571,7 @@ _search_dirs_are_empty(const Options *opts)
 }
 
 static bool
-_test_search_dirs_are_valid(Options *opts)
+_test_search_dirs_are_valid(const Options *opts)
 {
 	bool success = true;
 
@@ -589,7 +589,7 @@ _test_search_dirs_are_valid(Options *opts)
 }
 
 static bool
-_validate_options(Options *opts)
+_validate_options(const Options *opts)
 {
 	assert(opts != NULL);
 
