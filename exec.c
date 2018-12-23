@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file exec.c
-   @brief Executes shell commands.
+   @brief Execute shell commands.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 

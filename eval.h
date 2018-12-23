@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file eval.h
-   @brief Evaluates a filter expression.
+   @brief Evaluate filter expressions.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef EVAL_H

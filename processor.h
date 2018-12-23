@@ -191,7 +191,7 @@ typedef enum
    @param chain chain which should process a found path
    @param dir search directory
    @param path a found file
-   @return false if the chain has been closed, no data will be processed anymore
+   @return new state of the chain
    
    Processes a found file.
  */
@@ -200,6 +200,7 @@ ProcessorChainResult processor_chain_write(ProcessorChain *chain, const char *di
 /**
    @param chain a processor chain
    @param dir search directory
+   @return new state of the chain
    
    Closes the first processor of the chain. This will stop any further processing.
  */

@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file eval.c
-   @brief Evaluates a filter expression.
+   @brief Evaluate filter expressions.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #include <stdio.h>

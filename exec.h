@@ -16,7 +16,7 @@
  ***************************************************************************/
 /**
    @file exec.h
-   @brief Executes shell commands.
+   @brief Execute shell commands.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef EXEC_H
@@ -29,8 +29,8 @@
 #include "exec-args.h"
 
 /**
-   @enum TranslationFlags
-   @brief Translation flags.
+   @enum ExecFlags
+   @brief Execution flags.
  */
 typedef enum
 {
@@ -41,11 +41,12 @@ typedef enum
 } ExecFlags;
 
 /**
-   @param args command & arguments to execute
+   @param args command and arguments to execute
    @param flags execution flags
    @return a new Processor
 
-   Excecutes shell commands.
+   Excecutes a shell command. If the EXEC_FLAG_IGNORE_ERROR is not set
+   the processor stops if the commands exits with non-zero value.
  */
 Processor *exec_processor_new(const ExecArgs *args, int32_t flags);
 
