@@ -67,7 +67,10 @@ run_testsuite()
 
 run()
 {
-	generate_test_files && build_extensions && run_testsuite && cleanup
+	generate_test_files
+	build_extensions
+	run_testsuite
+	cleanup
 }
 
 cleanup()

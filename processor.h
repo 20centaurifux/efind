@@ -31,9 +31,11 @@
 typedef enum
 {
 	/*! Indicates that data can be read from the processor. */
-	PROCESSOR_FLAGS_READABLE = 1,
+	PROCESSOR_FLAG_READABLE = 1,
 	/*! Set if the processor is closed. */
-	PROCESSOR_FLAGS_CLOSED = 2
+	PROCESSOR_FLAG_CLOSED = 2,
+	/*! Set if an error occured. */
+	PROCESSOR_FLAG_ERROR = 4
 } ProcessorFlags;
 
 /**
@@ -115,10 +117,13 @@ typedef void (*ProcessorChainBuilderFn)(ProcessorChainBuilder *builder);
 #define PROCESSOR_CHAIN_BUILDER_NULL_FN (ProcessorChainBuilderFn *)NULL
 
 /*! Checks if data can be read from a processor. */
-#define processor_is_readable(p) (p->flags & PROCESSOR_FLAGS_READABLE)
+#define processor_is_readable(p) (p->flags & PROCESSOR_FLAG_READABLE)
 
 /*! Checks if a processor has been closed. */
-#define processor_is_closed(p) (p->flags & PROCESSOR_FLAGS_CLOSED)
+#define processor_is_closed(p) (p->flags & PROCESSOR_FLAG_CLOSED)
+
+/*! Checks if an error has occured during processing. */
+#define processor_has_error(p) (p->flags & PROCESSOR_FLAG_ERROR)
 
 /**
    @param processor processor to read from
@@ -169,14 +174,28 @@ void processor_close(Processor *processor, const char *dir);
 ProcessorChain *processor_chain_prepend(ProcessorChain *chain, Processor *processor);
 
 /**
-   @param chain chain which should process a found file
+   @enum ProcessorChainResult
+   @brief Processor chain write result.
+ */
+typedef enum
+{
+	/*! Chain is still open. */
+	PROCESSOR_CHAIN_CONTINUE,
+	/*! Chain is closed. */
+	PROCESSOR_CHAIN_COMPLETED,
+	/*! Chain is closed and an error occured. */
+	PROCESSOR_CHAIN_ERROR
+} ProcessorChainResult;
+
+/**
+   @param chain chain which should process a found path
    @param dir search directory
    @param path a found file
    @return false if the chain has been closed, no data will be processed anymore
    
    Processes a found file.
  */
-bool processor_chain_write(ProcessorChain *chain, const char *dir, const char *path);
+ProcessorChainResult processor_chain_write(ProcessorChain *chain, const char *dir, const char *path);
 
 /**
    @param chain a processor chain
@@ -184,7 +203,7 @@ bool processor_chain_write(ProcessorChain *chain, const char *dir, const char *p
    
    Closes the first processor of the chain. This will stop any further processing.
  */
-void processor_chain_complete(ProcessorChain *chain, const char *dir);
+ProcessorChainResult processor_chain_complete(ProcessorChain *chain, const char *dir);
 
 /**
    @param chain chain to destroy

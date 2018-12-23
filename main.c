@@ -38,6 +38,7 @@
 
 #include "efind.h"
 #include "log.h"
+#include "exec.h"
 #include "search.h"
 #include "parser.h"
 #include "utils.h"
@@ -125,23 +126,25 @@ _print_help(const char *name)
 	printf(_("Usage: %s [options]\n"), name);
 	printf(_("       %s [starting-points] [options]\n"), name);
 	printf(_("       %s [starting-points] [expression] [options]\n\n"), name);
-	printf(_("  -e, --expr expression  expression to evaluate when finding files\n"));
-	printf(_("  -q, --quote <yes|no>   quote special characters in translated expression\n"));
-	printf(_("  -d, --dir path         directory to search (multiple directories are possible)\n"));
-	printf(_("  -L, --follow <yes|no>  follow symbolic links\n"));
-	printf(_("  --regex-type type      set regular expression type; see manpage\n"));
-	printf(_("  --printf format        print format on standard output; see manpage\n"));
-	printf(_("  --order-by fields      fields to order search result by; see manpage\n"));
-	printf(_("  --max-depth levels     maximum search depth\n"));
-	printf(_("  --skip number          number of files to skip before printing\n"));
-	printf(_("  --limit number         maximum number of files to print\n"));
-	printf(_("  -p, --print            don't search files but print expression to stdout\n"));
-	printf(_("  --print-extensions     print a list of installed extensions\n"));
-	printf(_("  --print-blacklist      print blacklisted extensions\n"));
-	printf(_("  --log-level level      set the log level (0-6)\n"));
-	printf(_("  --log-color <yes|no>   enable/disable colored log messages\n"));
-	printf(_("  -v, --version          print version and exit\n"));
-	printf(_("  -h, --help             display this help and exit\n"));
+	printf(_("  -e, --expr expression          expression to evaluate when finding files\n"));
+	printf(_("  -q, --quote <yes|no>           quote special characters in translated expression\n"));
+	printf(_("  -d, --dir path                 directory to search (multiple directories are possible)\n"));
+	printf(_("  -L, --follow <yes|no>          follow symbolic links\n"));
+	printf(_("  --regex-type type              set regular expression type; see manpage\n"));
+	printf(_("  --printf format                print format on standard output; see manpage\n"));
+	printf(_("  --exec command ;               execute command\n"));
+	printf(_("  --exec-ignore-errors <yes|no>  don't stop if command exits with non-zero result\n"));
+	printf(_("  --order-by fields              fields to order search result by; see manpage\n"));
+	printf(_("  --max-depth levels             maximum search depth\n"));
+	printf(_("  --skip number                  number of files to skip\n"));
+	printf(_("  --limit number                 maximum number of files to process\n"));
+	printf(_("  -p, --print                    don't search files but print expression to stdout\n"));
+	printf(_("  --print-extensions             print a list of installed extensions\n"));
+	printf(_("  --print-blacklist              print blacklisted extensions\n"));
+	printf(_("  --log-level level              set the log level (0-6)\n"));
+	printf(_("  --log-color <yes|no>           enable/disable colored log messages\n"));
+	printf(_("  -v, --version                  print version and exit\n"));
+	printf(_("  -h, --help                     display this help and exit\n"));
 }
 
 static void
@@ -218,7 +221,7 @@ _file_cb(const char *path, void *user_data)
 	assert(arg->chain != NULL);
 	assert(arg->dir != NULL);
 
-	return processor_chain_write(arg->chain, arg->dir, path);
+	return processor_chain_write(arg->chain, arg->dir, path) != PROCESSOR_CHAIN_CONTINUE;
 }
 
 static bool
@@ -274,7 +277,7 @@ _search_dirs(const Options *opts, SearchOptions *sopts, Callback cb, ProcessorCh
 
 	if(success && arg.dir)
 	{
-		processor_chain_complete(chain, arg.dir);
+		success = processor_chain_complete(chain, arg.dir) == PROCESSOR_CHAIN_COMPLETED;
 	}
 
 	return success;
@@ -356,13 +359,46 @@ _prepend_print_processor(ProcessorChainBuilder *builder)
 			fprintf(stderr, _("Couldn't parse format string: %s\n"), opts->printf);
 		}
 	}
-	else
+	else if(slist_count(&opts->exec) == 0)
 	{
 		TRACE("action", "Prepending print processor.");
 
 		Processor *print = print_processor_new();
 
 		processor_chain_builder_try_prepend(builder, print);
+	}
+}
+
+static int32_t
+_get_exec_flags(const Options *opts)
+{
+	assert(opts != NULL);
+
+	return opts->exec_ignore_errors ? EXEC_FLAG_IGNORE_ERROR : EXEC_FLAG_NONE;
+}
+
+static void
+_prepend_exec_processors(ProcessorChainBuilder *builder)
+{
+	assert(builder != NULL);
+	assert(builder->user_data != NULL);
+
+	const Options *opts = (Options *)builder->user_data;
+	SListItem *item = slist_head(&opts->exec);
+	bool success = true;
+
+	while(item && success)
+	{
+		TRACE("action", "Prepending exec processor.");
+
+		ExecArgs *args = (ExecArgs *)slist_item_get_data(item);
+		int32_t flags = _get_exec_flags(opts);
+
+		Processor *processor = exec_processor_new(args, flags);
+
+		success = processor_chain_builder_try_prepend(builder, processor);
+
+		item = slist_item_next(item);
 	}
 }
 
@@ -376,6 +412,7 @@ _build_processor_chain(const Options *opts)
 	processor_chain_builder_init(&builder, opts);
 
 	processor_chain_builder_do(&builder,
+	                           _prepend_exec_processors,
 	                           _prepend_print_processor,
 	                           _prepend_limit_processor,
 	                           _prepend_skip_processor,
@@ -689,7 +726,9 @@ _options_init(Options *opts)
 	assert(opts != NULL);
 
 	memset(opts, 0, sizeof(Options));
-	slist_init(&opts->dirs, str_compare, &free, NULL);
+
+	slist_init(&opts->dirs, str_compare, free, NULL);
+	slist_init(&opts->exec, direct_compare, (FreeFunc)exec_args_destroy, NULL);
 
 	opts->flags = FLAG_STDIN;
 	opts->max_depth = -1;
@@ -704,6 +743,7 @@ _options_free(Options *opts)
 	assert(opts != NULL);
 
 	slist_free(&opts->dirs);
+	slist_free(&opts->exec);
 
 	if(opts->expr)
 	{

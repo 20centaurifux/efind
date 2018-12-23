@@ -101,6 +101,10 @@ _ini_handle_general_section(Options *opts, const char *name, const char *value)
 	{
 		utils_copy_string(value, &opts->printf);
 	}
+	else if(!strcmp(name, "exec-ignore-errors"))
+	{
+		utils_parse_bool(value, &opts->exec_ignore_errors);
+	}
 }
 
 static int

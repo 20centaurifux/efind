@@ -87,7 +87,7 @@ processor_close(Processor *processor, const char *dir)
 		}
 		else
 		{
-			processor->flags |= PROCESSOR_FLAGS_CLOSED;
+			processor->flags |= PROCESSOR_FLAG_CLOSED;
 		}
 	}
 }
@@ -105,33 +105,52 @@ processor_chain_prepend(ProcessorChain *chain, Processor *processor)
 	return item;
 }
 
-bool
+static ProcessorChainResult
+_processor_state_to_chain_result(const Processor *processor)
+{
+	ProcessorChainResult result = PROCESSOR_CHAIN_CONTINUE;
+
+	assert(processor != NULL);
+
+	if(processor_is_closed(processor))
+	{
+		result = PROCESSOR_CHAIN_COMPLETED;
+	}
+
+	if(processor_has_error(processor))
+	{
+		result = PROCESSOR_CHAIN_ERROR;
+	}
+
+	return result;
+}
+
+ProcessorChainResult
 processor_chain_write(ProcessorChain *chain, const char *dir, const char *path)
 {
-	bool completed = false;
+	ProcessorChainResult result = PROCESSOR_CHAIN_CONTINUE;
 
+	assert(dir != NULL);
 	assert(path != NULL);
 
-	TRACE("processor", "Writing to processor chain.");
+	TRACEF("processor", "Writing to processor chain: dir=%s, path=%s", dir, path);
 
 	if(chain)
 	{
 		Processor *head = chain->processor;
 
-		completed = processor_is_closed(head);
+		result = _processor_state_to_chain_result(head);
 
-		if(!completed)
+		if(result == PROCESSOR_CHAIN_CONTINUE)
 		{
 			processor_write(head, dir, path);
 
-			while(processor_is_readable(head))
+			while(processor_is_readable(head) && result == PROCESSOR_CHAIN_CONTINUE)
 			{
 				TRACE("processor", "Reading from processor.");
 
-				completed = processor_chain_write(chain->next, dir, processor_read(head));
+				result = processor_chain_write(chain->next, dir, processor_read(head));
 			}
-
-			completed |= processor_is_closed(head);
 		}
 	}
 	else
@@ -139,28 +158,39 @@ processor_chain_write(ProcessorChain *chain, const char *dir, const char *path)
 		TRACE("processor", "Chain is empty.");
 	}
 
-	return completed;
+	return result;
 }
 
-void
+ProcessorChainResult
 processor_chain_complete(ProcessorChain *chain, const char *dir)
 {
+	ProcessorChainResult result = PROCESSOR_CHAIN_COMPLETED;
+
+	assert(dir != NULL);
+
 	if(chain)
 	{
 		Processor *head = chain->processor;
 
-		bool completed = processor_is_closed(head);
+		result = _processor_state_to_chain_result(head);
 
-		if(!completed)
+		if(result == PROCESSOR_CHAIN_CONTINUE)
 		{
 			processor_close(head, dir);
 
-			while(processor_is_readable(head))
+			while(processor_is_readable(head) && result != PROCESSOR_CHAIN_COMPLETED)
 			{
-				processor_chain_write(chain->next, dir, processor_read(head));
+				result = processor_chain_write(chain->next, dir, processor_read(head));
+			}
+
+			if(result == PROCESSOR_CHAIN_CONTINUE)
+			{
+				result = PROCESSOR_CHAIN_COMPLETED;
 			}
 		}
 	}
+
+	return result;
 }
 
 void processor_chain_destroy(ProcessorChain *chain)

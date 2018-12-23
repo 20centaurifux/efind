@@ -126,10 +126,26 @@ utils_copy_string(const char *src, char **dst)
 
 	if(*dst)
 	{
-		free(*dst);
-	}
+		size_t old_len = strlen(*dst);
+		size_t new_len = strlen(src);
 
-	*dst = utils_strdup(src);
+		if(new_len == SIZE_MAX)
+		{
+			fprintf(stderr, _("Couldn't allocate memory.\n"));
+			abort();
+		}
+
+		if(new_len > old_len)
+		{
+			*dst = utils_realloc(*dst, sizeof(char *) * (new_len + 1));
+		}
+
+		strcpy(*dst, src);
+	}
+	else
+	{
+		*dst = utils_strdup(src);
+	}
 }
 
 size_t

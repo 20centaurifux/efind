@@ -37,7 +37,7 @@ all:
 	$(MAKE) -C ./datatypes
 	$(FLEX) lexer.l
 	$(BISON) parser.y
-	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./processor.c ./range.c ./print.c ./sort.c ./gettext.c ./log.c ./options_getopt.c ./options_ini.c ./inih/ini.c ./parser.y.c ./lexer.l.c ./format-fields.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c ./pathbuilder.c -o ./efind $(LDFLAGS) $(LIBS)
+	$(CC) -DLOCALEDIR=\"$(LOCALEDIR)\" $(CFLAGS) $(INC) ./main.c ./processor.c ./range.c ./print.c ./exec.c ./sort.c ./gettext.c ./log.c ./options_getopt.c ./options_ini.c ./inih/ini.c ./exec-args.c ./parser.y.c ./lexer.l.c ./format-fields.c ./format-lexer.c ./format-parser.c ./format.c ./utils.c ./fs.c ./fileinfo.c ./filelist.c ./linux.c ./ast.c ./translate.c ./eval.c ./search.c ./extension.c ./dl-ext-backend.c ./py-ext-backend.c ./blacklist.c ./pathbuilder.c -o ./efind $(LDFLAGS) $(LIBS)
 	$(MAKE) -C ./po
 
 install:

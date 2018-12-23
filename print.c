@@ -40,7 +40,7 @@ _print_processor_read(Processor *processor)
 {
 	assert(processor != NULL);
 
-	processor->flags &= ~PROCESSOR_FLAGS_READABLE;
+	processor->flags &= ~PROCESSOR_FLAG_READABLE;
 
 	return ((PrintProcessor *)processor)->path;
 }
@@ -56,7 +56,7 @@ _print_processor_write(Processor *processor, const char *dir, const char *path)
 
 	printf("%s\n", path);
 
-	processor->flags |= PROCESSOR_FLAGS_READABLE;
+	processor->flags |= PROCESSOR_FLAG_READABLE;
 	print->path = path;
 }
 
@@ -88,7 +88,7 @@ _print_format_processor_read(Processor *processor)
 {
 	assert(processor != NULL);
 
-	processor->flags &= ~PROCESSOR_FLAGS_READABLE;
+	processor->flags &= ~PROCESSOR_FLAG_READABLE;
 
 	return ((FormatProcessor *)processor)->path;
 }
@@ -104,7 +104,7 @@ _print_format_processor_write(Processor *processor, const char *dir, const char 
 
 	format_write(print->format, dir, path, stdout);
 
-	processor->flags |= PROCESSOR_FLAGS_READABLE;
+	processor->flags |= PROCESSOR_FLAG_READABLE;
 	print->path = path;
 }
 

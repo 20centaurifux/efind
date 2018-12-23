@@ -1533,6 +1533,99 @@ class TestOptionOrder(unittest.TestCase):
         assert("DEBUG" not in b)
         assert("INFO" in b)
 
+class TestExec(unittest.TestCase):
+    def test_single_exec(self):
+        returncode, output = run_executable_and_split_output("efind", ['./test-data', 'type=file',
+                                                                       '--exec', 'bash', '-c', 'echo %{path} | rev', ';',
+                                                                       '--printf', '%p\n'])
+
+        assert(returncode == 0)
+
+        total = len(output)
+        file_count = int(total / 2)
+
+        for i in range(file_count):
+            text = output.pop()
+            output.remove(text[::-1])
+
+            assert(len(output) == total - ((i + 1) * 2))
+
+    def test_multiple_execs(self):
+        returncode, output = run_executable_and_split_output("efind", ['./test-data', 'type=file',
+                                                                       '--exec', 'stat', '%{path}', '--printf', 'size %%n,%%s\n', ';',
+                                                                       '--exec', 'stat', '%{path}', '--printf', 'inode %%n,%%i\n', ';',
+                                                                       '--printf', 'inode,size %{path},%{bytes},%{inode}\n'])
+        assert(returncode == 0)
+
+        printf_result = filter(lambda m: m is not None, map(lambda l: re.match(r"inode,size (.+),(\d+),(\d+)", l) , output))
+
+        for m in printf_result:
+            path, bytes, inode = m.group(1), int(m.group(2)), int(m.group(3))
+
+            stat_bytes = list(filter(lambda l: l.startswith("size %s" % path), output))[0]
+            stat_bytes = (int(stat_bytes.split(",")[1]))
+
+            stat_inode = list(filter(lambda l: l.startswith("inode %s" % path), output))[0]
+            stat_inode = (int(stat_inode.split(",")[1]))
+
+            assert(bytes == stat_bytes)
+            assert(inode == stat_inode)
+
+    def test_without_print(self):
+        returncode, output = run_executable_and_split_output("efind", ['./test-data', 'type=file',
+                                                                       '--exec', 'echo', '%p', ';'])
+
+        assert(returncode == 0)
+        assert(len(output) == len(set(output)))
+
+    def test_without_sentinel(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'echo', '%f'])
+
+        assert(returncode != 0)
+
+    def test_without_args(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', ';'])
+
+        assert(returncode != 0)
+
+    def test_invalid_format_string(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'echo', '%%{%s}' % random_string(), ';'])
+
+        assert(returncode != 0)
+
+    def test_invalid_command(self):
+        returncode, x = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';'])
+
+        assert(returncode != 0)
+
+        returncode, x = run_executable("efind", ['./test-data', 'type=file',
+                                                 '--exec', 'echo', '%f', ';',
+                                                 '--exec', random_string(), ';'])
+
+        assert(returncode != 0)
+
+    def test_ignore_invalid_command(self):
+        returncode, x = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';', '--exec-ignore-errors'])
+
+        assert(returncode == 0)
+
+    def test_failed_exit_status(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'ls', '-%s' % random_string(), '%{filename}', ';'])
+
+        assert(returncode != 0)
+
+
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file',
+                                                 '--exec', 'echo', '%f', ';',
+                                                 '--exec', 'ls', '-%s' % random_string(), '%{filename}', ';'])
+
+        assert(returncode != 0)
+
+    def test_ignore_failed_exit_status(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'ls', '-%s' % random_string(), '%{filename}', ';', '--exec-ignore-errors'])
+
+        assert(returncode == 0)
+
 def get_test_cases():
     mod = sys.modules[__name__]
 
