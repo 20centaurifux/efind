@@ -72,6 +72,7 @@ fs_map_load(void)
 					FATAL("misc", "Integer overflow.");
 
 					fprintf(stderr, _("Couldn't allocate memory.\n"));
+
 					abort();
 				}
 

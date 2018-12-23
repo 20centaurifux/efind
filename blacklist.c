@@ -23,17 +23,19 @@
 #define _GNU_SOURCE
 /*! @endcond */
 
-#include "blacklist.h"
-#include "log.h"
-#include "utils.h"
-#include "pathbuilder.h"
-
 #include <stdio.h>
 #include <glob.h>
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
 #include <stdint.h>
+#include <stdio.h>
+
+#include "blacklist.h"
+#include "log.h"
+#include "utils.h"
+#include "pathbuilder.h"
+#include "gettext.h"
 
 Blacklist *
 blacklist_new(void)
@@ -126,6 +128,9 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 				else
 				{
 					WARNING("blacklist", "Integer overflow.");
+
+					fprintf(stderr, _("Couldn't allocate memory.\n"));
+
 					count = SIZE_MAX;
 				}
 			}

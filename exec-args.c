@@ -19,13 +19,14 @@
    @brief List of --exec arguments.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "exec-args.h"
 #include "utils.h"
 #include "log.h"
+#include "gettext.h"
 
 ExecArgs *
 exec_args_new(void)
@@ -75,12 +76,15 @@ _exec_args_resize_if_necessary(ExecArgs *args)
 		if(args->size > SIZE_MAX / 2)
 		{
 			ERROR("misc", "Integer overflow.");
+
+			fprintf(stderr, _("Couldn't allocate memory.\n"));
+
 			success = false;
 		}
 		else
 		{
 			args->size *= 2;
-			args->argv = (char **)realloc(args->argv, sizeof(char **) * args->size);
+			args->argv = (char **)utils_realloc_n(args->argv, sizeof(char **), args->size);
 		}
 	}
 

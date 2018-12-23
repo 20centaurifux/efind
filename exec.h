@@ -19,7 +19,6 @@
    @brief Executes shell commands.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #ifndef EXEC_H
 #define EXEC_H
 

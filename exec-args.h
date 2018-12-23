@@ -19,7 +19,6 @@
    @brief List of --exec arguments.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #ifndef EXEC_ARGS_H
 #define EXEC_ARGS_H
 

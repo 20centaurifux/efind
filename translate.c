@@ -85,6 +85,7 @@ _translation_ctx_append_arg(TranslationCtx *ctx, const char *arg)
 			if(new_size < ctx->msize)
 			{
 				FATAL("translate", "Overflow in ctx->msize calculation.");
+				fprintf(stderr, _("Couldn't allocate memory.\n"));
 				return false;
 			}
 		} while(new_size <= ctx->argc);

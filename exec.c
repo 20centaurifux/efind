@@ -353,6 +353,8 @@ exec_processor_new(const ExecArgs *args, int32_t flags)
 	else
 	{
 		WARNING("exec", "Integer overflow.");
+
+		fprintf(stderr, _("Couldn't allocate memory.\n"));
 	}
 
 	return processor;
