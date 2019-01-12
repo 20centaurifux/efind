@@ -19,7 +19,6 @@
    @brief Format and print file attributes.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-#include <alloca.h>
 #include <math.h>
 #include <assert.h>
 
