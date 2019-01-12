@@ -19,7 +19,6 @@
    @brief Execute shell commands.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -78,9 +77,17 @@ _exec_build_argv(ExecProcessor *processor)
 	{
 		TRACEF("exec", "Appending argument: `%s'", processor->args->argv[i]);
 
-		fseek(processor->fp, 0, SEEK_SET);
+		if(fseek(processor->fp, 0, SEEK_SET))
+		{
+			success = false;
 
-		success = format_write(processor->formats[i], processor->dir, processor->path, processor->fp);
+			ERROR("exec", "fseek() failed.");
+			perror("fflush()");
+		}
+		else
+		{
+			success = format_write(processor->formats[i], processor->dir, processor->path, processor->fp);
+		}
 
 		if(success)
 		{
@@ -333,7 +340,7 @@ exec_processor_new(const ExecArgs *args, int32_t flags)
 
 			exec->flags = flags;
 			exec->args = args;
-			exec->argv = utils_new(args->argc + 2, char *);
+			exec->argv = utils_new(args->argc + 2, char *); // path + arguments + NULL
 			exec->formats = formats;
 
 			exec->fp = open_memstream(&exec->buffer, &exec->buffer_len);
@@ -353,7 +360,6 @@ exec_processor_new(const ExecArgs *args, int32_t flags)
 	else
 	{
 		WARNING("exec", "Integer overflow.");
-
 		fprintf(stderr, _("Couldn't allocate memory.\n"));
 	}
 
