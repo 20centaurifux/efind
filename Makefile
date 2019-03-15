@@ -17,18 +17,19 @@ BISON?=bison
 DOXYGEN?=doxygen
 CPPCHECK?=cppcheck
 CTAGS?=ctags
+PKG_CONFIG?=pkg-config
 
-LIBFFI_CFLAGS=`pkg-config --cflags libffi`
-LIBFFI_LDFLAGS=`pkg-config --libs libffi`
+LIBFFI_CFLAGS=`$(PKG_CONFIG) --cflags libffi`
+LIBFFI_LDFLAGS=`$(PKG_CONFIG) --libs libffi`
 
-PYTHON_CFLAGS?=-DWITH_PYTHON `pkg-config python3 --cflags` $(LIBFFI_CFLAGS)
-PYTHON_LDFLAGS?=`pkg-config python3 --libs` $(LIBFFI_LDFLAGS)
+PYTHON_CFLAGS?=-DWITH_PYTHON `$(PKG_CONFIG) python3 --cflags` $(LIBFFI_CFLAGS)
+PYTHON_LDFLAGS?=`$(PKG_CONFIG) python3 --libs` $(LIBFFI_LDFLAGS)
 
 INIH_CFLAGS?=-DINI_USE_STACK=0 -I"$(PWD)/inih"
 
 CC?=gcc
-CFLAGS=$(PYTHON_CFLAGS) $(INIH_CFLAGS) -Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE -DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" 
-LDFLAGS=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.3.1.a -lm
+override CFLAGS+=$(PYTHON_CFLAGS) $(INIH_CFLAGS) -Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE -DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" 
+override LDFLAGS+=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.3.1.a -lm
 INC=-I"$(PWD)/datatypes"
 
 VERSION=0.5.2
