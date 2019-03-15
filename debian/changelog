@@ -1,3 +1,9 @@
+efind (0.5-2) unstable; urgency=low
+  * FIX: handle invalid encoded EFIND_EXTENSION_PATH environment variable properly
+  * CHANGE: switched to libdatatypes v0.3.2
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Thu, 15 Mar 2019 18:44:41 +0100
+
 efind (0.5-1) unstable; urgency=low
   * FIX: handle Python string arguments with invalid encoding
   * FIX: import Python functions without additional arguments

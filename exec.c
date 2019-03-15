@@ -116,7 +116,7 @@ _exec_build_argv(ExecProcessor *processor)
 		}
 		else
 		{
-			fprintf(stderr, _("Couldn't write format string at position %ld.\n"), i + 2);
+			fprintf(stderr, _("Couldn't write format string at position %zu.\n"), i + 2);
 		}
 	}
 
@@ -300,7 +300,7 @@ _exec_processor_parse_args(const ExecArgs *args, FormatParserResult ***formats)
 
 		if(!success)
 		{
-			fprintf(stderr, _("Couldn't parse --exec argument at position %ld.\n"), tail + 1);
+			fprintf(stderr, _("Couldn't parse --exec argument at position %zu.\n"), tail + 1);
 
 			for(size_t i = 0; i < tail; ++i)
 			{
