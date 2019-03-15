@@ -29,7 +29,7 @@ INIH_CFLAGS?=-DINI_USE_STACK=0 -I"$(PWD)/inih"
 
 CC?=gcc
 override CFLAGS+=$(PYTHON_CFLAGS) $(INIH_CFLAGS) -Wall -Wextra -Wno-unused-parameter -std=gnu99 -O2 -D_LARGEFILE64_SOURCE -DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" 
-override LDFLAGS+=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes-0.3.1.a -lm
+override LDFLAGS+=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes.a.0.3.2 -lm
 INC=-I"$(PWD)/datatypes"
 
 VERSION=0.5.2
