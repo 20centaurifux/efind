@@ -247,7 +247,3 @@ expression finds all documents in the current folder with a file size less or eq
 * **efind's** printf format supports user-friendly field names like "{path}" or "{group}".
 * When printing an undefined escape sequence (e.g. "\P") only the character following the
   backslash is printed.
-
-## Planned features
-
-* --exec option
