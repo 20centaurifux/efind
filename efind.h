@@ -37,7 +37,7 @@
 /*! Project website. */
 #define EFIND_WEBSITE           "http://efind.dixieflatline.de"
 /*! Copyright date. */
-#define EFIND_COPYRIGHT_DATE    "2017-2018"
+#define EFIND_COPYRIGHT_DATE    "2017-2019"
 /*! License name. */
 #define EFIND_LICENSE_NAME      "GPLv3"
 /*! URL to license text. */
