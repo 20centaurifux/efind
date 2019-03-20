@@ -141,6 +141,22 @@ _get_opt_copy_argv(int argc, char *argv[], int offset)
 static Action
 _get_opt(int argc, char *argv[], int offset, Options *opts)
 {
+	enum
+	{
+		NONE,
+		MAX_DEPTH,
+		SKIP,
+		LIMIT,
+		REGEX_TYPE,
+		PRINTF,
+		EXEC_IGNORE_ERRORS,
+		ORDER_BY,
+		PRINT_EXTENSIONS,
+		PRINT_BLACKLIST,
+		LOG_LEVEL,
+		LOG_COLOR
+	};
+
 	static struct option long_options[] =
 	{
 		{ "expr", required_argument, 0, 'e' },
@@ -148,17 +164,17 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		{ "dir", required_argument, 0, 'd' },
 		{ "print", no_argument, 0, 'p' },
 		{ "follow", optional_argument, 0, 'L' },
-		{ "max-depth", required_argument, 0, 0 },
-		{ "skip", required_argument, 0, 0 },
-		{ "limit", required_argument, 0, 0 },
-		{ "regex-type", required_argument, 0, 0 },
-		{ "printf", required_argument, 0, 0 },
-		{ "exec-ignore-errors", optional_argument, 0, 0 },
-		{ "order-by", required_argument, 0, 0 },
-		{ "print-extensions", no_argument, 0, 0 },
-		{ "print-blacklist", no_argument, 0, 0 },
-		{ "log-level", required_argument, 0, 0 },
-		{ "log-color", required_argument, 0, 0 },
+		{ "max-depth", required_argument, 0, MAX_DEPTH },
+		{ "skip", required_argument, 0, SKIP },
+		{ "limit", required_argument, 0, LIMIT },
+		{ "regex-type", required_argument, 0, REGEX_TYPE },
+		{ "printf", required_argument, 0, PRINTF },
+		{ "exec-ignore-errors", optional_argument, 0, EXEC_IGNORE_ERRORS },
+		{ "order-by", required_argument, 0, ORDER_BY },
+		{ "print-extensions", no_argument, 0, PRINT_EXTENSIONS },
+		{ "print-blacklist", no_argument, 0, PRINT_BLACKLIST },
+		{ "log-level", required_argument, 0, LOG_LEVEL },
+		{ "log-color", optional_argument, 0, LOG_COLOR },
 		{ "version", no_argument, 0, 'v' },
 		{ "help", no_argument, 0, 'h' },
 		{ 0, 0, 0, 0 }
@@ -239,63 +255,64 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				}
 				break;
 
-			case 0:
-				if(!strcmp(long_options[index].name, "log-level") && optarg)
-				{
-					opts->log_level = atoi(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "log-color"))
-				{
-					if(!utils_parse_bool(optarg, &opts->log_color))
-					{
-						fprintf(stderr, _("Argument of option `%s' is malformed.\n"), "log-color");
-					}
-				}
-				else if(!strcmp(long_options[index].name, "max-depth") && optarg)
-				{
-					opts->max_depth = atoi(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "print-extensions"))
-				{
-					action = ACTION_PRINT_EXTENSIONS;
-				}
-				else if(!strcmp(long_options[index].name, "print-blacklist"))
-				{
-					action = ACTION_PRINT_BLACKLIST;
-				}
-				else if(!strcmp(long_options[index].name, "exec-ignore-errors"))
-				{
-					if(optarg == NULL)
-					{
-						opts->exec_ignore_errors = true;
-					}
-					else if(!utils_parse_bool(optarg, &opts->exec_ignore_errors))
-					{
-						fprintf(stderr, _("Argument of option `%s' is malformed.\n"), "exec-ignore-errors");
-						action = ACTION_ABORT;
-					}
-				}
-				else if(!strcmp(long_options[index].name, "regex-type"))
-				{
-					utils_copy_string(optarg, &opts->regex_type);
-				}
-				else if(!strcmp(long_options[index].name, "printf"))
-				{
-					utils_copy_string(optarg, &opts->printf);
-				}
-				else if(!strcmp(long_options[index].name, "order-by"))
-				{
-					utils_copy_string(optarg, &opts->orderby);
-				}
-				else if(!strcmp(long_options[index].name, "skip") && optarg)
-				{
-					opts->skip = atoi(optarg);
-				}
-				else if(!strcmp(long_options[index].name, "limit") && optarg)
-				{
-					opts->limit = atoi(optarg);
-				}
+			case LOG_LEVEL:
+				opts->log_level = atoi(optarg);
+				break;
 
+			case LOG_COLOR:
+				if(optarg == NULL)
+				{
+					opts->log_color = true;
+				}
+				else if(!utils_parse_bool(optarg, &opts->log_color))
+				{
+					fprintf(stderr, _("Argument of option `%s' is malformed.\n"), "log-color");
+					action = ACTION_ABORT;
+				}
+				break;
+
+			case MAX_DEPTH:
+				opts->max_depth = atoi(optarg);
+				break;
+
+			case PRINT_EXTENSIONS:
+				action = ACTION_PRINT_EXTENSIONS;
+				break;
+
+			case PRINT_BLACKLIST:
+				action = ACTION_PRINT_BLACKLIST;
+				break;
+
+			case EXEC_IGNORE_ERRORS:
+				if(optarg == NULL)
+				{
+					opts->exec_ignore_errors = true;
+				}
+				else if(!utils_parse_bool(optarg, &opts->exec_ignore_errors))
+				{
+					fprintf(stderr, _("Argument of option `%s' is malformed.\n"), "exec-ignore-errors");
+					action = ACTION_ABORT;
+				}
+				break;
+
+			case REGEX_TYPE:
+				utils_copy_string(optarg, &opts->regex_type);
+				break;
+
+			case PRINTF:
+				utils_copy_string(optarg, &opts->printf);
+				break;
+
+			case ORDER_BY:
+				utils_copy_string(optarg, &opts->orderby);
+				break;
+
+			case SKIP:
+				opts->skip = atoi(optarg);
+				break;
+
+			case LIMIT:
+				opts->limit = atoi(optarg);
 				break;
 
 			default:
