@@ -281,6 +281,32 @@ file_info_get(FileInfo *info, const char *cli, bool dup_cli, const char *path)
 	return success;
 }
 
+static char *
+_file_info_extension(const char *filename)
+{
+	assert(filename != NULL);
+
+	const char *name = basename(filename);
+
+	return strrchr(name, '.');
+}
+
+static char *
+_file_info_name_without_extension(const char *filename)
+{
+	assert(filename != NULL);
+
+	char *name = utils_strdup(basename(filename));
+	char *ptr = strrchr(name, '.');
+
+	if(ptr)
+	{
+		*ptr = '\0';
+	}
+
+	return name;
+}
+
 bool
 file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 {
@@ -444,6 +470,21 @@ file_info_get_attr(FileInfo *info, FileAttr *attr, char field)
 		case 'M': /* File's permissions (in symbolic form, as for ls). */
 			attr->flags = FILE_ATTR_FLAG_STRING | FILE_ATTR_FLAG_HEAP;
 			attr->value.str = _file_info_permissions(info->sb.st_mode);
+			break;
+
+		case 'X': /* File's extension. */
+			attr->flags = FILE_ATTR_FLAG_STRING;
+			attr->value.str = _file_info_extension(info->path);
+
+			if(!attr->value.str)
+			{
+				attr->value.str = (char *)empty;
+			}
+			break;
+
+		case 'N': /* File's name without extension. */
+			attr->flags = FILE_ATTR_FLAG_STRING | FILE_ATTR_FLAG_HEAP;
+			attr->value.str = _file_info_name_without_extension(info->path);
 			break;
 
 		default:

@@ -48,7 +48,7 @@ typedef enum
 	FORMAT_LEXER_RESULT_FINISHED
 } FormatLexerStepResult;
 
-#define ATTRIBUTES      "bfgGhiklmMnpsSuUyYpPHFDact"
+#define ATTRIBUTES      "bfgGhiklmMnpsSuUyYpPHFDactXN"
 #define DATE_ATTRIBUTES "ACT"
 #define TIME_FIELDS     "HIklMprST+XZ"
 #define DATE_FIELDS     "aAbBcdDhjmUwWxyY"
