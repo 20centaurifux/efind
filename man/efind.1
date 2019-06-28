@@ -159,6 +159,8 @@ File's permissions (in symbolic form, as for
 .BR ls ).
 .IP "%n, %{hardlinks}"
 Number of hard links to file.
+.IP "%N, %{name}"
+File's name with any leading directories and extension removed.
 .IP "%p, %{path}"
 File's name.
 .IP %P
@@ -178,6 +180,8 @@ File's last modification time in seconds since Jan. 1, 1970, 00:00 GMT.
 File's user name, or numeric user ID if the user has no name.
 .IP "%U, %{uid}"
 File's numeric user ID.
+.IP "%X, %{extension}"
+File extension.
 .RE
 .IP "\fB\-\-exec\fR=\fIcommand\fR ;"
 Execute command. All following arguments to \fBefind\fR are taken to be arguments
