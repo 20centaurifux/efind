@@ -924,7 +924,7 @@ class Printf(unittest.TestCase):
     def test_text_attributes(self):
         for attr in ["f", "{filename}", "F", "{filesystem}", "g", "{group}", "h", "{directory}",
                      "H", "{starting-point}", "l", "{link}", "M", "{permissions}", "p", "{path}",
-                     "P", "u", "{username}"]:
+                     "P", "u", "{username}", "N", "{name}", "X", "{extension}"]:
             self.__test_width_and_alignment(attr)
 
     def test_numeric_attributes(self):
@@ -1011,7 +1011,35 @@ class Printf(unittest.TestCase):
             assert(returncode == 0)
             assert_sequence_equality(output, [a, ""])
 
-    def test_percent(self):
+    def test_extension(self):
+        args = ["./test-data", "type=file or type=dir", "--printf", "'%f' '%X'\n"]
+
+        returncode, output = run_executable_and_split_output("efind", args)
+
+        assert(returncode == 0)
+
+        for l in output:
+            m = re.match(r"'([^']+)' '([\w\d\.]*)'", l)
+
+            _, extension = os.path.splitext(m.group(1))
+
+            assert(extension == m.group(2))
+
+    def test_without_extension(self):
+        args = ["./test-data", "type=file or type=dir", "--printf", "'%f' '%N'\n"]
+
+        returncode, output = run_executable_and_split_output("efind", args)
+
+        assert(returncode == 0)
+
+        for l in output:
+            m = re.match(r"'([^']+)' '([^']+)'", l)
+
+            filename, _ = os.path.splitext(m.group(1))
+
+            assert(filename == m.group(2))
+
+    def _test_percent(self):
         args = ["./test-data", "type=file", "--printf", "%%%%%s%%%%\n" % random_string()]
 
         returncode, output = run_executable_and_split_output("efind", args)
@@ -1022,7 +1050,7 @@ class Printf(unittest.TestCase):
             assert(l.startswith("%"))
             assert(l.endswith("%"))
 
-    def test_invalid_args(self):
+    def _test_invalid_args(self):
         for fmt in ["%%p %%{%s}" % random_string(), "path: %{path", "%s%%" % random_string()]:
             returncode, _ = run_executable("efind", ["./test-data", "type=file", "--printf", fmt])
 
