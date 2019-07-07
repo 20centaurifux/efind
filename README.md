@@ -38,6 +38,13 @@ found files by size (descending) and path (ascending):
 The example above prints the first file matching the search criteria and
 aborts the search immediately.
 
+**efind's** --printf option supports user-friendly field names. Furthermore,
+--exec arguments are interpreted as format strings. The example below converts
+MP3 and Ogg Vorbis files to WAV using [SoX](http://sox.sourceforge.net/):
+
+	$ efind ~/music '(name="*.mp3" or name="*.ogg")'
+	  --exec sox "%{filename}" "%{name}.wav" \;
+
 ## General Usage
 
 Running **efind** without any argument the search expression is read from
