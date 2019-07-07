@@ -1,3 +1,9 @@
+efind (0.5-3) unstable; urgency=low
+  * FEATURE: new format fields (X & N)
+  * CHANGE: upgraded inih
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sun, 7 Jul 2019 12:51:20 +0100
+
 efind (0.5-2) unstable; urgency=low
   * FIX: handle invalid encoded EFIND_EXTENSION_PATH environment variable properly
   * CHANGE: switched to libdatatypes v0.3.2

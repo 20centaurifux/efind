@@ -1,11 +1,11 @@
 # efind translation
-# Copyright (C) 2017-2018, Sebastian Fedrau
+# Copyright (C) 2017-2019, Sebastian Fedrau
 # This file is distributed under the same license as efind.
 # Sebastian Fedrau <sebastian.fedrau@gmail.com>, 2017.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: efind v0.5.2\n"
+"Project-Id-Version: efind v0.5.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-12-23 21:04+0100\n"
 "PO-Revision-Date: 2017-08-08 17:16+0200\n"
