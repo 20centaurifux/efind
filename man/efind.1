@@ -414,7 +414,7 @@ specified limit argument and no --order-by option is set.
 
 Find files ending with .py and print their contents to stdout:
 
-.B efind . 'name="*.py"' --exec cat %{path} \;
+.B efind . 'name="*.py"' --exec cat %{path} \\\;
 
 .SH EXIT STATUS
 .B \fBefind\fR exits with status 0 if all files are processed successfully.

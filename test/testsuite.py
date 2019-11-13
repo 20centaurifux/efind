@@ -1622,18 +1622,18 @@ class TestExec(unittest.TestCase):
         assert(returncode != 0)
 
     def test_invalid_command(self):
-        returncode, x = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';'])
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';'])
 
         assert(returncode != 0)
 
-        returncode, x = run_executable("efind", ['./test-data', 'type=file',
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file',
                                                  '--exec', 'echo', '%f', ';',
                                                  '--exec', random_string(), ';'])
 
         assert(returncode != 0)
 
     def test_ignore_invalid_command(self):
-        returncode, x = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';', '--exec-ignore-errors'])
+        returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', random_string(), ';', '--exec-ignore-errors'])
 
         assert(returncode == 0)
 
@@ -1653,6 +1653,36 @@ class TestExec(unittest.TestCase):
         returncode, _ = run_executable("efind", ['./test-data', 'type=file', '--exec', 'ls', '-%s' % random_string(), '%{filename}', ';', '--exec-ignore-errors'])
 
         assert(returncode == 0)
+
+class TestQuoteCharacters(unittest.TestCase):
+    def test_single_quote(self):
+        returncode, _ = run_executable("efind", ['./test-data', "name='*.txt'"])
+
+        assert(returncode == 0)
+
+    def test_escape_single_quote(self):
+        returncode, _ = run_executable("efind", ['./test-data', "name='*\\'.txt'"])
+
+        assert(returncode == 0)
+
+    def test_double_quote(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'name="*.txt"'])
+
+        assert(returncode == 0)
+
+    def test_escape_double_quote(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'name="*\\".txt"'])
+
+        assert(returncode == 0)
+
+    def test_invalid_close_character(self):
+        returncode, _ = run_executable("efind", ['./test-data', 'name="*.txt\''])
+
+        assert(returncode != 0)
+
+        returncode, _ = run_executable("efind", ['./test-data', "name='*.txt\""])
+
+        assert(returncode != 0)
 
 def get_test_cases():
     mod = sys.modules[__name__]

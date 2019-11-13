@@ -44,56 +44,59 @@ _memorize_string(SList *pool, char *str)
 }
 %}
 
-NUMBER			[-]?[0-9]+
-LPAREN			"("
-RPAREN			")"
-OPERATOR		or|and
-NOT_OPERATOR		not
-PROPERTY		name|iname|atime|ctime|mtime|size|group|gid|user|uid|type|regex|iregex|filesystem|fs
-FLAG			readable|writable|executable|empty
-INTERVAL		hours|hour|h|minutes|minute|m|days|day|d
-UNIT			b|bytes|byte|k|kb|kilobytes|kilobyte|M|mb|megabytes|megabyte|G|gb|gigabytes|gigabyte
-TYPE			file|dir|directory|block|character|pipe|link|socket
-FN_NAME			[a-zA-Z_]++[a-zA-Z0-9_]+
-COMMA			","
+NUMBER       [-]?[0-9]+
+LPAREN       "("
+RPAREN       ")"
+OPERATOR     or|and
+NOT_OPERATOR not
+PROPERTY     name|iname|atime|ctime|mtime|size|group|gid|user|uid|type|regex|iregex|filesystem|fs
+FLAG         readable|writable|executable|empty
+INTERVAL     hours|hour|h|minutes|minute|m|days|day|d
+UNIT         b|bytes|byte|k|kb|kilobytes|kilobyte|M|mb|megabytes|megabyte|G|gb|gigabytes|gigabyte
+TYPE         file|dir|directory|block|character|pipe|link|socket
+FN_NAME      [a-zA-Z_]++[a-zA-Z0-9_]+
+COMMA        ","
 
 %x STRING
 
 %%
-\n			yyextra->column = 1; yyextra->lineno++;
-[ \r\t]*		/* ignore whitespace */
-{NUMBER}		{ yylval->ivalue = atoi(yytext); return TOKEN_NUMBER; }
-{LPAREN}		{ return TOKEN_LPAREN; }
-{RPAREN}		{ return TOKEN_RPAREN; }
-\<=			{ yylval->ivalue = CMP_LT_EQ; return TOKEN_CMP; }
-\>=			{ yylval->ivalue = CMP_GT_EQ; return TOKEN_CMP; }
-=			{ yylval->ivalue = CMP_EQ; return TOKEN_CMP; }
-\>			{ yylval->ivalue = CMP_GT; return TOKEN_CMP; }
-\<			{ yylval->ivalue = CMP_LT; return TOKEN_CMP; }
-{OPERATOR}		{ yylval->ivalue = ast_str_to_operator(yytext); return TOKEN_OPERATOR; }
-{NOT_OPERATOR}		{ return TOKEN_NOT_OPERATOR; }
-{PROPERTY}		{ yylval->ivalue = ast_str_to_property_id(yytext); return TOKEN_PROPERTY; }
-{FLAG}			{ yylval->ivalue = ast_str_to_flag(yytext); return TOKEN_FLAG; }
-{INTERVAL}		{ yylval->ivalue = ast_str_to_interval(yytext); return TOKEN_INTERVAL; }
-{UNIT}			{ yylval->ivalue = ast_str_to_unit(yytext); return TOKEN_UNIT; }
-{TYPE}			{ yylval->ivalue = ast_str_to_type(yytext); return TOKEN_TYPE; }
-{FN_NAME}		{ yylval->svalue = _memorize_string(&yyextra->strings, strdup(yytext)); return TOKEN_FN_NAME; }
-{COMMA}			{ return TOKEN_COMMA; }
-\"                      { BEGIN STRING; buffer_clear(&(yyextra->buffer)); }
-.			{ return 1; }
+\n             yyextra->column = 1; yyextra->lineno++;
+[ \r\t]*       /* ignore whitespace */
+{NUMBER}       { yylval->ivalue = atoi(yytext); return TOKEN_NUMBER; }
+{LPAREN}       { return TOKEN_LPAREN; }
+{RPAREN}       { return TOKEN_RPAREN; }
+\<=            { yylval->ivalue = CMP_LT_EQ; return TOKEN_CMP; }
+\>=            { yylval->ivalue = CMP_GT_EQ; return TOKEN_CMP; }
+=              { yylval->ivalue = CMP_EQ; return TOKEN_CMP; }
+\>             { yylval->ivalue = CMP_GT; return TOKEN_CMP; }
+\<             { yylval->ivalue = CMP_LT; return TOKEN_CMP; }
+{OPERATOR}     { yylval->ivalue = ast_str_to_operator(yytext); return TOKEN_OPERATOR; }
+{NOT_OPERATOR} { return TOKEN_NOT_OPERATOR; }
+{PROPERTY}     { yylval->ivalue = ast_str_to_property_id(yytext); return TOKEN_PROPERTY; }
+{FLAG}         { yylval->ivalue = ast_str_to_flag(yytext); return TOKEN_FLAG; }
+{INTERVAL}     { yylval->ivalue = ast_str_to_interval(yytext); return TOKEN_INTERVAL; }
+{UNIT}         { yylval->ivalue = ast_str_to_unit(yytext); return TOKEN_UNIT; }
+{TYPE}         { yylval->ivalue = ast_str_to_type(yytext); return TOKEN_TYPE; }
+{FN_NAME}      { yylval->svalue = _memorize_string(&yyextra->strings, strdup(yytext)); return TOKEN_FN_NAME; }
+{COMMA}        { return TOKEN_COMMA; }
+\"             { BEGIN STRING; yyextra->quote = '\"'; buffer_clear(&(yyextra->buffer)); }
+'              { BEGIN STRING; yyextra->quote = '\''; buffer_clear(&(yyextra->buffer)); }
+.              { return 1; }
 
-<STRING>\" {
-	if(buffer_is_valid(&(yyextra->buffer)))
+<STRING>\"|' {
+	if(*yytext == yyextra->quote)
 	{
-		yylval->svalue = _memorize_string(&yyextra->strings, buffer_to_string(&(yyextra->buffer))); BEGIN INITIAL; return TOKEN_STRING;
+		yylval->svalue = _memorize_string(&yyextra->strings, buffer_to_string(&(yyextra->buffer)));
+
+		BEGIN INITIAL;
+
+		return TOKEN_STRING;
 	}
-	else
+	else if(!_write_to_buffer(yylloc, yyscanner, &(yyextra->buffer), yytext))
 	{
-		yyerror(yylloc, yyscanner, NULL, "couldn't parse string");
-
-		return 0;
+		return 1;
 	}
 }
-<STRING>\\.		{ if(!_write_to_buffer(yylloc, yyscanner, &(yyextra->buffer), yytext)) return 1; }
-<STRING>.		{ if(!_write_to_buffer(yylloc, yyscanner, &(yyextra->buffer), yytext)) return 1; }
+<STRING>\\. { if(!_write_to_buffer(yylloc, yyscanner, &(yyextra->buffer), yytext)) return 1; }
+<STRING>.   { if(!_write_to_buffer(yylloc, yyscanner, &(yyextra->buffer), yytext)) return 1; }
 %%

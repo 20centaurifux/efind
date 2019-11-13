@@ -14,25 +14,25 @@ Let's assume you want to find all MP3 (\*.mp3) and Ogg Vorbis (\*.ogg) files
 that were modified less than two days ago in your music folder. That's no
 problem with **efind's** self-explanatory expression syntax:
 
-	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days'
+	$ efind ~/music "(name='*.mp3' or name='*.ogg') and mtime<2 days"
 
 Additionally you can filter the search result by audio tags and properties with
 the [taglib](https://github.com/20centaurifux/efind-taglib) extension:
 
-	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
-	  and artist_matches("Welle: Erdball") and audio_length()>120'
+	$ efind ~/music "(name='*.mp3' or name='*.ogg') and mtime<2 days \
+	  and artist_matches('Welle: Erdball') and audio_length()>120"
 
 Use the --order-by option to sort the search result. In this example we sort the
 found files by size (descending) and path (ascending):
 
-	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
-	  and artist_matches("Welle: Erdball") and audio_length()>120' \
+	$ efind ~/music "(name='*.mp3' or name='*.ogg') and mtime<2 days \
+	  and artist_matches('Welle: Erdball') and audio_length()>120" \
 	  --order-by "-{bytes}{path}"
 
 **efind** also provides options to limit the output:
 
-	$ efind ~/music '(name="*.mp3" or name="*.ogg") and mtime<2 days \
-	  and artist_matches("Welle: Erdball") and audio_length()>120' \
+	$ efind ~/music "(name='*.mp3' or name='*.ogg') and mtime<2 days \
+	  and artist_matches('Welle: Erdball') and audio_length()>120" \
 	  --limit 1
 
 The example above prints the first file matching the search criteria and
@@ -42,7 +42,7 @@ aborts the search immediately.
 --exec arguments are interpreted as format strings. The example below converts
 MP3 and Ogg Vorbis files to WAV using [SoX](http://sox.sourceforge.net/):
 
-	$ efind ~/music '(name="*.mp3" or name="*.ogg")'
+	$ efind ~/music "(name='*.mp3' or name='*.ogg')"
 	  --exec sox "%{filename}" "%{name}.wav" \;
 
 ## General Usage
@@ -57,12 +57,12 @@ and --expr options:
 **efind** tries to handle the first arguments as path(s) and expression. It's
 valid to run **efind** the following way:
 
-	$ efind ~/git ~/code 'type=file and name="CHANGELOG"'
+	$ efind ~/git ~/code "type=file and name='CHANGELOG'"
 
 If you want to show the translated arguments without running GNU find use the --print
 option. To quote special shell characters append --quote:
 
-	$ efind . 'iregex=".*\.txt" and writable' --print --quote
+	$ efind . "iregex='.*\.txt' and writable" --print --quote
 
 **efind** is shipped with a manpage, of course.
 

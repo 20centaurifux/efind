@@ -36,6 +36,8 @@
  */
 typedef struct
 {
+	/*! String opener/closer character. */
+	char quote;
 	/*! Buffer used to read strings. */
 	Buffer buffer;
 	/*! Memory pool for nodes. */
