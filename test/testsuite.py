@@ -79,7 +79,7 @@ class AttributeTester:
 
         returncode, _ = run_executable("efind", [self.__search_dir, '%s=%d %s' % (attr, random.randint(1, 100), random.choice(units))])
 
-        assert(returncode ==  expected_code)
+        assert(returncode == expected_code)
 
     def test_filetype(self, attr, expected_code=1):
         types = ["file", "directory", "block", "character", "pipe", "link", "socket"]
@@ -1683,6 +1683,17 @@ class TestQuoteCharacters(unittest.TestCase):
         returncode, _ = run_executable("efind", ['./test-data', "name='*.txt\""])
 
         assert(returncode != 0)
+
+class TestOperators(unittest.TestCase, AssertSearch):
+    def test_operators(self):
+        for op in ["=", "equals", "equal", ">", "greater than", "greater", ">=", "at least", "<", "less than", "less", "<=", "at most"]:
+            returncode, _ = run_executable("efind", ["./test-data", 'size %s 0' % op])
+
+            assert(returncode == 0)
+
+            returncode, _ = run_executable("efind", ["./test-data", 'not size %s 0' % op])
+
+            assert(returncode == 0)
 
 def get_test_cases():
     mod = sys.modules[__name__]

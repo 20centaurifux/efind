@@ -82,26 +82,25 @@ Expressions are evaluated from left to right. Use parentheses to force precedenc
 
 The following operators can be used to compare a file attribute to a value:
 
-| Operator | Description      |
-| :------- | :--------------- |
-| =        | equals to        |
-| >        | greater than     |
-| >=       | greater or equal |
-| <        | less than        |
-| <=       | less or equal    |
-| <=       | less or equal    |
+| Operator                 | Description      |
+| :----------------------- | :--------------- |
+| =, equals, equal         | equals to        |
+| >, greater than, greater | greater than     |
+| >=, at least             | greater or equal |
+| <, less than, less       | less than        |
+| <=, at most              | less or equal    |
 
 Use the not operator to test if an expression evaluates to logical false.
 
 A value must be of one of the data types listed below:
 
-| Type          | Description                                                                                                            |
-| :------------ | :--------------------------------------------------------------------------------------------------------------------- |
-| string        | Quoted sequence of characters.                                                                                         |
-| number        | Whole number.                                                                                                          |
-| time interval | Time interval (number) with suffix. Supported suffixes are "minute(s)", "hour(s)" and "day(s)".                        |
-| file size     | Units of space (number) with suffix. Supported suffixes are "byte(s)", "kilobyte(s)", "megabyte(s)" and "gigabyte(s)". |
-| file type     | "file", "directory", "block", "character", "pipe", "link" or "socket".                                                 |
+| Type          | Description                                                                                                           |
+| :------------ | :---------------------------------------------------------------------------------------------------------------------|
+| string        | Quoted sequence of characters.                                                                                        |
+| number        | Whole number.                                                                                                         |
+| time interval | Time interval (number) with suffix. Supported suffixes are "minute(s)", "hour(s)" and "day(s)".                       |
+| file size     | Units of space (number) with suffix. Supported suffixes are "byte(s)", "kilobyte(s)", megabyte(s)" and "gigabyte(s)". |
+| file type     | "file", "directory", "block", "character", "pipe", "link" or "socket".                                                |
 
 The following file attributes are searchable:
 

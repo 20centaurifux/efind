@@ -49,6 +49,11 @@ LPAREN       "("
 RPAREN       ")"
 OPERATOR     or|and
 NOT_OPERATOR not
+EQ           =|equals|equal
+LT           \<|"less than"|less
+GT           \>|"greater than"|greater
+AT_LEAST     \>=|"at least"
+AT_MOST      \<=|"at most"
 PROPERTY     name|iname|atime|ctime|mtime|size|group|gid|user|uid|type|regex|iregex|filesystem|fs
 FLAG         readable|writable|executable|empty
 INTERVAL     hours|hour|h|minutes|minute|m|days|day|d
@@ -65,11 +70,11 @@ COMMA        ","
 {NUMBER}       { yylval->ivalue = atoi(yytext); return TOKEN_NUMBER; }
 {LPAREN}       { return TOKEN_LPAREN; }
 {RPAREN}       { return TOKEN_RPAREN; }
-\<=            { yylval->ivalue = CMP_LT_EQ; return TOKEN_CMP; }
-\>=            { yylval->ivalue = CMP_GT_EQ; return TOKEN_CMP; }
-=              { yylval->ivalue = CMP_EQ; return TOKEN_CMP; }
-\>             { yylval->ivalue = CMP_GT; return TOKEN_CMP; }
-\<             { yylval->ivalue = CMP_LT; return TOKEN_CMP; }
+{AT_MOST}      { yylval->ivalue = CMP_LT_EQ; return TOKEN_CMP; }
+{AT_LEAST}     { yylval->ivalue = CMP_GT_EQ; return TOKEN_CMP; }
+{EQ}           { yylval->ivalue = CMP_EQ; return TOKEN_CMP; }
+{GT}           { yylval->ivalue = CMP_GT; return TOKEN_CMP; }
+{LT}           { yylval->ivalue = CMP_LT; return TOKEN_CMP; }
 {OPERATOR}     { yylval->ivalue = ast_str_to_operator(yytext); return TOKEN_OPERATOR; }
 {NOT_OPERATOR} { return TOKEN_NOT_OPERATOR; }
 {PROPERTY}     { yylval->ivalue = ast_str_to_property_id(yytext); return TOKEN_PROPERTY; }
