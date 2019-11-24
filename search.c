@@ -740,6 +740,7 @@ search_files(const char *path, const char *expr, TranslationFlags flags, const S
 		else if(result->err)
 		{
 			TRACEF("search", "Couldn't parse expression: %s", result->err);
+			fprintf(stderr, "%s\n", result->err);
 		}
 		else
 		{
