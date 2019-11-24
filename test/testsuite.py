@@ -70,7 +70,7 @@ class AttributeTester:
 
         returncode, _ = run_executable("efind", [self.__search_dir, '%s=%d %s' % (attr, random.randint(1, 100), random.choice(units))])
 
-        assert(returncode ==  expected_code)
+        assert(returncode == expected_code)
 
     def test_size(self, attr, expected_code=1):
         units = ["byte", "bytes", "b", "kilobyte", "kilobytes", "kb", "k",
@@ -86,18 +86,18 @@ class AttributeTester:
 
         returncode, _ = run_executable("efind", [self.__search_dir, '%s=%s' % (attr, random.choice(types))])
 
-        assert(returncode ==  expected_code)
+        assert(returncode == expected_code)
 
     def test_flag(self, attr, expected_code=1):
         flags = ["readable", "writable", "executable", "empty"]
 
         returncode, _ = run_executable("efind", [self.__search_dir, '%s=%s' % (attr, random.choice(flags))])
 
-        assert(returncode ==  expected_code)
+        assert(returncode == expected_code)
 
         returncode, _ = run_executable("efind", [self.__search_dir, '%s' % attr])
 
-        assert(returncode ==  expected_code)
+        assert(returncode == expected_code)
 
 class AssertSearch:
     def assert_search(self, args, expected_files):
