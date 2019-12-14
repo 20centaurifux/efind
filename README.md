@@ -43,7 +43,7 @@ aborts the search immediately.
 MP3 and Ogg Vorbis files to WAV using [SoX](http://sox.sourceforge.net/):
 
 	$ efind ~/music "(name='*.mp3' or name='*.ogg')"
-	  --exec sox "%{filename}" "%{name}.wav" \;
+	  --exec sox "%{path}" "%{name}.wav" \;
 
 ## General Usage
 
