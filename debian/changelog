@@ -1,3 +1,8 @@
+efind (0.5-5) unstable; urgency=low
+  * FEATURE: alternative comparison operators
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Fri, 1 May 2020 14:32:32 +0100
+
 efind (0.5-4) unstable; urgency=low
   * FEATURE: alternative comparison operators
   * FEATURE: support single quote as opener closer
