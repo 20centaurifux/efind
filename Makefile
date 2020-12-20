@@ -30,7 +30,7 @@ ifneq (, $(shell which python3.6 2>/dev/null))
 else ifneq (, $(shell which python3.7 2>/dev/null))
 	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs) $(LIBFFI_LDFLAGS)
 else ifneq (, $(shell which python3.8 2>/dev/null))
-	PYTHON_LDFLAGS?=$(shell $(PKG_CONFIG) python3.8 --libs) $(LIBFFI_LDFLAGS)
+	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs --embed) $(LIBFFI_LDFLAGS)
 else ifneq (, $(shell which python3.9 2>/dev/null))
 	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --ldflags --embed) $(LIBFFI_LDFLAGS)
 endif

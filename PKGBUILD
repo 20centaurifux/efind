@@ -26,7 +26,7 @@ validpgpkeys=()
 
 build() {
 	cd "$pkgname-$pkgver"
-	PYTHON_LDFLAGS="-lpython3.8 -lffi" make
+	make
 }
 
 package() {
