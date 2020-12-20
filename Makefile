@@ -25,10 +25,14 @@ LIBFFI_LDFLAGS=`$(PKG_CONFIG) --libs libffi`
 
 PYTHON_CFLAGS?=-DWITH_PYTHON $(shell $(PKG_CONFIG) python3 --cflags) $(LIBFFI_CFLAGS)
 
-ifeq (, $(shell which python3.8 ))
-	PYTHON_LDFLAGS?=$(shell $(PKG_CONFIG) python3 --libs) $(LIBFFI_LDFLAGS)
-else
-	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs --embed) $(LIBFFI_LDFLAGS)
+ifneq (, $(shell which python3.6 2>/dev/null))
+	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs) $(LIBFFI_LDFLAGS)
+else ifneq (, $(shell which python3.7 2>/dev/null))
+	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs) $(LIBFFI_LDFLAGS)
+else ifneq (, $(shell which python3.8 2>/dev/null))
+	PYTHON_LDFLAGS?=$(shell $(PKG_CONFIG) python3.8 --libs) $(LIBFFI_LDFLAGS)
+else ifneq (, $(shell which python3.9 2>/dev/null))
+	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --ldflags --embed) $(LIBFFI_LDFLAGS)
 endif
 
 INIH_CFLAGS?=-DINI_USE_STACK=0 -I"$(PWD)/inih"
@@ -38,7 +42,7 @@ override CFLAGS+=$(PYTHON_CFLAGS) $(INIH_CFLAGS) -Wall -Wextra -Wno-unused-param
 override LDFLAGS+=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes.a.0.3.2 -lm
 INC=-I"$(PWD)/datatypes"
 
-VERSION=0.5.5
+VERSION=0.5.6
 
 all:
 	$(MAKE) -C ./datatypes
