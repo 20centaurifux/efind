@@ -240,7 +240,7 @@ _format_write_attr_node(const FormatParserResult *result, const FormatNodeBase *
 			}
 			else
 			{
-				_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "d", out);
+				_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "lld", out);
 			}
 		}
 		else if(attr.flags & FILE_ATTR_FLAG_LLONG)
