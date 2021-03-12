@@ -236,7 +236,7 @@ _format_write_attr_node(const FormatParserResult *result, const FormatNodeBase *
 		{
 			if(((FormatAttrNode *)node)->attr == 'm')
 			{
-				_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "o", out);
+				_format_write_number(file_attr_get_integer(&attr), node->width, node->precision, node->flags, "llo", out);
 			}
 			else
 			{
