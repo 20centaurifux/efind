@@ -1,13 +1,13 @@
 # efind translation
-# Copyright (C) 2017-2019, Sebastian Fedrau
+# Copyright (C) 2017-2017, Sebastian Fedrau
 # This file is distributed under the same license as efind.
-# Sebastian Fedrau <sebastian.fedrau@gmail.com>, 2017.
+# Sebastian Fedrau <sebastian.fedrau@gmail.com>, 2021.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: efind v0.5.3\n"
+"Project-Id-Version: efind v0.5.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-23 21:04+0100\n"
+"POT-Creation-Date: 2021-04-02 12:54+0200\n"
 "PO-Revision-Date: 2017-08-08 17:16+0200\n"
 "Last-Translator:  <sebastian.fedrau@gmail.com>\n"
 "Language-Team: German\n"
@@ -38,15 +38,21 @@ msgstr ""
 "Die Funktion `%s' hat eine abweichende Signatur, bitte prüfen Sie die "
 "Argumente.\n"
 
-#: exec.c:112
+#: exec-args.c:80 exec.c:363 filelist.c:317 filelist.c:340 fs.c:74
+#: ignorelist.c:132 translate.c:88 utils.c:134
 #, c-format
-msgid "Couldn't write format string at position %ld.\n"
-msgstr "Der Formattext an Position %ld konnte nicht geschrieben werden.\n"
+msgid "Couldn't allocate memory.\n"
+msgstr "Arbeitsspeicher konnte nicht reserviert werden.\n"
 
-#: exec.c:296
+#: exec.c:119
 #, c-format
-msgid "Couldn't parse --exec argument at position %ld.\n"
-msgstr "Die --exec Option an Position %ld konnte nicht geparst werden.\n"
+msgid "Couldn't write format string at position %zu.\n"
+msgstr "Der Formattext an Position %zu konnte nicht geschrieben werden.\n"
+
+#: exec.c:303
+#, c-format
+msgid "Couldn't parse --exec argument at position %zu.\n"
+msgstr "Die --exec Option an Position %zu konnte nicht geparst werden.\n"
 
 #: extension.c:418
 msgid "Path to extension file exceeds maximum allowed path length."
@@ -73,12 +79,7 @@ msgstr ""
 msgid "Couldn't parse sort string.\n"
 msgstr "Die Sortieroption konnte nicht geparst werden.\n"
 
-#: filelist.c:317 fs.c:74 utils.c:134
-#, c-format
-msgid "Couldn't allocate memory.\n"
-msgstr "Arbeitsspeicher konnte nicht reserviert werden.\n"
-
-#: filelist.c:369 filelist.c:376
+#: filelist.c:372 filelist.c:379
 #, c-format
 msgid "Couldn't read attribute from file %s.\n"
 msgstr ""
@@ -109,7 +110,7 @@ msgstr "Der Text ist länger als die erlaubte Maximallänge.\n"
 msgid "Date-format exceeds allowed maximum length.\n"
 msgstr "Das Datumsformat ist länger als die erlaubte Maximallänge.\n"
 
-#: fs.c:150
+#: fs.c:151
 #, c-format
 msgid "Couldn't retrieve real path from file: %s\n"
 msgstr "Der reale Pfad der Datei %s konnte nicht aufgelöst werden.\n"
@@ -167,7 +168,8 @@ msgstr "  -e, --expr                     zu evaluierender Ausdruck\n"
 msgid ""
 "  -q, --quote <yes|no>           quote special characters in translated "
 "expression\n"
-msgstr "  -q, --quote <yes|no>           Sonderzeichen in Anführungszeichen setzen\n"
+msgstr ""
+"  -q, --quote <yes|no>           Sonderzeichen in Anführungszeichen setzen\n"
 
 #: main.c:131
 #, c-format
@@ -175,7 +177,8 @@ msgid ""
 "  -d, --dir path                 directory to search (multiple directories "
 "are possible)\n"
 msgstr ""
-"  -d, --dir                      Startverzeichnis (mehrere Ordner sind möglich)\n"
+"  -d, --dir                      Startverzeichnis (mehrere Ordner sind "
+"möglich)\n"
 
 #: main.c:132
 #, c-format
@@ -187,8 +190,8 @@ msgstr "  -L, --follow <yes|no>          symbolischen Links folgen\n"
 msgid ""
 "  --regex-type type              set regular expression type; see manpage\n"
 msgstr ""
-"  --regex-type Typ               das Format für reguläre Ausdrücke setzen; siehe "
-"Handbuch\n"
+"  --regex-type Typ               das Format für reguläre Ausdrücke setzen; "
+"siehe Handbuch\n"
 
 #: main.c:134
 #, c-format
@@ -196,8 +199,8 @@ msgid ""
 "  --printf format                print format on standard output; see "
 "manpage\n"
 msgstr ""
-"  --printf Format                Ausgabeformat für die Standardausgabe; siehe "
-"Handbuch\n"
+"  --printf Format                Ausgabeformat für die Standardausgabe; "
+"siehe Handbuch\n"
 
 #: main.c:135
 #, c-format
@@ -209,7 +212,9 @@ msgstr "  --exec command ;               einen Befehl ausführen\n"
 msgid ""
 "  --exec-ignore-errors <yes|no>  don't stop if command exits with non-zero "
 "result\n"
-msgstr "  --exec-ignore-errors <yes|no>  nicht stoppen, wenn ein Befehl nicht mit Null terminiert\n"
+msgstr ""
+"  --exec-ignore-errors <yes|no>  nicht stoppen, wenn ein Befehl nicht mit "
+"Null terminiert\n"
 
 #: main.c:137
 #, c-format
@@ -229,13 +234,14 @@ msgstr "  --max-depth Tiefe              maximale Suchtiefe\n"
 #, c-format
 msgid "  --skip number                  number of files to skip\n"
 msgstr ""
-"  --skip Nummer                  Anzahl der zu überspringenden Dateien bei der "
-"Ausgabe\n"
+"  --skip Nummer                  Anzahl der zu überspringenden Dateien bei "
+"der Ausgabe\n"
 
 #: main.c:140
 #, c-format
 msgid "  --limit number                 maximum number of files to process\n"
-msgstr "  --limit Nummer                 maximale Anzahl der auszugebenden Dateien\n"
+msgstr ""
+"  --limit Nummer                 maximale Anzahl der auszugebenden Dateien\n"
 
 #: main.c:141
 #, c-format
@@ -243,8 +249,8 @@ msgid ""
 "  -p, --print                    don't search files but print expression to "
 "stdout\n"
 msgstr ""
-"  -p, --print                    übersetzten Suchausdruck auf Standardausgabe "
-"ausgeben\n"
+"  -p, --print                    übersetzten Suchausdruck auf "
+"Standardausgabe ausgeben\n"
 
 #: main.c:142
 #, c-format
@@ -253,8 +259,9 @@ msgstr "  --print-extensions             installierte Erweiterungen ausgeben\n"
 
 #: main.c:143
 #, c-format
-msgid "  --print-blacklist              print blacklisted extensions\n"
-msgstr "  --print-blacklist              ausgeschlossene Erweiterungen ausgeben\n"
+msgid "  --print-ignore-list            print ignored extensions\n"
+msgstr ""
+"  --print-ignore-list            ausgeschlossene Erweiterungen ausgeben\n"
 
 #: main.c:144
 #, c-format
@@ -269,7 +276,8 @@ msgstr "  --log-color <yes|no>           farbige Logmeldungen aktivieren\n"
 #: main.c:146
 #, c-format
 msgid "  -v, --version                  print version and exit\n"
-msgstr "  -v, --version                  Versionsinformationen anzeigen und beenden\n"
+msgstr ""
+"  -v, --version                  Versionsinformationen anzeigen und beenden\n"
 
 #: main.c:147
 #, c-format
@@ -301,18 +309,18 @@ msgstr "Heimverzeichnis konnte nicht gefunden werden.\n"
 msgid "Try '%s --help' for more information.\n"
 msgstr "'%s --help' liefert weitere Informationen.\n"
 
-#: options_getopt.c:112 options_getopt.c:237 options_getopt.c:251
-#: options_getopt.c:274
+#: options_getopt.c:112 options_getopt.c:253 options_getopt.c:269
+#: options_getopt.c:293
 #, c-format
 msgid "Argument of option `%s' is malformed.\n"
 msgstr "Das Argument der Option `%s' ist ungültig.\n"
 
-#: options_getopt.c:417
+#: options_getopt.c:434
 #, c-format
 msgid "Invalid --exec option, `;' argument is missing.\n"
 msgstr "Ungültige --exec Option, `;' Argument nicht gefunden.\n"
 
-#: options_getopt.c:421
+#: options_getopt.c:438
 #, c-format
 msgid "Invalid --exec option, argument list is empty.\n"
 msgstr "Ungültige --exec Option, die Argumentliste ist leer.\n"
@@ -327,65 +335,20 @@ msgstr "Fehler in Zeile %d der globalen Konfigurationsdatei: \"%s\"\n"
 msgid "Error in line %d of local configuration file: \"%s\"\n"
 msgstr "Fehler in Zeile %d der lokalen Konfigurationsdatei: \"%s\"\n"
 
-#: search.c:215
-#, c-format
-msgid "Couldn't find `find' executable.\n"
-msgstr "Die Anwendung `find' konnte nicht gefunden werden.\n"
-
-#: search.c:239
-#, c-format
-msgid "Evaluation aborted.\n"
-msgstr "Ausführung abgebrochen.\n"
-
-#: search.c:244
-#, c-format
-msgid "Couldn't evaluate expression, no extensions loaded.\n"
-msgstr ""
-"Der Ausdruck konnte nicht ausgeführt werden, weil keine Erweiterungen "
-"geladen sind.\n"
-
-#: translate.c:143 parser.y:48
-#, c-format
-msgid "line: %d, "
-msgstr "Zeile: %d, "
-
-#: translate.c:147 parser.y:52
-#, c-format
-msgid "line: %d-%d, "
-msgstr "Zeile: %d-%d, "
-
-#: translate.c:160
-#, c-format
-msgid "column: %d: "
-msgstr "Spalte: %d:"
-
-#: translate.c:164
-#, c-format
-msgid "column: %d-%d: "
-msgstr "Spalte: %d-%d: "
-
-#: translate.c:495
-#, c-format
-msgid "Cannot compare a value of type \"%s\" value to property \"%s\"."
-msgstr ""
-"Ein Wert des Typs \"%s\" kann nicht mit der Eigenschaft \"%s\" verglichen "
-"werden."
-
-#: translate.c:502
-#, c-format
-msgid "Values of type \"%s\" don't support the \"%s\" operator."
-msgstr "Werte des Typs \"%s\" unterstützen nicht den \"%s\" Operator."
-
-#: utils.c:76
-#, c-format
-msgid "Couldn't resize array due to integer overflow.\n"
-msgstr ""
-"Das Arraygröße konnte aufgrund eines Stapelüberlaufs nicht geändert werden.\n"
-
 #: parser.y:43
 #, c-format
 msgid "parsing failed, "
 msgstr "Parsen fehlgeschlagen, "
+
+#: parser.y:48 translate.c:144
+#, c-format
+msgid "line: %d, "
+msgstr "Zeile: %d, "
+
+#: parser.y:52 translate.c:148
+#, c-format
+msgid "line: %d-%d, "
+msgstr "Zeile: %d-%d, "
 
 #: parser.y:57
 #, c-format
@@ -410,5 +373,47 @@ msgid "Please use custom functions after the \"and\" operator"
 msgstr ""
 "Bitte rufen Sie benutzerdefinierte Funktionen hinter dem \"and\" Operator auf"
 
-#~ msgid "Couldn't load extension \"%s\"."
-#~ msgstr "Die Erweiterung \"%s\" konnte nicht geladen werden."
+#: search.c:215
+#, c-format
+msgid "Couldn't find `find' executable.\n"
+msgstr "Die Anwendung `find' konnte nicht gefunden werden.\n"
+
+#: search.c:239
+#, c-format
+msgid "Evaluation aborted.\n"
+msgstr "Ausführung abgebrochen.\n"
+
+#: search.c:244
+#, c-format
+msgid "Couldn't evaluate expression, no extensions loaded.\n"
+msgstr ""
+"Der Ausdruck konnte nicht ausgeführt werden, weil keine Erweiterungen "
+"geladen sind.\n"
+
+#: translate.c:161
+#, c-format
+msgid "column: %d: "
+msgstr "Spalte: %d:"
+
+#: translate.c:165
+#, c-format
+msgid "column: %d-%d: "
+msgstr "Spalte: %d-%d: "
+
+#: translate.c:496
+#, c-format
+msgid "Cannot compare a value of type \"%s\" value to property \"%s\"."
+msgstr ""
+"Ein Wert des Typs \"%s\" kann nicht mit der Eigenschaft \"%s\" verglichen "
+"werden."
+
+#: translate.c:503
+#, c-format
+msgid "Values of type \"%s\" don't support the \"%s\" operator."
+msgstr "Werte des Typs \"%s\" unterstützen nicht den \"%s\" Operator."
+
+#: utils.c:76
+#, c-format
+msgid "Couldn't resize array due to integer overflow.\n"
+msgstr ""
+"Das Arraygröße konnte aufgrund eines Stapelüberlaufs nicht geändert werden.\n"

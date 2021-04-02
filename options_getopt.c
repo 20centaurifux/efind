@@ -152,7 +152,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		EXEC_IGNORE_ERRORS,
 		ORDER_BY,
 		PRINT_EXTENSIONS,
-		PRINT_BLACKLIST,
+		PRINT_IGNORELIST,
 		LOG_LEVEL,
 		LOG_COLOR
 	};
@@ -172,7 +172,7 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 		{ "exec-ignore-errors", optional_argument, 0, EXEC_IGNORE_ERRORS },
 		{ "order-by", required_argument, 0, ORDER_BY },
 		{ "print-extensions", no_argument, 0, PRINT_EXTENSIONS },
-		{ "print-blacklist", no_argument, 0, PRINT_BLACKLIST },
+		{ "print-ignore-list", no_argument, 0, PRINT_IGNORELIST },
 		{ "log-level", required_argument, 0, LOG_LEVEL },
 		{ "log-color", optional_argument, 0, LOG_COLOR },
 		{ "version", no_argument, 0, 'v' },
@@ -279,8 +279,8 @@ _get_opt(int argc, char *argv[], int offset, Options *opts)
 				action = ACTION_PRINT_EXTENSIONS;
 				break;
 
-			case PRINT_BLACKLIST:
-				action = ACTION_PRINT_BLACKLIST;
+			case PRINT_IGNORELIST:
+				action = ACTION_PRINT_IGNORELIST;
 				break;
 
 			case EXEC_IGNORE_ERRORS:

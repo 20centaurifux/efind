@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-23 21:04+0100\n"
+"POT-Creation-Date: 2021-04-02 13:13+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,14 +34,20 @@ msgid ""
 "Function `%s' has a different signature, please check specified arguments.\n"
 msgstr ""
 
-#: exec.c:112
+#: exec-args.c:80 exec.c:363 filelist.c:317 filelist.c:340 fs.c:74
+#: ignorelist.c:132 translate.c:88 utils.c:134
 #, c-format
-msgid "Couldn't write format string at position %ld.\n"
+msgid "Couldn't allocate memory.\n"
 msgstr ""
 
-#: exec.c:296
+#: exec.c:119
 #, c-format
-msgid "Couldn't parse --exec argument at position %ld.\n"
+msgid "Couldn't write format string at position %zu.\n"
+msgstr ""
+
+#: exec.c:303
+#, c-format
+msgid "Couldn't parse --exec argument at position %zu.\n"
 msgstr ""
 
 #: extension.c:418
@@ -68,12 +74,7 @@ msgstr ""
 msgid "Couldn't parse sort string.\n"
 msgstr ""
 
-#: filelist.c:317 fs.c:74 utils.c:134
-#, c-format
-msgid "Couldn't allocate memory.\n"
-msgstr ""
-
-#: filelist.c:369 filelist.c:376
+#: filelist.c:372 filelist.c:379
 #, c-format
 msgid "Couldn't read attribute from file %s.\n"
 msgstr ""
@@ -103,7 +104,7 @@ msgstr ""
 msgid "Date-format exceeds allowed maximum length.\n"
 msgstr ""
 
-#: fs.c:150
+#: fs.c:151
 #, c-format
 msgid "Couldn't retrieve real path from file: %s\n"
 msgstr ""
@@ -230,7 +231,7 @@ msgstr ""
 
 #: main.c:143
 #, c-format
-msgid "  --print-blacklist              print blacklisted extensions\n"
+msgid "  --print-ignore-list             print ignored extensions\n"
 msgstr ""
 
 #: main.c:144
@@ -278,18 +279,18 @@ msgstr ""
 msgid "Try '%s --help' for more information.\n"
 msgstr ""
 
-#: options_getopt.c:112 options_getopt.c:237 options_getopt.c:251
-#: options_getopt.c:274
+#: options_getopt.c:112 options_getopt.c:253 options_getopt.c:269
+#: options_getopt.c:293
 #, c-format
 msgid "Argument of option `%s' is malformed.\n"
 msgstr ""
 
-#: options_getopt.c:417
+#: options_getopt.c:434
 #, c-format
 msgid "Invalid --exec option, `;' argument is missing.\n"
 msgstr ""
 
-#: options_getopt.c:421
+#: options_getopt.c:438
 #, c-format
 msgid "Invalid --exec option, argument list is empty.\n"
 msgstr ""
@@ -304,59 +305,19 @@ msgstr ""
 msgid "Error in line %d of local configuration file: \"%s\"\n"
 msgstr ""
 
-#: search.c:215
+#: parser.y:43
 #, c-format
-msgid "Couldn't find `find' executable.\n"
+msgid "parsing failed, "
 msgstr ""
 
-#: search.c:239
-#, c-format
-msgid "Evaluation aborted.\n"
-msgstr ""
-
-#: search.c:244
-#, c-format
-msgid "Couldn't evaluate expression, no extensions loaded.\n"
-msgstr ""
-
-#: translate.c:143 parser.y:48
+#: parser.y:48 translate.c:144
 #, c-format
 msgid "line: %d, "
 msgstr ""
 
-#: translate.c:147 parser.y:52
+#: parser.y:52 translate.c:148
 #, c-format
 msgid "line: %d-%d, "
-msgstr ""
-
-#: translate.c:160
-#, c-format
-msgid "column: %d: "
-msgstr ""
-
-#: translate.c:164
-#, c-format
-msgid "column: %d-%d: "
-msgstr ""
-
-#: translate.c:495
-#, c-format
-msgid "Cannot compare a value of type \"%s\" value to property \"%s\"."
-msgstr ""
-
-#: translate.c:502
-#, c-format
-msgid "Values of type \"%s\" don't support the \"%s\" operator."
-msgstr ""
-
-#: utils.c:76
-#, c-format
-msgid "Couldn't resize array due to integer overflow.\n"
-msgstr ""
-
-#: parser.y:43
-#, c-format
-msgid "parsing failed, "
 msgstr ""
 
 #: parser.y:57
@@ -379,4 +340,44 @@ msgstr ""
 
 #: parser.y:201
 msgid "Please use custom functions after the \"and\" operator"
+msgstr ""
+
+#: search.c:215
+#, c-format
+msgid "Couldn't find `find' executable.\n"
+msgstr ""
+
+#: search.c:239
+#, c-format
+msgid "Evaluation aborted.\n"
+msgstr ""
+
+#: search.c:244
+#, c-format
+msgid "Couldn't evaluate expression, no extensions loaded.\n"
+msgstr ""
+
+#: translate.c:161
+#, c-format
+msgid "column: %d: "
+msgstr ""
+
+#: translate.c:165
+#, c-format
+msgid "column: %d-%d: "
+msgstr ""
+
+#: translate.c:496
+#, c-format
+msgid "Cannot compare a value of type \"%s\" value to property \"%s\"."
+msgstr ""
+
+#: translate.c:503
+#, c-format
+msgid "Values of type \"%s\" don't support the \"%s\" operator."
+msgstr ""
+
+#: utils.c:76
+#, c-format
+msgid "Couldn't resize array due to integer overflow.\n"
 msgstr ""

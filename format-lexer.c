@@ -508,7 +508,7 @@ _format_lexer_found_escape_sequence_in_string(const FormatLexerResult *result)
 }
 
 static bool
-_format_lexer_process_blackslash_in_string(FormatLexerResult *result)
+_format_lexer_process_backslash_in_string(FormatLexerResult *result)
 {
 	bool success = true;
 
@@ -568,7 +568,7 @@ _format_lexer_step_string(FormatLexerResult *result)
 	}
 	else if(*result->ctx.tail == '\\')
 	{
-		success = _format_lexer_process_blackslash_in_string(result);
+		success = _format_lexer_process_backslash_in_string(result);
 	}
 	else
 	{

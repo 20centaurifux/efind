@@ -150,7 +150,7 @@ The following escape sequences and directives are available:
 | \\t             | Horizontal tab.                                |
 | \\v             | Vertical tab.                                  |
 | \\0             | ASCII NUL.                                     |
-| \\\\            | A literal blackslash.                          |
+| \\\\            | A literal backslash.                           |
 | \\NNN           | The character whose ASCII code is NNN (octal). |
 | \\XNN           | The character whose ASCII code is NN (hex).    |
 

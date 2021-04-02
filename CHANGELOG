@@ -1,3 +1,8 @@
+2021-03-XX v0.5.7
+	* FIX: print file-permissions and inodes correctly on
+	       big-endian systems
+	* CHANGE: renamed blacklist to ignore-list
+
 2020-12-19 v0.5.6
 	* FEATURE: Python 3.9 support
 

@@ -15,8 +15,8 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file blacklist.h
-   @brief List containing blacklisted files.
+   @file ignorelist.h
+   @brief List containing ignored files.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 #ifndef BLACKLIST_H
@@ -25,67 +25,67 @@
 #include <datatypes.h>
 
 /**
-   @typedef Blacklist
-   @brief Blacklisted files.
+   @typedef Ignorelist
+   @brief Ignored files.
  */
-typedef List Blacklist;
+typedef List Ignorelist;
 
 /**
-   @return new Blacklist
+   @return new Ignorelist
 
-   Creates a Blacklist.
+   Creates an Ignorelist.
  */
-Blacklist *blacklist_new(void);
+Ignorelist *ignorelist_new(void);
 
 /**
-   @param blacklist Blacklist to free
+   @param ignorelist Ignorelist to free
 
-   Frees a Blacklist.
+   Frees an Ignorelist.
  */
-void blacklist_destroy(Blacklist *blacklist);
+void ignorelist_destroy(Ignorelist *ignorelist);
 
 /**
-   @param blacklist Blacklist
+   @param ignorelist Ignorelist
    @param pattern glob pattern
    @return number of added files
 
-   Adds files matching the given pattern to the blacklist.
+   Adds files matching the given pattern to the ignore-list.
  */
-size_t blacklist_glob(Blacklist *blacklist, const char *pattern);
+size_t ignorelist_glob(Ignorelist *ignorelist, const char *pattern);
 
 /**
-   @param blacklist a Blacklist
+   @param ignorelist an Ignorelist
    @param filename filename to test
-   @return true if specified filename matches a blacklisted path
+   @return true if specified filename matches an ignored path
 
-   Tests if a filename matches a blacklisted path.
+   Tests if a filename matches an ignored path.
  */
-bool blacklist_matches(Blacklist *blacklist, const char *filename);
+bool ignorelist_matches(Ignorelist *ignorelist, const char *filename);
 
 /**
-   @param blacklist a Blacklist
+   @param ignorelist an Ignorelist
    @param filename name of a file containing patterns
-   @return number of files added to the blacklist
+   @return number of files added to the ignore-list
 
    Loads patterns from a file (one pattern per line).
  */
-size_t blacklist_load(Blacklist *blacklist, const char *filename);
+size_t ignorelist_load(Ignorelist *ignorelist, const char *filename);
 
 /**
-   @param blacklist a Blacklist
-   @return number of files added to the blacklist
+   @param ignorelist an Ignorelist
+   @return number of files added to the ignore-list
 
-   Loads patterns from the default blacklist file (~/.efind/blacklist).
+   Loads patterns from the default ignore-list file (~/.efind/ignore-list).
  */
-size_t blacklist_load_default(Blacklist *blacklist);
+size_t ignorelist_load_default(Ignorelist *ignorelist);
 
 /**
-   @param blacklist a Blacklist
+   @param ignorelist an Ignorelist
    @return head of the list
   
    Gets the head of the list.
  */
-#define blacklist_head(blacklist) list_head(blacklist)
+#define ignorelist_head(ignorelist) list_head(ignorelist)
 
 #endif
 

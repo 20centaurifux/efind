@@ -82,10 +82,10 @@ path_builder_local_extensions(char *path, size_t path_len)
 }
 
 bool
-path_builder_blacklist(char *path, size_t path_len)
+path_builder_ignorelist(char *path, size_t path_len)
 {
 	assert(path != NULL);
 
-	return _path_build_local(".efind/blacklist", path, path_len);
+	return _path_build_local(".efind/ignore-list", path, path_len);
 }
 

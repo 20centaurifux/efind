@@ -65,9 +65,9 @@ bool path_builder_local_extensions(char *path, size_t path_len);
    @param path_len maximum buffer size
    @return true on success
 
-   Builds the path to the user's blacklist.
+   Builds the path to the user's ignore-list.
  */
-bool path_builder_blacklist(char *path, size_t path_len);
+bool path_builder_ignorelist(char *path, size_t path_len);
 
 #endif
 

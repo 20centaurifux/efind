@@ -633,7 +633,7 @@ class ListExtensions(FakeDirTest):
                 '\tc_name_equals(string)',
                 '\tc_sub(integer, integer)']
 
-class Blacklist(FakeDirTest):
+class Ignorelist(FakeDirTest):
     def __init__(self, name, **kwargs):
         FakeDirTest.__init__(self, name, **kwargs)
 
@@ -646,28 +646,28 @@ class Blacklist(FakeDirTest):
         self.copy_extension("c-test.so", self.global_path)
         self.copy_extension("py-test.py", self.local_path)
 
-    def test_empty_blacklist(self):
-        self.__test_blacklist([self.__so_file, self.__py_file])
+    def test_empty_ignorelist(self):
+        self.__test_ignorelist([self.__so_file, self.__py_file])
 
     def test_no_libdir(self):
-        shutil.copy("./blacklist-nolibdir", "./fake-dirs/home/.efind/blacklist")
-        self.__test_blacklist([self.__py_file], [self.__so_file])
+        shutil.copy("./ignore-list-nolibdir", "./fake-dirs/home/.efind/ignore-list")
+        self.__test_ignorelist([self.__py_file], [self.__so_file])
 
     def test_no_local(self):
-        shutil.copy("./blacklist-nolocal", "./fake-dirs/home/.efind/blacklist")
-        self.__test_blacklist([self.__so_file], [self.__py_file])
+        shutil.copy("./ignore-list-nolocal", "./fake-dirs/home/.efind/ignore-list")
+        self.__test_ignorelist([self.__so_file], [self.__py_file])
 
-    def __test_blacklist(self, installed, blacklisted=[]):
+    def __test_ignorelist(self, installed, ignorelisted=[]):
         returncode, output = run_executable_and_split_output("efind", ["--print-extensions"])
         output = self.__filter_output(output)
 
         assert(returncode == 0)
         assert_sequence_equality(output, installed)
 
-        returncode, output = run_executable_and_split_output("efind", ["--print-blacklist"])
+        returncode, output = run_executable_and_split_output("efind", ["--print-ignore-list"])
  
         assert(returncode == 0)
-        assert_sequence_equality(output, blacklisted)
+        assert_sequence_equality(output, ignorelisted)
 
     def __filter_output(self, output):
         return filter(lambda l: l[0] != '\t', output)

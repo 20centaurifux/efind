@@ -30,7 +30,7 @@
 #include "log.h"
 #include "dl-ext-backend.h"
 #include "py-ext-backend.h"
-#include "blacklist.h"
+#include "ignorelist.h"
 #include "utils.h"
 #include "pathbuilder.h"
 #include "gettext.h"
@@ -371,9 +371,9 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 	DEBUGF("extension", "Loading extensions from directory: %s", path);
 
-	Blacklist *blacklist = blacklist_new();
+	Ignorelist *ignorelist = ignorelist_new();
 
-	blacklist_load_default(blacklist);
+	ignorelist_load_default(ignorelist);
 
 	DIR *pdir;
 	char msg[PATH_MAX + 64];
@@ -397,9 +397,9 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 
 				if(utils_path_join(path, entry->d_name, filename, PATH_MAX))
 				{
-					if(blacklist_matches(blacklist, filename))
+					if(ignorelist_matches(ignorelist, filename))
 					{
-						DEBUGF("extension", "File is blacklisted: %s", filename);
+						DEBUGF("extension", "File is ignored: %s", filename);
 					}
 					else
 					{
@@ -441,7 +441,7 @@ extension_manager_load_directory(ExtensionManager *manager, const char *path, ch
 		}
 	}
 
-	blacklist_destroy(blacklist);
+	ignorelist_destroy(ignorelist);
 
 	TRACEF("extension", "Import completed with status %d.", success);
 

@@ -15,8 +15,8 @@
     General Public License v3 for more details.
  ***************************************************************************/
 /**
-   @file blacklist.c
-   @brief List containing blacklisted files.
+   @file ignorelist.c
+   @brief List containing ignored files.
    @author Sebastian Fedrau <sebastian.fedrau@gmail.com>
  */
 /*! @cond INTERNAL */
@@ -31,38 +31,38 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "blacklist.h"
+#include "ignorelist.h"
 #include "log.h"
 #include "utils.h"
 #include "pathbuilder.h"
 #include "gettext.h"
 
-Blacklist *
-blacklist_new(void)
+Ignorelist *
+ignorelist_new(void)
 {
 	return list_new(str_compare, free, NULL);
 }
 
 void
-blacklist_destroy(Blacklist *blacklist)
+ignorelist_destroy(Ignorelist *ignorelist)
 {
-	assert(blacklist != NULL);
+	assert(ignorelist != NULL);
 
-	list_destroy(blacklist);
+	list_destroy(ignorelist);
 }
 
 size_t
-blacklist_glob(Blacklist *blacklist, const char *pattern)
+ignorelist_glob(Ignorelist *ignorelist, const char *pattern)
 {
 	glob_t g;
 	size_t count = 0;
 
-	assert(blacklist != NULL);
+	assert(ignorelist != NULL);
 	assert(pattern != NULL);
 
 	memset(&g, 0, sizeof(glob_t));
 
-	DEBUGF("blacklist", "Adding pattern to blacklist: %s", pattern);
+	DEBUGF("ignorelist", "Adding pattern to ignore-list: %s", pattern);
 
 	int rc = glob(pattern, GLOB_TILDE, NULL, &g);
 
@@ -70,10 +70,10 @@ blacklist_glob(Blacklist *blacklist, const char *pattern)
 	{
 		for(size_t i = 0; i < g.gl_pathc; ++i)
 		{
-			if(!list_contains(blacklist, g.gl_pathv[i]))
+			if(!list_contains(ignorelist, g.gl_pathv[i]))
 			{
-				TRACEF("blacklist", "Appending file to blacklist: %s", g.gl_pathv[i]);
-				list_append(blacklist, utils_strdup(g.gl_pathv[i]));
+				TRACEF("ignorelist", "Appending file to ignore-list: %s", g.gl_pathv[i]);
+				list_append(ignorelist, utils_strdup(g.gl_pathv[i]));
 			}
 		}
 
@@ -86,24 +86,24 @@ blacklist_glob(Blacklist *blacklist, const char *pattern)
 }
 
 bool
-blacklist_matches(Blacklist *blacklist, const char *filename)
+ignorelist_matches(Ignorelist *ignorelist, const char *filename)
 {
-	assert(blacklist != NULL);
+	assert(ignorelist != NULL);
 	assert(filename != NULL);
 
-	return list_contains(blacklist, (void *)filename);
+	return list_contains(ignorelist, (void *)filename);
 }
 
 size_t
-blacklist_load(Blacklist *blacklist, const char *filename)
+ignorelist_load(Ignorelist *ignorelist, const char *filename)
 {
 	FILE *fp;
 	size_t count = 0;
 
-	assert(blacklist != NULL);
+	assert(ignorelist != NULL);
 	assert(filename != NULL);
 
-	DEBUGF("blacklist", "Loading file: %s", filename);
+	DEBUGF("ignorelist", "Loading file: %s", filename);
 
 	if((fp = fopen(filename, "r")))
 	{
@@ -119,7 +119,7 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 
 			if(len && *pattern != '#')
 			{
-				size_t pathc = blacklist_glob(blacklist, pattern);
+				size_t pathc = ignorelist_glob(ignorelist, pattern);
 
 				if(SIZE_MAX - count >= pathc)
 				{
@@ -127,7 +127,7 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 				}
 				else
 				{
-					WARNING("blacklist", "Integer overflow.");
+					WARNING("ignorelist", "Integer overflow.");
 
 					fprintf(stderr, _("Couldn't allocate memory.\n"));
 
@@ -143,29 +143,29 @@ blacklist_load(Blacklist *blacklist, const char *filename)
 	}
 	else
 	{
-		DEBUGF("blacklist", "File not found: %s", filename);
+		DEBUGF("ignorelist", "File not found: %s", filename);
 	}
 
 	return count;
 }
 
 size_t
-blacklist_load_default(Blacklist *blacklist)
+ignorelist_load_default(Ignorelist *ignorelist)
 {
 	size_t count = 0;
 	char path[PATH_MAX];
 
-	assert(blacklist != NULL);
+	assert(ignorelist != NULL);
 
-	DEBUG("blacklist", "Loading default blacklist.");
+	DEBUG("ignorelist", "Loading default ignore-list.");
 
-	if(path_builder_blacklist(path, PATH_MAX))
+	if(path_builder_ignorelist(path, PATH_MAX))
 	{
-		count = blacklist_load(blacklist, path);
+		count = ignorelist_load(ignorelist, path);
 	}
 	else
 	{
-		WARNING("blacklist", "Couldn't build path to blacklist.");
+		WARNING("ignorelist", "Couldn't build path to ignore-list.");
 	}
 
 	return count;

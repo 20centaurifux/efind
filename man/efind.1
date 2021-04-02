@@ -199,8 +199,8 @@ Don't search files but print translated expression to stdout.
 Quote special shell characters when printing expression to stdout.
 .IP "\fB\-\-print-extensions"
 Print a list of installed extensions.
-.IP "\fB\-\-print-blacklist"
-Print a list of blacklisted extensions.
+.IP "\fB\-\-print-ignore-list"
+Print a list of ignored extensions.
 .IP "\fB\-v, \-\-version"
 Output version information and exit.
 .IP "\fB\-h, \-\-help"
@@ -341,17 +341,17 @@ find results can be filtered by custom functions loaded from extension files.
 A function may have optional arguments and returns always an integer. Non-zero
 return values evaluate to true.
 
-Users can specifiy wildcard patterns in a personal blacklist (~/.efind/blacklist)
+Users can specifiy wildcard patterns in a personal ignore-list (~/.efind/ignore-list)
 to prevent extensions from being loaded. To disable globally installed extensions,
-for instance, add the following line to your blacklist:
+for instance, add the following line to your ignore-list:
 .P
 .B /usr/lib/efind/extensions/*
 
 Lines starting with an hash ('#') are ignored.
 
-To print all blacklisted extensions type in
+To print all ignored extensions type in
 .P
-.B efind --print-blacklist
+.B efind --print-ignore-list
 
 .SH ENVIRONMENT VARIABLES
 .IP "\fBEFIND_EXTENSION_PATH"
@@ -372,7 +372,7 @@ example configuration file
 local extension files
 .IP "\fB/usr/lib/efind/extensions"
 global extension files
-.IP "\fB~/.efind/blacklist"
+.IP "\fB~/.efind/ignore-list"
 wildcard patterns to prevent extensions from being loaded
 
 .SH EXAMPLES

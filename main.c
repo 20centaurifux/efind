@@ -43,7 +43,7 @@
 #include "parser.h"
 #include "utils.h"
 #include "extension.h"
-#include "blacklist.h"
+#include "ignorelist.h"
 #include "gettext.h"
 #include "processor.h"
 #include "range.h"
@@ -59,14 +59,14 @@ typedef struct
 /*! @endcond */
 
 static void
-_print_blacklist(void)
+_print_ignorelist(void)
 {
-	Blacklist *blacklist;
+	Ignorelist *ignorelist;
 
-	blacklist = blacklist_new();
-	blacklist_load_default(blacklist);
+	ignorelist = ignorelist_new();
+	ignorelist_load_default(ignorelist);
 
-	ListItem *iter = blacklist_head(blacklist);
+	ListItem *iter = ignorelist_head(ignorelist);
 
 	while(iter)
 	{
@@ -74,7 +74,7 @@ _print_blacklist(void)
 		iter = list_item_next(iter);
 	}
 
-	blacklist_destroy(blacklist);
+	ignorelist_destroy(ignorelist);
 }
 
 static void
@@ -140,7 +140,7 @@ _print_help(const char *name)
 	printf(_("  --limit number                 maximum number of files to process\n"));
 	printf(_("  -p, --print                    don't search files but print expression to stdout\n"));
 	printf(_("  --print-extensions             print a list of installed extensions\n"));
-	printf(_("  --print-blacklist              print blacklisted extensions\n"));
+	printf(_("  --print-ignore-list            print ignored extensions\n"));
 	printf(_("  --log-level level              set the log level (0-6)\n"));
 	printf(_("  --log-color <yes|no>           enable/disable colored log messages\n"));
 	printf(_("  -v, --version                  print version and exit\n"));
@@ -490,8 +490,8 @@ _run_action(Action action, int argc, char **argv, const Options *opts)
 			result = EXIT_SUCCESS;
 			break;
 
-		case ACTION_PRINT_BLACKLIST:
-			_print_blacklist();
+		case ACTION_PRINT_IGNORELIST:
+			_print_ignorelist();
 			result = EXIT_SUCCESS;
 			break;
 
