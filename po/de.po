@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: efind v0.5.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-02 12:54+0200\n"
+"POT-Creation-Date: 2021-04-02 13:38+0200\n"
 "PO-Revision-Date: 2017-08-08 17:16+0200\n"
 "Last-Translator:  <sebastian.fedrau@gmail.com>\n"
 "Language-Team: German\n"
@@ -74,7 +74,7 @@ msgid "Found unexpected character in sort string: '%c'.\n"
 msgstr ""
 "Es wurde ein unerwartetes Zeichen in der Sortieroption entdeckt: '%c'.\n"
 
-#: filelist.c:193 main.c:302
+#: filelist.c:193 main.c:303
 #, c-format
 msgid "Couldn't parse sort string.\n"
 msgstr "Die Sortieroption konnte nicht geparst werden.\n"
@@ -115,17 +115,17 @@ msgstr "Das Datumsformat ist länger als die erlaubte Maximallänge.\n"
 msgid "Couldn't retrieve real path from file: %s\n"
 msgstr "Der reale Pfad der Datei %s konnte nicht aufgelöst werden.\n"
 
-#: main.c:97
+#: main.c:98
 #, c-format
 msgid "No extensions loaded.\n"
 msgstr "Es sind keine Erweiterungen geladen.\n"
 
-#: main.c:105
+#: main.c:106
 #, c-format
 msgid "Couldn't load extensions.\n"
 msgstr "Es konnten keine Erweiterungen geladen werden.\n"
 
-#: main.c:114
+#: main.c:115
 #, c-format
 msgid ""
 "%s %d.%d.%d (%s)\n"
@@ -138,17 +138,17 @@ msgstr ""
 "(C) %s %s <%s>\n"
 "Dieses Programm wurde unter der %s (%s) veröffentlicht.\n"
 
-#: main.c:126
+#: main.c:127
 #, c-format
 msgid "Usage: %s [options]\n"
 msgstr "Aufruf: %s [Optionen]\n"
 
-#: main.c:127
+#: main.c:128
 #, c-format
 msgid "       %s [starting-points] [options]\n"
 msgstr "        %s [Suchpfade] [Optionen]\n"
 
-#: main.c:128
+#: main.c:129
 #, c-format
 msgid ""
 "       %s [starting-points] [expression] [options]\n"
@@ -157,13 +157,13 @@ msgstr ""
 "        %s [Suchpfade] [Ausdruck] [Optionen]\n"
 "\n"
 
-#: main.c:129
+#: main.c:130
 #, c-format
 msgid ""
 "  -e, --expr expression          expression to evaluate when finding files\n"
 msgstr "  -e, --expr                     zu evaluierender Ausdruck\n"
 
-#: main.c:130
+#: main.c:131
 #, c-format
 msgid ""
 "  -q, --quote <yes|no>           quote special characters in translated "
@@ -171,7 +171,7 @@ msgid ""
 msgstr ""
 "  -q, --quote <yes|no>           Sonderzeichen in Anführungszeichen setzen\n"
 
-#: main.c:131
+#: main.c:132
 #, c-format
 msgid ""
 "  -d, --dir path                 directory to search (multiple directories "
@@ -180,12 +180,12 @@ msgstr ""
 "  -d, --dir                      Startverzeichnis (mehrere Ordner sind "
 "möglich)\n"
 
-#: main.c:132
+#: main.c:133
 #, c-format
 msgid "  -L, --follow <yes|no>          follow symbolic links\n"
 msgstr "  -L, --follow <yes|no>          symbolischen Links folgen\n"
 
-#: main.c:133
+#: main.c:134
 #, c-format
 msgid ""
 "  --regex-type type              set regular expression type; see manpage\n"
@@ -193,7 +193,7 @@ msgstr ""
 "  --regex-type Typ               das Format für reguläre Ausdrücke setzen; "
 "siehe Handbuch\n"
 
-#: main.c:134
+#: main.c:135
 #, c-format
 msgid ""
 "  --printf format                print format on standard output; see "
@@ -202,12 +202,12 @@ msgstr ""
 "  --printf Format                Ausgabeformat für die Standardausgabe; "
 "siehe Handbuch\n"
 
-#: main.c:135
+#: main.c:136
 #, c-format
 msgid "  --exec command ;               execute command\n"
 msgstr "  --exec command ;               einen Befehl ausführen\n"
 
-#: main.c:136
+#: main.c:137
 #, c-format
 msgid ""
 "  --exec-ignore-errors <yes|no>  don't stop if command exits with non-zero "
@@ -216,7 +216,7 @@ msgstr ""
 "  --exec-ignore-errors <yes|no>  nicht stoppen, wenn ein Befehl nicht mit "
 "Null terminiert\n"
 
-#: main.c:137
+#: main.c:138
 #, c-format
 msgid ""
 "  --order-by fields              fields to order search result by; see "
@@ -225,25 +225,25 @@ msgstr ""
 "  --order-by Felder              beim Sortieren zu verwendende Felder; siehe "
 "Handbuch\n"
 
-#: main.c:138
+#: main.c:139
 #, c-format
 msgid "  --max-depth levels             maximum search depth\n"
 msgstr "  --max-depth Tiefe              maximale Suchtiefe\n"
 
-#: main.c:139
+#: main.c:140
 #, c-format
 msgid "  --skip number                  number of files to skip\n"
 msgstr ""
 "  --skip Nummer                  Anzahl der zu überspringenden Dateien bei "
 "der Ausgabe\n"
 
-#: main.c:140
+#: main.c:141
 #, c-format
 msgid "  --limit number                 maximum number of files to process\n"
 msgstr ""
 "  --limit Nummer                 maximale Anzahl der auszugebenden Dateien\n"
 
-#: main.c:141
+#: main.c:142
 #, c-format
 msgid ""
 "  -p, --print                    don't search files but print expression to "
@@ -252,59 +252,64 @@ msgstr ""
 "  -p, --print                    übersetzten Suchausdruck auf "
 "Standardausgabe ausgeben\n"
 
-#: main.c:142
+#: main.c:143
 #, c-format
 msgid "  --print-extensions             print a list of installed extensions\n"
 msgstr "  --print-extensions             installierte Erweiterungen ausgeben\n"
 
-#: main.c:143
+#: main.c:144
 #, c-format
 msgid "  --print-ignore-list            print ignored extensions\n"
 msgstr ""
 "  --print-ignore-list            ausgeschlossene Erweiterungen ausgeben\n"
 
-#: main.c:144
+#: main.c:145
 #, c-format
 msgid "  --log-level level              set the log level (0-6)\n"
 msgstr "  --log-level Level              Loglevel setzen (0-6)\n"
 
-#: main.c:145
+#: main.c:146
 #, c-format
 msgid "  --log-color <yes|no>           enable/disable colored log messages\n"
 msgstr "  --log-color <yes|no>           farbige Logmeldungen aktivieren\n"
 
-#: main.c:146
+#: main.c:147
 #, c-format
 msgid "  -v, --version                  print version and exit\n"
 msgstr ""
 "  -v, --version                  Versionsinformationen anzeigen und beenden\n"
 
-#: main.c:147
+#: main.c:148
 #, c-format
 msgid "  -h, --help                     display this help and exit\n"
 msgstr "  -h, --help                     diese Hilfe anzeigen und beenden\n"
 
-#: main.c:359
+#: main.c:360
 #, c-format
 msgid "Couldn't parse format string: %s\n"
 msgstr "Der Formattext konnte nicht geparst werden: %s\n"
 
-#: main.c:512
+#: main.c:513
 #, c-format
 msgid "Expression cannot be empty.\n"
 msgstr "Der Ausdruck darf nicht leer sein.\n"
 
-#: main.c:584
+#: main.c:585
 #, c-format
 msgid "The specified directory is invalid: %s\n"
 msgstr "Das Verzeichnis %s ist ungültig.\n"
 
-#: main.c:641
+#: main.c:642
 #, c-format
 msgid "Couldn't detect home directory.\n"
 msgstr "Heimverzeichnis konnte nicht gefunden werden.\n"
 
-#: main.c:832
+#: main.c:724
+#, c-format
+msgid "+++ ~/.efind/blacklist has been renamed to ~/.efind/ignore-list +++\n"
+msgstr "+++ ~/.efind/blacklist wurde in ~/.efind/ignore-list umbenannt +++\n"
+
+#: main.c:854
 #, c-format
 msgid "Try '%s --help' for more information.\n"
 msgstr "'%s --help' liefert weitere Informationen.\n"

@@ -65,6 +65,15 @@ bool path_builder_local_extensions(char *path, size_t path_len);
    @param path_len maximum buffer size
    @return true on success
 
+   Builds the path to the user's obsolete ignore-list.
+ */
+bool path_builder_obsolete_ignorelist(char *path, size_t path_len);
+
+/**
+   @param path location to write built path to
+   @param path_len maximum buffer size
+   @return true on success
+
    Builds the path to the user's ignore-list.
  */
 bool path_builder_ignorelist(char *path, size_t path_len);

@@ -38,6 +38,7 @@
 
 #include "efind.h"
 #include "log.h"
+#include "pathbuilder.h"
 #include "exec.h"
 #include "search.h"
 #include "parser.h"
@@ -706,6 +707,24 @@ _prepare_processing(Options *opts)
 	return success;
 }
 
+static void
+_test_obsolete_ignorelist(void)
+{
+	char path[PATH_MAX];
+
+	if(path_builder_obsolete_ignorelist(path, PATH_MAX))
+	{
+		assert(path != NULL);
+
+		struct stat sb;
+
+		if(!stat(path, &sb) && S_ISREG(sb.st_mode))
+		{
+			fprintf(stderr, _("+++ ~/.efind/blacklist has been renamed to ~/.efind/ignore-list +++\n"));
+		}
+	}
+}
+
 static Action
 _read_options(int argc, char *argv[], Options *opts)
 {
@@ -816,6 +835,8 @@ main(int argc, char *argv[])
 		INFOF("startup", "%s started successfully.", *argv);
 
 		bool run = true;
+
+		_test_obsolete_ignorelist();
 
 		if(ACTION_IS_PROCESSING_EXPRESSION(action))
 		{
