@@ -3,6 +3,7 @@
 	       big-endian systems
 	* CHANGE: renamed blacklist to ignore-list
 	* CHANGE: upgraded inih
+	* CHANGE: upgraded libdatatypes
 	* FIX: support multiple Python versions in Makefile
 
 2020-12-19 v0.5.6
