@@ -25,14 +25,14 @@ LIBFFI_LDFLAGS=`$(PKG_CONFIG) --libs libffi`
 
 PYTHON_CFLAGS?=-DWITH_PYTHON $(shell $(PKG_CONFIG) python3 --cflags) $(LIBFFI_CFLAGS)
 
-ifneq (, $(shell which python3.6 2>/dev/null))
-	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs) $(LIBFFI_LDFLAGS)
-else ifneq (, $(shell which python3.7 2>/dev/null))
-	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs) $(LIBFFI_LDFLAGS)
+ifneq (, $(shell which python3.9 2>/dev/null))
+	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --ldflags --embed) $(LIBFFI_LDFLAGS)
 else ifneq (, $(shell which python3.8 2>/dev/null))
 	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs --embed) $(LIBFFI_LDFLAGS)
-else ifneq (, $(shell which python3.9 2>/dev/null))
-	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --ldflags --embed) $(LIBFFI_LDFLAGS)
+else ifneq (, $(shell which python3.7 2>/dev/null))
+	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs) $(LIBFFI_LDFLAGS)
+else ifneq (, $(shell which python3.6 2>/dev/null))
+	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --libs) $(LIBFFI_LDFLAGS)
 endif
 
 INIH_CFLAGS?=-DINI_USE_STACK=0 -I"$(PWD)/inih"
