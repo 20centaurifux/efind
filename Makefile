@@ -42,7 +42,7 @@ override CFLAGS+=$(PYTHON_CFLAGS) $(INIH_CFLAGS) -Wall -Wextra -Wno-unused-param
 override LDFLAGS+=-L./datatypes $(PYTHON_LDFLAGS) -ldl ./datatypes/libdatatypes.a.0.3.2 -lm
 INC=-I"$(PWD)/datatypes"
 
-VERSION=0.5.6
+VERSION=0.5.7
 
 all:
 	$(MAKE) -C ./datatypes
