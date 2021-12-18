@@ -1,3 +1,8 @@
+efind (0.5-8) unstable; urgency=low
+  * FEATURE: Python 3.10 support
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sat, 18 Dec 2021 17:34:57 +0100
+
 efind (0.5-7) unstable; urgency=low
   * FIX: print file-permissions and inodes correctly on big-endian systems
   * CHANGE: renamed blacklist to ignore-list

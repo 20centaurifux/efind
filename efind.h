@@ -31,7 +31,7 @@
 /*! Minor version. */
 #define EFIND_VERSION_MINOR     5
 /*! Patch level. */
-#define EFIND_VERSION_PATCH     7
+#define EFIND_VERSION_PATCH     8
 /*! Code name. */
 #define EFIND_VERSION_CODE_NAME "James Cook"
 /*! Project website. */

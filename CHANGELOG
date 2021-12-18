@@ -1,3 +1,6 @@
+2021-12-18 v0.5.8
+	* FEATURE: Python 3.10 support
+
 2021-08-24 v0.5.7
 	* FIX: print file-permissions and inodes correctly on
 	       big-endian systems
