@@ -154,7 +154,7 @@ int extension_manager_load_default(ExtensionManager *manager);
 
    Tests if a callback with the specified signature does exist.
  */
-ExtensionCallbackStatus extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, CallbackArgType *types);
+ExtensionCallbackStatus extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, const CallbackArgType *types);
 
 /**
    @param manager an ExtensionManager

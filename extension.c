@@ -579,7 +579,7 @@ extension_manager_load_default(ExtensionManager *manager)
 }
 
 ExtensionCallbackStatus
-extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, CallbackArgType *types)
+extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, const CallbackArgType *types)
 {
 	ExtensionCallbackStatus result = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 
