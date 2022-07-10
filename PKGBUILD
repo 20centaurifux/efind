@@ -1,6 +1,6 @@
 # Maintainer: Sebastian Fedrau <sebastian.fedrau@gmail.com>
 pkgname=efind
-pkgver=0.5.8
+pkgver=0.5.9
 pkgrel=1
 epoch=
 pkgdesc="An extendable wrapper for GNU find."

@@ -1,3 +1,9 @@
+efind (0.5-9) unstable; urgency=low
+  * CHANGE: upgraded inih
+  * CHANGE: refactored build files
+
+ -- Sebastian Fedrau <sebastian.fedrau@gmail.com>  Sun, 10 Jul 2022 14:54:11 +0100
+
 efind (0.5-8) unstable; urgency=low
   * FEATURE: Python 3.10 support
 
