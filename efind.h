@@ -31,13 +31,13 @@
 /*! Minor version. */
 #define EFIND_VERSION_MINOR     5
 /*! Patch level. */
-#define EFIND_VERSION_PATCH     9
+#define EFIND_VERSION_PATCH     10
 /*! Code name. */
 #define EFIND_VERSION_CODE_NAME "James Cook"
 /*! Project website. */
 #define EFIND_WEBSITE           "http://efind.dixieflatline.de"
 /*! Copyright date. */
-#define EFIND_COPYRIGHT_DATE    "2017-2021"
+#define EFIND_COPYRIGHT_DATE    "2017-2023"
 /*! License name. */
 #define EFIND_LICENSE_NAME      "GPLv3"
 /*! URL to license text. */
