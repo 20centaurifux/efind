@@ -25,7 +25,9 @@ LIBFFI_LDFLAGS=`$(PKG_CONFIG) --libs libffi`
 
 PYTHON_CFLAGS?=-DWITH_PYTHON $(shell $(PKG_CONFIG) python3 --cflags) $(LIBFFI_CFLAGS)
 
-ifneq (, $(shell which python3.10 2>/dev/null))
+ifneq (, $(shell which python3.11 2>/dev/null))
+	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --ldflags --embed) $(LIBFFI_LDFLAGS)
+else ifneq (, $(shell which python3.10 2>/dev/null))
 	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --ldflags --embed) $(LIBFFI_LDFLAGS)
 else ifneq (, $(shell which python3.9 2>/dev/null))
 	PYTHON_LDFLAGS?=$(shell $(PYTHON_CONFIG) --ldflags --embed) $(LIBFFI_LDFLAGS)
