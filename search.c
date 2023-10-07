@@ -676,91 +676,108 @@ search_files(const char *path, const char *expr, TranslationFlags flags, const S
 
 	TRACE("search", "Creating pipes.");
 
-	if(pipe2(outfds, 0) >= 0 && pipe2(errfds, 0) >= 0)
+	if(pipe2(outfds, 0) >= 0)
 	{
-		char **argv = NULL;
-		size_t argc = 0;
-		ParserResult *result;
-
-		TRACE("search", "Pipes created successfully, translating expression.");
-
-		result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
-
-		assert(result != NULL);
-
-		if(result->success)
+		if(pipe2(errfds, 0) >= 0)
 		{
-			DEBUG("search", "Expression parsed successfully, forking and running `find'.");
+			char **argv = NULL;
+			size_t argc = 0;
+			ParserResult *result;
 
-			pid_t pid = fork();
+			TRACE("search", "Pipes created successfully, translating expression.");
 
-			if(pid == -1)
+			result = _search_translate_expr(path, expr, flags, opts, &argc, &argv);
+
+			assert(result != NULL);
+
+			if(result->success)
 			{
-				FATALF("search", "`fork' failed with result %ld.", pid);
-				perror("fork()");
-			}
-			else if(pid == 0)
-			{
-				if(_search_close_and_dup_child_fds(outfds, errfds))
+				DEBUG("search", "Expression parsed successfully, forking and running `find'.");
+
+				pid_t pid = fork();
+
+				if(pid == -1)
 				{
-					_search_child_process(argv);
+					FATALF("search", "`fork' failed with result %ld.", pid);
+					perror("fork()");
+				}
+				else if(pid == 0)
+				{
+					if(_search_close_and_dup_child_fds(outfds, errfds))
+					{
+						_search_child_process(argv);
+					}
+					else
+					{
+						ERROR("search", "Couldn't initialize child's file descriptors.");
+					}
 				}
 				else
 				{
-					ERROR("search", "Couldn't initialize child's file descriptors.");
+					if(_search_close_parent_fds(outfds, errfds))
+					{
+						ParentCtx ctx;
+
+						memset(&ctx, 0, sizeof(ParentCtx));
+
+						ctx.child_pid = pid;
+						ctx.outfd = outfds[0];
+						ctx.errfd = errfds[0];
+						ctx.found_file = found_file;
+						ctx.err_message = err_message;
+						ctx.user_data = user_data;
+
+						_search_filter_args_init(&ctx.filter_args, result);
+
+						ret = _search_parent_process(&ctx);
+
+						_search_filter_args_free(&ctx.filter_args);
+					}
+					else
+					{
+						WARNING("search", "Couldn't close parent's file descriptors.");
+					}
 				}
+			}
+			else if(result->err)
+			{
+				TRACEF("search", "Couldn't parse expression: %s", result->err);
+				fprintf(stderr, "%s\n", result->err);
 			}
 			else
 			{
-				if(_search_close_parent_fds(outfds, errfds))
-				{
-					ParentCtx ctx;
-
-					memset(&ctx, 0, sizeof(ParentCtx));
-
-					ctx.child_pid = pid;
-					ctx.outfd = outfds[0];
-					ctx.errfd = errfds[0];
-					ctx.found_file = found_file;
-					ctx.err_message = err_message;
-					ctx.user_data = user_data;
-
-					_search_filter_args_init(&ctx.filter_args, result);
-
-					ret = _search_parent_process(&ctx);
-
-					_search_filter_args_free(&ctx.filter_args);
-				}
-				else
-				{
-					WARNING("search", "Couldn't close parent's file descriptors.");
-				}
+				TRACE("search", "Couldn't parse expression, no error message set.");
 			}
-		}
-		else if(result->err)
-		{
-			TRACEF("search", "Couldn't parse expression: %s", result->err);
-			fprintf(stderr, "%s\n", result->err);
+
+			DEBUGF("search", "Search finished with result %d.", ret);
+
+			if(argv)
+			{
+				for(size_t i = 0; i < argc; i++)
+				{
+					free(argv[i]);
+				}
+
+				free(argv);
+			}
+
+			parser_result_free(result);
+			_search_close_all_fds(outfds, errfds);
 		}
 		else
 		{
-			TRACE("search", "Couldn't parse expression, no error message set.");
-		}
+			perror("pipe2()");
 
-		DEBUGF("search", "Search finished with result %d.", ret);
-
-		if(argv)
-		{
-			for(size_t i = 0; i < argc; i++)
+			if(close(outfds[0]))
 			{
-				free(argv[i]);
+				perror("close()");
 			}
 
-			free(argv);
+			if(close(outfds[1]))
+			{
+				perror("close()");
+			}
 		}
-
-		parser_result_free(result);
-		_search_close_all_fds(outfds, errfds);
 	}
 	else
 	{
