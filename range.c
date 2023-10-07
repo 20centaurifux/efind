@@ -40,7 +40,7 @@ _limit_processor_read(Processor *processor)
 {
 	assert(processor != NULL);
 
-	RangeProcessor *range = (RangeProcessor *)processor;
+	const RangeProcessor *range = (RangeProcessor *)processor;
 
 	processor->flags &= ~PROCESSOR_FLAG_READABLE;
 

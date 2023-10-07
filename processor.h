@@ -253,7 +253,7 @@ void processor_chain_builder_fail(ProcessorChainBuilder *builder);
 
    Gets the built chain. Returns NULL if an error occurred during build.
  */
-ProcessorChain *processor_chain_builder_get_chain(ProcessorChainBuilder *builder);
+ProcessorChain *processor_chain_builder_get_chain(const ProcessorChainBuilder *builder);
 
 #endif
 

@@ -60,7 +60,7 @@ size_t ignorelist_glob(Ignorelist *ignorelist, const char *pattern);
 
    Tests if a filename matches an ignored path.
  */
-bool ignorelist_matches(Ignorelist *ignorelist, const char *filename);
+bool ignorelist_matches(const Ignorelist *ignorelist, const char *filename);
 
 /**
    @param ignorelist an Ignorelist

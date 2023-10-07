@@ -154,7 +154,7 @@ int extension_manager_load_default(ExtensionManager *manager);
 
    Tests if a callback with the specified signature does exist.
  */
-ExtensionCallbackStatus extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, const CallbackArgType *types);
+ExtensionCallbackStatus extension_manager_test_callback(const ExtensionManager *manager, const char *name, uint32_t argc, const CallbackArgType *types);
 
 /**
    @param manager an ExtensionManager
@@ -167,7 +167,7 @@ ExtensionCallbackStatus extension_manager_test_callback(ExtensionManager *manage
 
    Executes a callback.
  */
-ExtensionCallbackStatus extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void *argv[], int *result);
+ExtensionCallbackStatus extension_manager_invoke(const ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void *argv[], int *result);
 
 /**
    @param manager an ExtensionManager
@@ -175,7 +175,7 @@ ExtensionCallbackStatus extension_manager_invoke(ExtensionManager *manager, cons
 
    Lists registered extensions and writes them to the specified stream.
  */
-void extension_manager_export(ExtensionManager *manager, FILE *out);
+void extension_manager_export(const ExtensionManager *manager, FILE *out);
 
 /**
    @param argc number of arguments

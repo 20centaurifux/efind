@@ -157,10 +157,10 @@ utils_strlcat(char *dst, const char *src, size_t size)
 
 	char *d = dst;
 	const char *s = src;
-	size_t n = size;
 
 	if(src)
 	{
+		size_t n = size;
 		size_t dlen;
 
 		while(n-- != 0 && *d != '\0')
@@ -223,7 +223,7 @@ utils_trim(char *str)
 		--end;
 	}
 
-	size_t len = end - start;
+	const size_t len = end - start;
 
 	if(len)
 	{

@@ -86,7 +86,7 @@ ignorelist_glob(Ignorelist *ignorelist, const char *pattern)
 }
 
 bool
-ignorelist_matches(Ignorelist *ignorelist, const char *filename)
+ignorelist_matches(const Ignorelist *ignorelist, const char *filename)
 {
 	assert(ignorelist != NULL);
 	assert(filename != NULL);

@@ -392,7 +392,7 @@ _prepend_exec_processors(ProcessorChainBuilder *builder)
 	{
 		TRACE("action", "Prepending exec processor.");
 
-		ExecArgs *args = (ExecArgs *)slist_item_get_data(item);
+		const ExecArgs *args = (ExecArgs *)slist_item_get_data(item);
 		int32_t flags = _get_exec_flags(opts);
 
 		Processor *processor = exec_processor_new(args, flags);

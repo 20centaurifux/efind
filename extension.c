@@ -305,7 +305,7 @@ _extension_manager_import_module(ExtensionManager *manager, const char *filename
 }
 
 static ExtensionModule *
-_extension_manager_find_callback(ExtensionManager *manager, const char *name, ExtensionCallback **cb)
+_extension_manager_find_callback(const ExtensionManager *manager, const char *name, ExtensionCallback **cb)
 {
 	ExtensionModule *found = NULL;
 
@@ -323,7 +323,7 @@ _extension_manager_find_callback(ExtensionManager *manager, const char *name, Ex
 
 		assert(module != NULL);
 
-		AssocArrayPair *pair = assoc_array_lookup(module->callbacks, name);
+		const AssocArrayPair *pair = assoc_array_lookup(module->callbacks, name);
 
 		if(pair)
 		{
@@ -579,7 +579,7 @@ extension_manager_load_default(ExtensionManager *manager)
 }
 
 ExtensionCallbackStatus
-extension_manager_test_callback(ExtensionManager *manager, const char *name, uint32_t argc, const CallbackArgType *types)
+extension_manager_test_callback(const ExtensionManager *manager, const char *name, uint32_t argc, const CallbackArgType *types)
 {
 	ExtensionCallbackStatus result = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 
@@ -616,7 +616,7 @@ extension_manager_test_callback(ExtensionManager *manager, const char *name, uin
 }
 
 ExtensionCallbackStatus
-extension_manager_invoke(ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void *argv[], int *result)
+extension_manager_invoke(const ExtensionManager *manager, const char *name, const char *filename, uint32_t argc, void *argv[], int *result)
 {
 	ExtensionCallbackStatus status = EXTENSION_CALLBACK_STATUS_NOT_FOUND;
 
@@ -653,7 +653,7 @@ extension_manager_invoke(ExtensionManager *manager, const char *name, const char
 }
 
 void
-extension_manager_export(ExtensionManager *manager, FILE *out)
+extension_manager_export(const ExtensionManager *manager, FILE *out)
 {
 	assert(manager != NULL);
 	assert(out != NULL);
@@ -664,7 +664,7 @@ extension_manager_export(ExtensionManager *manager, FILE *out)
 
 	while(assoc_array_iter_next(&iter))
 	{
-		ExtensionModule *module= (ExtensionModule *)assoc_array_iter_get_value(&iter);
+		const ExtensionModule *module= (ExtensionModule *)assoc_array_iter_get_value(&iter);
 
 		assert(module != NULL);
 		assert(module->filename != NULL);
@@ -688,7 +688,7 @@ extension_manager_export(ExtensionManager *manager, FILE *out)
 
 		while(assoc_array_iter_next(&cb_iter))
 		{
-			ExtensionCallback *cb = (ExtensionCallback *)assoc_array_iter_get_value(&cb_iter);
+			const ExtensionCallback *cb = (ExtensionCallback *)assoc_array_iter_get_value(&cb_iter);
 			fprintf(out, "\t%s(", cb->name);
 
 			for(size_t i = 0; i < cb->argc; ++i)

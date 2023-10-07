@@ -190,7 +190,7 @@ out:
 }
 
 static void
-_set_error(TranslationCtx *ctx, Node *node, const char *fmt, ...)
+_set_error(TranslationCtx *ctx, const Node *node, const char *fmt, ...)
 {
 	assert(ctx != NULL);
 	assert(fmt != NULL);
@@ -734,7 +734,7 @@ _append_string_arg(TranslationCtx *ctx, const char *propname, const char *val)
 static bool _process_node(TranslationCtx *ctx, Node *root);
 
 static bool
-_open_parenthese(ExpressionNode *node, Node *child)
+_open_parenthese(const ExpressionNode *node, Node *child)
 {
 	assert(node != NULL);
 	assert(child != NULL);
@@ -757,8 +757,8 @@ _process_expression(TranslationCtx *ctx, ExpressionNode *node)
 	assert(node->first != NULL);
 	assert(node->second != NULL);
 
-	char *lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
-	char *rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
+	const char *lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
+	const char *rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
 
 	if(node->op != OP_AND && node->op != OP_OR)
 	{
@@ -890,8 +890,8 @@ _process_not(TranslationCtx *ctx, NotNode *node)
 
 	if(_translation_ctx_append_args(ctx, "!", NULL_CHARPTR))
 	{
-		char *lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
-		char *rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
+		const char *lparen = QUOTE_ARGS(ctx) ? "\\(" : "(";
+		const char *rparen = QUOTE_ARGS(ctx) ? "\\)" : ")";
 		bool open = false;
 
 		if(node->expr->type == NODE_EXPRESSION)

@@ -610,7 +610,7 @@ _format_parse(FormatParserCtx *ctx, FormatLexerResult *lexer)
 
 	while(iter && result != FORMAT_PARSER_STEP_RESULT_ABORT)
 	{
-		FormatToken *token = slist_item_get_data(iter);
+		const FormatToken *token = slist_item_get_data(iter);
 
 		if(!stack_head(&ctx->state, &state))
 		{

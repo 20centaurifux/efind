@@ -54,7 +54,7 @@ char *
 linux_map_gid(gid_t gid)
 {
 	char *name = NULL;
-	struct group *grp = getgrgid(gid);
+	const struct group *grp = getgrgid(gid);
 	
 	if(grp && grp->gr_name && *grp->gr_name)
 	{
@@ -72,7 +72,7 @@ char *
 linux_map_uid(uid_t uid)
 {
 	char *name = NULL;
-	struct passwd *pw = getpwuid(uid);
+	const struct passwd *pw = getpwuid(uid);
 	
 	if(pw && pw->pw_name && *pw->pw_name)
 	{

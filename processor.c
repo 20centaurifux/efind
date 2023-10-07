@@ -266,7 +266,7 @@ processor_chain_builder_fail(ProcessorChainBuilder *builder)
 }
 
 ProcessorChain *
-processor_chain_builder_get_chain(ProcessorChainBuilder *builder)
+processor_chain_builder_get_chain(const ProcessorChainBuilder *builder)
 {
 	assert(builder != NULL);
 
